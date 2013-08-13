@@ -1,0 +1,10 @@
+*.dart.js
+*.js_
+*.js.deps
+*.js.map
+deploy/
+packages
+.buildlog
+pubspec.lock
+lib/docs/
+out/

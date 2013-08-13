@@ -1,0 +1,6 @@
+name: framework
+description: A sample web application
+dependencies:
+  browser: any
+  unittest: any
+  web_ui: any
