@@ -34,4 +34,12 @@ abstract class ChildCollection extends Collection {
   void clear({silent: false}) {
     throw new UnsupportedError('This is read only collection.');
   }
+
+  void _addOnModelChangeListener(Model model) {
+    // The child collections shall not listen directly to models.
+  }
+
+  void _removeOnModelChangeListener(id) {
+    // The child collections shall not listen directly to models.
+  }
 }

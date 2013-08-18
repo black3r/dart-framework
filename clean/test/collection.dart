@@ -28,6 +28,13 @@ void test_collection() {
       expect(collection[2], equals(model2));
     });
 
+    test('There can be any number of listeners to onChange events.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.onChange.listen((event) {});
+      collection.onChange.listen((event) {});
+      collection.onChange.listen((event) {});
+    });
+
     test('Collection correctly implements the Iterable interface.',
         () {
       var collection = new Collection.fromList([model1, model2]);

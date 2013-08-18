@@ -26,7 +26,7 @@ class Collection extends Object with IterableMixin<Model> {
       : _models = new Map<dynamic, Model>(),
         _modelsList = new List<Model>(),
         _modelListeners = new Map<dynamic, StreamSubscription>(),
-        _onChangeController = new StreamController<Map>();
+        _onChangeController = new StreamController<Map>.broadcast();
 
 
   /**
@@ -50,10 +50,7 @@ class Collection extends Object with IterableMixin<Model> {
    */
   bool containsId(id) => this._models.containsKey(id);
 
-
-  void _add(Model model) {
-    this._models[model.id] = model;
-    this._modelsList.add(model);
+  void _addOnModelChangeListener(Model model) {
     this._modelListeners[model.id] = model.onChange.listen((event) {
       this._onChangeController.add({
         'added' : [],
@@ -62,6 +59,17 @@ class Collection extends Object with IterableMixin<Model> {
         'changes': [event],
       });
     });
+  }
+
+  void _removeOnModelChangeListener(id) {
+    this._modelListeners[id].cancel();
+    this._modelListeners.remove(id);
+  }
+
+  void _add(Model model) {
+    this._models[model.id] = model;
+    this._modelsList.add(model);
+    this._addOnModelChangeListener(model);
   }
 
 
@@ -86,8 +94,7 @@ class Collection extends Object with IterableMixin<Model> {
   void _remove(id) {
     this._models.remove(id);
     this._modelsList.removeWhere((model) => model.id == id);
-    this._modelListeners[id].cancel();
-    this._modelListeners.remove(id);
+    this._removeOnModelChangeListener(id);
   }
 
   /**
@@ -108,11 +115,10 @@ class Collection extends Object with IterableMixin<Model> {
   }
 
   void _clear() {
-    for (var listener in this._modelListeners.values) {
-      listener.cancel();
+    for (var id in this._models.keys) {
+      this._removeOnModelChangeListener(id);
     }
     this._models.clear();
-    this._modelListeners.clear();
     this._modelsList.clear();
   }
 
