@@ -50,17 +50,8 @@ class Collection extends Object with IterableMixin<Model> {
    */
   bool containsId(id) => this._models.containsKey(id);
 
-  /**
-   * Appends the [model] to the collection.
-   *
-   * Models should have unique id's.
-   */
-  void add(Model model, {bool silent: false}) {
-    var event = {
-      'type': 'add',
-      'values': [model],
-    };
 
+  void _add(Model model) {
     this._models[model.id] = model;
     this._modelsList.add(model);
     this._modelListeners[model.id] = model.onChange.listen((event) {
@@ -70,10 +61,30 @@ class Collection extends Object with IterableMixin<Model> {
         'changes': [event],
       });
     });
+  }
+
+
+  /**
+   * Appends the [model] to the collection.
+   *
+   * Models should have unique id's.
+   */
+  void add(Model model, {bool silent: false}) {
+    this._add(model);
 
     if (!silent) {
-      this._onChangeController.add(event);
+      this._onChangeController.add({
+        'type': 'add',
+        'values': [model],
+      });
     }
+  }
+
+  void _remove(id) {
+    this._models.remove(id);
+    this._modelsList.removeWhere((model) => model.id == id);
+    this._modelListeners[id].cancel();
+    this._modelListeners.remove(id);
   }
 
   /**
@@ -81,10 +92,7 @@ class Collection extends Object with IterableMixin<Model> {
    */
   void remove(id, {bool silent: false}) {
     var model = this._models[id];
-    this._models.remove(id);
-    this._modelsList.removeWhere((model) => model.id == id);
-    this._modelListeners[id].cancel();
-    this._modelListeners.remove(id);
+    this._remove(id);
 
     if (!silent) {
       this._onChangeController.add({
@@ -94,17 +102,21 @@ class Collection extends Object with IterableMixin<Model> {
     }
   }
 
+  void _clear() {
+    for (var listener in this._modelListeners.values) {
+      listener.cancel();
+    }
+    this._models.clear();
+    this._modelListeners.clear();
+    this._modelsList.clear();
+  }
+
   /**
    * Removes all models from the collection.
    */
   void clear({bool silent: false}) {
-    for (var listener in this._modelListeners.values) {
-      listener.cancel();
-    }
     var models = this._modelsList.toList();
-    this._models.clear();
-    this._modelListeners.clear();
-    this._modelsList.clear();
+    this._clear();
 
     if (!silent) {
       this._onChangeController.add({

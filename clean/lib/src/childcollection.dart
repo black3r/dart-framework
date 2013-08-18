@@ -6,58 +6,32 @@ part of clean_data;
 
 /**
  * Abstract Class that handles Child-Parent communication between [Collection]s.
- *
- * Classes that extend this class need to implement functions modelAdded, modelRemoved and
- * modelChanged ==> What to do when parent adds/removes/changes a model.
  */
 abstract class ChildCollection extends Collection {
-  Collection parent;
+  final Collection parent;
 
   /**
    * Creates a [ChildCollection] that is child of parent [Collection]
    * and fills it with models from parent collection.
    */
-  ChildCollection(Collection parent) : super() {
-    this.setParent(parent);
-    this.parent.models.forEach((id, model) {
-      this.add(model, false);
-    });
+  ChildCollection(this.parent) : super() {
+    this.parent.onChange.listen((event) => this.update());
   }
 
   /**
-   * Sets the parenting [Collection].
+   * Recalculate the collection from the parent data.
    */
-  void setParent(Collection parent) {
-    this.parent = parent;
-    if (this.parent != null) {
-      this.parent.events.listen((Map e) {
-        switch(e['eventtype']) {
-          case 'modelAdded':
-            this.modelAdded(e['model']);
-            break;
-          case 'modelChanged':
-            this.modelChanged(e['model'], e['old'], e['new']);
-            break;
-          case 'modelRemoved':
-            this.modelRemoved(e['model']);
-            break;
-        }
-      });
-    }
+  void update({silent: false});
+
+  void add(Model model, {silent: false}) {
+    throw new UnsupportedError('This is read only collection.');
   }
 
-  /**
-   * Handles actions that are done when a model is added to parent [Collection].
-   */
-  void modelAdded(Model model);
+  void remove(id, {silent: false}) {
+    throw new UnsupportedError('This is read only collection.');
+  }
 
-  /**
-   * Handles actions that are done when a model is removed from parent [Collection].
-   */
-  void modelRemoved(Model model);
-
-  /**
-   * Handles actions that are done when a model is changed in parent [Collection].
-   */
-  void modelChanged(Model model, Map oldfields, Map newfields);
+  void clear({silent: false}) {
+    throw new UnsupportedError('This is read only collection.');
+  }
 }
