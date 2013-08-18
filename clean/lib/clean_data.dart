@@ -9,6 +9,7 @@ library clean_data;
 
 import "dart:core";
 import "dart:async";
+import "dart:collection";
 
 part 'src/model.dart';
 part 'src/collection.dart';

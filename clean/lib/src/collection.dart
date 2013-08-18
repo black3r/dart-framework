@@ -7,19 +7,24 @@ part of clean_data;
 /**
  * Collection of [Model]s.
  */
-class Collection {
+class Collection extends Object with IterableMixin<Model> {
   final Map<dynamic, Model> _models;
+  final List<Model> _modelsList;
   final Map<dynamic, StreamSubscription> _modelListeners;
   int get length => this._models.length;
 
   final StreamController _onChangeController;
   Stream<Map> get onChange => _onChangeController.stream;
 
+  Iterator<Model> get iterator => _modelsList.iterator;
+
+
   /**
    * Creates an empty collection.
    */
   Collection()
       : _models = new Map<dynamic, Model>(),
+        _modelsList = new List<Model>(),
         _modelListeners = new Map<dynamic, StreamSubscription>(),
         _onChangeController = new StreamController<Map>();
 
@@ -57,6 +62,7 @@ class Collection {
     };
 
     this._models[model.id] = model;
+    this._modelsList.add(model);
     this._modelListeners[model.id] = model.onChange.listen((event) {
       this._onChangeController.add({
         'type': 'change',
@@ -76,6 +82,7 @@ class Collection {
   void remove(id, {bool silent: false}) {
     var model = this._models[id];
     this._models.remove(id);
+    this._modelsList.removeWhere((model) => model.id == id);
     this._modelListeners[id].cancel();
     this._modelListeners.remove(id);
 

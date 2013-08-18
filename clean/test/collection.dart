@@ -28,6 +28,16 @@ void test_collection() {
       expect(collection[2], equals(model2));
     });
 
+    test('We can iterate through the collection using the for-in construct.',
+        () {
+      var collection = new Collection.fromList([model1, model2]);
+      var models = [];
+      for (var model in collection) {
+        models.add(model);
+      }
+      expect(models, equals([model1, model2]));
+    });
+
     test('New models are appended to the collection using the add method.', () {
       var collection = new Collection();
       collection.add(model1);
@@ -53,6 +63,11 @@ void test_collection() {
       collection.remove(1);
       expect(collection.containsId(1), equals(false));
       expect(collection.containsId(2), equals(true));
+      var models = [];
+      for (var model in collection) {
+        models.add(model);
+      }
+      expect(models, equals([model2]));
     });
 
     test('Information about removed models is pushed through the'
