@@ -6,77 +6,33 @@ part of clean_data;
 
 
 class FilteredCollection extends ChildCollection {
-  var filter_function;
+  final test;
 
   /**
-   * Creates a [FilteredCollection] from a parent [Collection] and a filter function.
+   * Creates a [FilteredCollection] from a parent [Collection] and a [test] function.
    *
-   * Filter function should return bool == True if a model passes the filter,
-   * false if it does not pass (should not be included)
+   * Filter function should return bool == True if a model passes the [test],
+   * false if it does not pass (should not be included).
    */
-  FilteredCollection(Collection parent, filter) : super(parent) {
-    this.read_only = true;
-    this.filter_function = filter;
-    this.filterCollection();
+  FilteredCollection(Collection parent, this.test) : super(parent) {
+    this.update();
   }
 
-  /**
-   * Removes every [Model] that does not pass current filter from this [FilteredCollection].
-   */
-  void filterCollection() {
-    var toRemove = [];
-    this.models.forEach((id,Model model) {
-      if (!this.filterModel(model)) {
-        toRemove.add(model);
-      }
-    });
-    toRemove.forEach((Model model) {
-      this.models.remove(model.id);
-    });
-  }
-
-  /**
-   * Checks if a [Model] passes through the filter.
-   */
-  bool filterModel(Model model) {
-    return this.filter_function(model);
-  }
-
-  /**
-   * Adds the [Model] to the collection if it passes the filter
-   */
-  void modelAdded(Model model) {
-    this.read_only = false;
-    if (this.filterModel(model)) {
-      this.add(model);
-    }
-    this.read_only = true;
-  }
-
-  /**
-   * If the [Model] didn't pass the filter before and now does, adds it.
-   * If it passed the filter before and now it doesn't, removes it.
-   */
-  void modelChanged(Model model, Map oldkeys, Map newkeys) {
-    this.read_only = false;
-    if(this.contains(model)) {
-      if (!this.filterModel(model)) {
-        this.remove(model);
-      }
-    } else {
-      if (this.filterModel(model)) {
-        this.add(model);
+  void update({silent: false}) {
+    var removed = this._modelsList.toList();
+    this._clear();
+    for (var model in parent._modelsList) {
+      if (this.test(model)) {
+        this._add(model);
       }
     }
-    this.read_only = true;
-  }
+    var added = this._modelsList.toList();
 
-  /**
-   * If the model is in this collection removes it.
-   */
-  void modelRemoved(Model model) {
-    this.read_only = false;
-    this.remove(model);
-    this.read_only = true;
+    this._onChangeController.add({
+      'removed': removed,
+      'added': added,
+      'changed': [],
+      'changes': [],
+    });
   }
 }
