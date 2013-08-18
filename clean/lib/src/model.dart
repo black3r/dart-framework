@@ -5,63 +5,65 @@
 part of clean_data;
 
 /**
- * Model
+ * A representation for a single unit of structured data.
  */
 class Model {
-  Map _fields;
+  final Map _fields;
   dynamic get id => _fields['id'];
   dynamic operator[](key) => this._fields[key];
 
-  Stream<Map> events;
-  StreamController<Map> _eventsController;
+  final StreamController<Map> _onChangeController;
+  Stream<Map> get onChange => _onChangeController.stream;
+
 
   /**
-   * Creates a new model with set id
+   * Creates a model with the given [id].
    */
-  Model(id) {
-    this._fields = new Map();
+  Model(id)
+      : _onChangeController = new StreamController<Map>.broadcast(),
+        _fields = new Map() {
     this._fields['id'] = id;
-    this.createEventStreams();
   }
 
+
   /**
-   * Creates publicly accessible Event Streams.
+   * Creates a new model from key, value pairs [data].
    */
-  void createEventStreams() {
-    this._eventsController = new StreamController<Map>.broadcast();
-    this.events = this._eventsController.stream;
+  factory Model.fromData(id, Map data) {
+    var model = new Model(id);
+    data.forEach((k, v) => model[k] = v);
+    return model;
   }
 
   /**
-   * Creates a new model with set id and fields
+   * Returns whether this model contains the given [key].
    */
-  Model.fromData(id, this._fields) {
-    this.createEventStreams();
+  bool containsKey(String key) {
+    return this._fields.containsKey(key);
   }
 
   /**
-   * Updates a field defined by key in model with value
+   * Assignes the [value] to the [key] field.
    */
   void operator[]=(String key, value) {
-    if (key != 'id') {
-      var new_value = value;
-      if ((value is! Map) && (value is! List) && (value is! String) && (value is! int) && (value is! double) && (value is! bool)) {
-        throw new ArgumentError("Model fields may only contain maps, lists & basic types");
-      }
-      // prepare event
-      var old_value = this._fields[key];
-      Map event = new Map();
-      event['eventtype'] = 'modelChanged';
-      event['old'] = new Map();
-      event['old'][key] = old_value;
-      event['new'] = new Map();
-      event['new'][key] = new_value;
-      event['model'] = this;
-      // assign value
-      this._fields[key] = new_value;
-      this._eventsController.add(event);
-    } else {
-      throw new ArgumentError("id field is read-only");
+    if (key == 'id') {
+      throw new ArgumentError('The field "id" is read only.');
     }
+
+    var old_values = new Map();
+    if (this._fields.containsKey(key)) {
+      old_values[key] = this._fields[key];
+    }
+
+    var new_values = new Map();
+    new_values[key] = value;
+
+    this._fields[key] = value;
+
+    this._onChangeController.add({
+      'source': this,
+      'old_values': old_values,
+      'new_values': new_values
+    });
   }
 }
