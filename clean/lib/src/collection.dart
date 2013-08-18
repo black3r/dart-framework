@@ -56,8 +56,9 @@ class Collection extends Object with IterableMixin<Model> {
     this._modelsList.add(model);
     this._modelListeners[model.id] = model.onChange.listen((event) {
       this._onChangeController.add({
-        'type': 'change',
-        'values': [model],
+        'added' : [],
+        'removed': [],
+        'changed': [model],
         'changes': [event],
       });
     });
@@ -74,8 +75,10 @@ class Collection extends Object with IterableMixin<Model> {
 
     if (!silent) {
       this._onChangeController.add({
-        'type': 'add',
-        'values': [model],
+        'added': [model],
+        'removed': [],
+        'changed': [],
+        'changes': [],
       });
     }
   }
@@ -96,8 +99,10 @@ class Collection extends Object with IterableMixin<Model> {
 
     if (!silent) {
       this._onChangeController.add({
-        'type': 'remove',
-        'values': [model],
+        'added': [],
+        'removed': [model],
+        'changed': [],
+        'changes': [],
       });
     }
   }

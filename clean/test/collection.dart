@@ -44,12 +44,13 @@ void test_collection() {
       expect(collection.length, equals(2));
     });
 
-    test('Information about new models appended is pushed through the'
+    test('Information about added models appended is pushed through the'
         ' Stream onChange.', () {
       var collection = new Collection.fromList([model1, model2]);
       collection.onChange.listen(expectAsync1((event) {
-        expect(event['type'], equals('add'));
-        expect(event['values'], equals([model3]));
+        expect(event['changed'], equals([]));
+        expect(event['removed'], equals([]));
+        expect(event['added'], equals([model3]));
       }));
       collection.add(model3);
     });
@@ -66,8 +67,9 @@ void test_collection() {
         ' Stream onChange.', () {
       var collection = new Collection.fromList([model1, model2]);
       collection.onChange.listen(expectAsync1((event) {
-        expect(event['type'], equals('remove'));
-        expect(event['values'], equals([model2]));
+        expect(event['changed'], equals([]));
+        expect(event['removed'], equals([model2]));
+        expect(event['added'], equals([]));
       }));
       collection.remove(2);
     });
@@ -85,8 +87,9 @@ void test_collection() {
         ' Stream onChange', () {
       var collection = new Collection.fromList([model1, model2]);
       collection.onChange.listen(expectAsync1((event) {
-        expect(event['type'], equals('change'));
-        expect(event['values'], equals([model1]));
+        expect(event['changed'], equals([model1]));
+        expect(event['removed'], equals([]));
+        expect(event['added'], equals([]));
       }));
       model1['name'] = 'John Doe';
     });
