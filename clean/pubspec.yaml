@@ -1,6 +1,6 @@
-name: framework
+name: clean_data
 description: A sample web application
 dependencies:
   browser: any
+dev_dependencies:
   unittest: any
-  web_ui: any
