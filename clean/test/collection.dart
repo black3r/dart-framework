@@ -1,14 +1,10 @@
-// Copyright (c) 2013, Roman Hudec. All rights reserved. Use of this source
-// code is governed by a BSD-style license that can be found in the LICENSE
-// file.
+// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-library mvc.test.collection;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
-import 'package:web_ui/watcher.dart' as watchers;
-import 'package:web_ui/observe.dart';
-import 'lib/collection.dart';
-import 'lib/model.dart';
+import 'lib/clean_data.dart';
 
 void main() {
   test_collection();
@@ -36,7 +32,7 @@ void test_collection() {
       Model model1 = new Model(1);
       expect( () {
         col.add(model1);
-      }, throwsException);    
+      }, throwsException);
       expect( () {
         col.remove(model0);
       }, throwsException);
@@ -59,7 +55,7 @@ void test_collection() {
       Model model = new Model(0);
       expect(col.length, equals(0));
       col.add(model);
-      expect(col.length, equals(1));    
+      expect(col.length, equals(1));
       expect(col[0], equals(model));
       col.remove(model);
       expect(col.length, equals(0));

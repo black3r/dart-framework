@@ -1,36 +1,33 @@
-// Copyright (c) 2013, Roman Hudec. All rights reserved. Use of this source
-// code is governed by a BSD-style license that can be found in the LICENSE
-// file.
+// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-library mvc.collection.child;
-import 'model.dart';
-import 'collection.dart';
-import "dart:core";
+part of clean_data;
 
 /**
  * Abstract Class that handles Child-Parent communication between [Collection]s.
- * 
+ *
  * Classes that extend this class need to implement functions modelAdded, modelRemoved and
  * modelChanged ==> What to do when parent adds/removes/changes a model.
  */
 abstract class ChildCollection extends Collection {
-  Collection parent;  
+  Collection parent;
 
   /**
    * Creates a [ChildCollection] that is child of parent [Collection]
    * and fills it with models from parent collection.
    */
-  ChildCollection(Collection parent) : super() {    
+  ChildCollection(Collection parent) : super() {
     this.setParent(parent);
     this.parent.models.forEach((id, model) {
       this.add(model, false);
     });
   }
-  
+
   /**
    * Sets the parenting [Collection].
    */
-  void setParent(Collection parent) {    
+  void setParent(Collection parent) {
     this.parent = parent;
     if (this.parent != null) {
       this.parent.events.listen((Map e) {
@@ -45,7 +42,7 @@ abstract class ChildCollection extends Collection {
             this.modelRemoved(e['model']);
             break;
         }
-      });      
+      });
     }
   }
 
@@ -53,12 +50,12 @@ abstract class ChildCollection extends Collection {
    * Handles actions that are done when a model is added to parent [Collection].
    */
   void modelAdded(Model model);
-  
+
   /**
    * Handles actions that are done when a model is removed from parent [Collection].
    */
   void modelRemoved(Model model);
-  
+
   /**
    * Handles actions that are done when a model is changed in parent [Collection].
    */

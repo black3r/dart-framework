@@ -1,19 +1,16 @@
-// Copyright (c) 2013, Roman Hudec. All rights reserved. Use of this source
-// code is governed by a BSD-style license that can be found in the LICENSE
-// file.
+// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-library mvc.collection.filtered;
-import 'model.dart';
-import 'collection.dart';
-import 'childcollection.dart';
-import "dart:core";
+part of clean_data;
 
-class FilteredCollection extends ChildCollection {  
+
+class FilteredCollection extends ChildCollection {
   var filter_function;
-  
+
   /**
    * Creates a [FilteredCollection] from a parent [Collection] and a filter function.
-   * 
+   *
    * Filter function should return bool == True if a model passes the filter,
    * false if it does not pass (should not be included)
    */
@@ -22,11 +19,11 @@ class FilteredCollection extends ChildCollection {
     this.filter_function = filter;
     this.filterCollection();
   }
-  
+
   /**
    * Removes every [Model] that does not pass current filter from this [FilteredCollection].
    */
-  void filterCollection() {    
+  void filterCollection() {
     var toRemove = [];
     this.models.forEach((id,Model model) {
       if (!this.filterModel(model)) {
@@ -34,28 +31,28 @@ class FilteredCollection extends ChildCollection {
       }
     });
     toRemove.forEach((Model model) {
-      this.models.remove(model.id);      
-    });    
+      this.models.remove(model.id);
+    });
   }
-  
+
   /**
    * Checks if a [Model] passes through the filter.
    */
   bool filterModel(Model model) {
     return this.filter_function(model);
   }
-  
+
   /**
    * Adds the [Model] to the collection if it passes the filter
    */
   void modelAdded(Model model) {
     this.read_only = false;
     if (this.filterModel(model)) {
-      this.add(model);      
+      this.add(model);
     }
     this.read_only = true;
-  }  
-  
+  }
+
   /**
    * If the [Model] didn't pass the filter before and now does, adds it.
    * If it passed the filter before and now it doesn't, removes it.
@@ -70,10 +67,10 @@ class FilteredCollection extends ChildCollection {
       if (this.filterModel(model)) {
         this.add(model);
       }
-    }  
+    }
     this.read_only = true;
   }
- 
+
   /**
    * If the model is in this collection removes it.
    */

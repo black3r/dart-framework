@@ -1,24 +1,21 @@
-// Copyright (c) 2013, Roman Hudec. All rights reserved. Use of this source
-// code is governed by a BSD-style license that can be found in the LICENSE
-// file.
+// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-library mvc.collection;
-import 'model.dart';
-import "dart:core";
-import "dart:async";
+part of clean_data;
 
 /**
  * Collection of entries from database
  */
 class Collection {
   /// Map containing (id, model) pairs
-  Map<dynamic, Model> models;  
+  Map<dynamic, Model> models;
   Stream<Map> events;
-  StreamController<Map> _eventsController;  
-  
+  StreamController<Map> _eventsController;
+
   /// You can't add or change entries in a read-only collection
   bool read_only = false;
-  
+
   /// Number of models in collection
   int get length => this.models.length;
 
@@ -27,8 +24,8 @@ class Collection {
    */
   void createEventStreams() {
     this._eventsController = new StreamController<Map>.broadcast();
-    this.events = this._eventsController.stream;    
-  }  
+    this.events = this._eventsController.stream;
+  }
 
   /**
    * Generates Collection from list of Models
@@ -49,13 +46,13 @@ class Collection {
    * Generates an empty collection with no parent
    */
   Collection() {
-    this.models = new Map<dynamic, Model>();    
+    this.models = new Map<dynamic, Model>();
     this.createEventStreams();
   }
-  
+
   /**
    * Adds model to collection if it isn't already contained.
-   * 
+   *
    * Models should have unique id's.
    */
   void add(Model model, [bool sendEvents = true]) {
@@ -65,12 +62,12 @@ class Collection {
     if (!this.models.containsKey(model.id)) {
       this.models[model.id] = model;
       if (sendEvents) {
-        var event = new Map();        
+        var event = new Map();
         event['model'] = model;
         event['eventtype'] = 'modelAdded';
-        this._eventsController.add(event);                
+        this._eventsController.add(event);
         model.events.listen((Map event) {
-          if (event['type'] == 'modelChanged') 
+          if (event['type'] == 'modelChanged')
             this._eventsController.add(event);
         });
       }
@@ -83,11 +80,11 @@ class Collection {
   void remove(Model model, [bool sendEvents = true]) {
     if (this.read_only) {
       throw new Exception("Read-Only collections can't be edited!");
-    }    
+    }
     if (this.models.containsKey(model.id)) {
-      this.models.remove(model.id);      
+      this.models.remove(model.id);
       if (sendEvents) {
-        var event = new Map();        
+        var event = new Map();
         event['model'] = model;
         event['eventtype'] = 'modelRemoved';
         this._eventsController.add(event);
@@ -96,7 +93,7 @@ class Collection {
       throw new ArgumentError("No such model in this collection: $model.id");
     }
   }
-  
+
   /**
    * Gets model specified by id
    */
@@ -110,7 +107,7 @@ class Collection {
    * Checks if this [Collection] contains selected [Model].
    */
   bool contains(Model model) {
-    return this.models.containsKey(model.id); 
+    return this.models.containsKey(model.id);
   }
 
 }

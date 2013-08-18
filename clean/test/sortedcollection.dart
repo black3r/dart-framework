@@ -1,15 +1,10 @@
-// Copyright (c) 2013, Roman Hudec. All rights reserved. Use of this source
-// code is governed by a BSD-style license that can be found in the LICENSE
-// file.
+// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-library mvc.test.collection.sorted;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
-import 'package:web_ui/watcher.dart' as watchers;
-import 'package:web_ui/observe.dart';
-import 'lib/collection.dart';
-import 'lib/model.dart';
-import 'lib/sortedcollection.dart';
+import 'lib/clean_data.dart';
 
 void main() {
   test_sortedcollection();
@@ -36,7 +31,7 @@ void test_sortedcollection() {
       scol = new SortedCollection(col, cmp_id);
       expect(scol.sorted, equals([model1, model2, model3]));
       scol = new SortedCollection(col, cmp_id2);
-      expect(scol.sorted, equals([model3, model2, model1]));    
+      expect(scol.sorted, equals([model3, model2, model1]));
     });
     test('inserts correctly', () {
       Model m1 = new Model(1);
@@ -46,7 +41,7 @@ void test_sortedcollection() {
       Model m5 = new Model(5);
       Collection col = new Collection.fromList([m1, m4, m3, m5]);
       var correct = [m1, m2, m3, m4, m5];
-      SortedCollection scol = new SortedCollection(col, cmp_id);    
+      SortedCollection scol = new SortedCollection(col, cmp_id);
       var callback = expectAsync0((){});
       scol.events.listen((Map event) {
         if (event['eventtype'] == 'modelAdded') {
@@ -54,7 +49,7 @@ void test_sortedcollection() {
           callback();
         }
       });
-      col.add(m2);    
+      col.add(m2);
     });
     test('removes correctly', () {
       Model m1 = new Model(1);
@@ -64,7 +59,7 @@ void test_sortedcollection() {
       Model m5 = new Model(5);
       Collection col = new Collection.fromList([m1, m4, m3, m5, m2]);
       var correct = [m1, m3, m4, m5];
-      SortedCollection scol = new SortedCollection(col, cmp_id);    
+      SortedCollection scol = new SortedCollection(col, cmp_id);
       var callback = expectAsync0((){});
       scol.events.listen((Map event) {
         if (event['eventtype'] == 'modelRemoved') {
