@@ -12,57 +12,75 @@ void main() {
 
 void test_collection() {
   group('Collection', () {
-    test('can be created from List', () {
-      Model model1 = new Model(1);
-      Model model2 = new Model(2);
-      Collection col = new Collection.fromList([model1, model2]);
-      expect(col.length, equals(2));
-      expect(col[1], equals(model1));
-      expect(col[2], equals(model2));
+
+    Model model1, model2, model3;
+    setUp(() {
+      model1 = new Model(1);
+      model2 = new Model(2);
+      model3 = new Model(3);
     });
-    test('can be created empty', () {
-      Collection col = new Collection();
-      expect(col.length, equals(0));
+
+    test('Collection.fromList creates an collection containing the models from'
+        ' the list provided.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      expect(collection.length, equals(2));
+      expect(collection[1], equals(model1));
+      expect(collection[2], equals(model2));
     });
-    test('can be set read-only', () {
-      Collection col = new Collection();
-      Model model0 = new Model(0);
-      col.add(model0);
-      col.read_only = true;
-      Model model1 = new Model(1);
-      expect( () {
-        col.add(model1);
-      }, throwsException);
-      expect( () {
-        col.remove(model0);
-      }, throwsException);
-      expect(col[0], equals(model0));
+
+    test('New models are appended to the collection using the add method.', () {
+      var collection = new Collection();
+      collection.add(model1);
+      collection.add(model2);
+      expect(collection.containsId(1), equals(true));
+      expect(collection[1], equals(model1));
+      expect(collection[2], equals(model2));
+      expect(collection.length, equals(2));
     });
-    test('getters work', () {
-      Collection col = new Collection();
-      Model model0 = new Model(0);
-      Model model1 = new Model(1);
-      col.add(model0);
-      col.add(model1);
-      expect(col[0], equals(model0));
-      expect(col.get(0), equals(model0));
-      expect(col[1], equals(model1));
-      expect(col.get(1), equals(model1));
-      expect(col.length, equals(2));
+
+    test('Information about new models appended is pushed through the'
+        ' Stream onChange.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.onChange.listen(expectAsync1((event) {
+        expect(event['type'], equals('add'));
+        expect(event['values'], equals([model3]));
+      }));
+      collection.add(model3);
     });
-    test('add/remove works', () {
-      Collection col = new Collection();
-      Model model = new Model(0);
-      expect(col.length, equals(0));
-      col.add(model);
-      expect(col.length, equals(1));
-      expect(col[0], equals(model));
-      col.remove(model);
-      expect(col.length, equals(0));
-      expect(col[0], isNull);
-      expect(() {
-        col.remove(model);
-      }, throwsArgumentError);
+
+    test('Models are removed from the collection using the remove method.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.remove(1);
+      expect(collection.containsId(1), equals(false));
+      expect(collection.containsId(2), equals(true));
     });
+
+    test('Information about removed models is pushed through the'
+        ' Stream onChange.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.onChange.listen(expectAsync1((event) {
+        expect(event['type'], equals('remove'));
+        expect(event['values'], equals([model2]));
+      }));
+      collection.remove(2);
+    });
+
+    test('Information about changed models is pushed through the'
+        ' Stream onChange', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.onChange.listen(expectAsync1((event) {
+        expect(event['type'], equals('change'));
+        expect(event['values'], equals([model1]));
+      }));
+      model1['name'] = 'John Doe';
+    });
+
+    test('Information about the models not longer present in the collection'
+        ' is not monitored anymore.', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.remove(1, silent: true);
+      collection.onChange.listen((event) => guardAsync(() => expect(true, isFalse)));
+      model1['name'] = 'John Doe';
+   });
   });
 }

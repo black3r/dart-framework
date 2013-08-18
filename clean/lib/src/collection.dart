@@ -5,109 +5,86 @@
 part of clean_data;
 
 /**
- * Collection of entries from database
+ * Collection of [Model]s.
  */
 class Collection {
-  /// Map containing (id, model) pairs
-  Map<dynamic, Model> models;
-  Stream<Map> events;
-  StreamController<Map> _eventsController;
+  final Map<dynamic, Model> _models;
+  final Map<dynamic, StreamSubscription> _modelListeners;
+  int get length => this._models.length;
 
-  /// You can't add or change entries in a read-only collection
-  bool read_only = false;
-
-  /// Number of models in collection
-  int get length => this.models.length;
+  final StreamController _onChangeController;
+  Stream<Map> get onChange => _onChangeController.stream;
 
   /**
-   * Creates publicly accessible Event Streams.
+   * Creates an empty collection.
    */
-  void createEventStreams() {
-    this._eventsController = new StreamController<Map>.broadcast();
-    this.events = this._eventsController.stream;
+  Collection()
+      : _models = new Map<dynamic, Model>(),
+        _modelListeners = new Map<dynamic, StreamSubscription>(),
+        _onChangeController = new StreamController<Map>();
+
+
+  /**
+   * Generates Collection from list of [models].
+   */
+  factory Collection.fromList(List<Model> models) {
+    var collection = new Collection();
+    for (var model in models) {
+      collection.add(model, silent: true);
+    }
+    return collection;
   }
 
   /**
-   * Generates Collection from list of Models
+   * Gets model specified by given [id].
    */
-  Collection.fromList(List<Model> listmodel) {
-    this.models = new Map<dynamic, Model>();
-    listmodel.forEach((model) {
-      this.models[model.id] = model;
-      model.events.listen((Map event) {
-        if (event['eventtype'] == 'modelChanged')
-          this._eventsController.add(event);
-      });
-    });
-    this.createEventStreams();
-  }
+  Model operator[](id) => this._models[id];
 
   /**
-   * Generates an empty collection with no parent
+   * Returns whether this collection contains the given [id].
    */
-  Collection() {
-    this.models = new Map<dynamic, Model>();
-    this.createEventStreams();
-  }
+  bool containsId(id) => this._models.containsKey(id);
 
   /**
-   * Adds model to collection if it isn't already contained.
+   * Appends the [model] to the collection.
    *
    * Models should have unique id's.
    */
-  void add(Model model, [bool sendEvents = true]) {
-    if (this.read_only) {
-      throw new Exception("Read-Only collections can't be edited!");
-    }
-    if (!this.models.containsKey(model.id)) {
-      this.models[model.id] = model;
-      if (sendEvents) {
-        var event = new Map();
-        event['model'] = model;
-        event['eventtype'] = 'modelAdded';
-        this._eventsController.add(event);
-        model.events.listen((Map event) {
-          if (event['type'] == 'modelChanged')
-            this._eventsController.add(event);
-        });
-      }
+  void add(Model model, {bool silent: false}) {
+    var event = {
+      'type': 'add',
+      'values': [model],
+    };
+
+    this._models[model.id] = model;
+    this._modelListeners[model.id] = model.onChange.listen((event) {
+      this._onChangeController.add({
+        'type': 'change',
+        'values': [model],
+        'changes': [event],
+      });
+    });
+
+    if (!silent) {
+      this._onChangeController.add(event);
     }
   }
 
   /**
    * Removes a model from collection
    */
-  void remove(Model model, [bool sendEvents = true]) {
-    if (this.read_only) {
-      throw new Exception("Read-Only collections can't be edited!");
-    }
-    if (this.models.containsKey(model.id)) {
-      this.models.remove(model.id);
-      if (sendEvents) {
-        var event = new Map();
-        event['model'] = model;
-        event['eventtype'] = 'modelRemoved';
-        this._eventsController.add(event);
-      }
-    } else {
-      throw new ArgumentError("No such model in this collection: $model.id");
-    }
-  }
+  void remove(id, {bool silent: false}) {
+    var model = this._models[id];
+    this._models.remove(id);
+    this._modelListeners[id].cancel();
+    this._modelListeners.remove(id);
 
-  /**
-   * Gets model specified by id
-   */
-  Model get(id) => this.models[id];
-  /**
-   * Gets model specified by id
-   */
-  Model operator[](id) => this.get(id);
-
-  /**
-   * Checks if this [Collection] contains selected [Model].
-   */
-  bool contains(Model model) {
-    return this.models.containsKey(model.id);
+    if (!silent) {
+      this._onChangeController.add({
+        'type': 'remove',
+        'values': [model],
+      });
+    }
   }
 
 }
