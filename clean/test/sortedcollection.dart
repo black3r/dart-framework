@@ -10,64 +10,65 @@ void main() {
   test_sortedcollection();
 }
 
-void cmp_id(Model a, Model b) {
-  return a.id - b.id;
-}
-
-void cmp_id2(Model a, Model b) {
-  return b.id - a.id;
-}
-
 void test_sortedcollection() {
   group('SortedCollection', () {
-    test('sorts', () {
-      Model model1 = new Model(1);
-      Model model2 = new Model(2);
-      Model model3 = new Model(3);
-      Collection col = new Collection.fromList([model1, model2, model3]);
-      SortedCollection scol = new SortedCollection(col, cmp_id);
-      expect(scol.sorted, equals([model1, model2, model3]));
-      col = new Collection.fromList([model3, model2, model1]);
-      scol = new SortedCollection(col, cmp_id);
-      expect(scol.sorted, equals([model1, model2, model3]));
-      scol = new SortedCollection(col, cmp_id2);
-      expect(scol.sorted, equals([model3, model2, model1]));
+
+    Model model1, model2, model3, model4, model5, model6;
+    List<Model> models;
+    Collection collection, collection2;
+    SortedCollection sorted1, sorted2;
+    int cmp1(Model a, Model b) => a['value'] - b['value'];
+    int cmp2(Model a, Model b) => b['value'] - a['value'];
+
+    setUp(() {
+      model1 = new Model(1);
+      model2 = new Model(2);
+      model3 = new Model(3);
+      model4 = new Model(4);
+      model5 = new Model(5);
+      model6 = new Model(6);
+      models = [model3, model2, model1, model4];
+
+      for (var model in models) {
+        model['value'] = model.id;
+      }
+
+      model5['value'] = 5;
+      model6['value'] = 6;
+      collection = new Collection.fromList(models);
+      collection2 = new Collection.fromList(models);
+      sorted1 = new SortedCollection(collection, cmp1);
+      sorted2 = new SortedCollection(collection2, cmp2);
+
+
     });
-    test('inserts correctly', () {
-      Model m1 = new Model(1);
-      Model m2 = new Model(2);
-      Model m3 = new Model(3);
-      Model m4 = new Model(4);
-      Model m5 = new Model(5);
-      Collection col = new Collection.fromList([m1, m4, m3, m5]);
-      var correct = [m1, m2, m3, m4, m5];
-      SortedCollection scol = new SortedCollection(col, cmp_id);
-      var callback = expectAsync0((){});
-      scol.events.listen((Map event) {
-        if (event['eventtype'] == 'modelAdded') {
-          expect(scol.sorted, equals(correct));
-          callback();
-        }
-      });
-      col.add(m2);
+
+    test('SortedCollection contains elements from parent in sorted order', () {
+      expect(sorted1.toList(), orderedEquals([model1, model2, model3, model4]));
+      expect(sorted2.toList(), orderedEquals([model4, model3, model2, model1]));
     });
-    test('removes correctly', () {
-      Model m1 = new Model(1);
-      Model m2 = new Model(2);
-      Model m3 = new Model(3);
-      Model m4 = new Model(4);
-      Model m5 = new Model(5);
-      Collection col = new Collection.fromList([m1, m4, m3, m5, m2]);
-      var correct = [m1, m3, m4, m5];
-      SortedCollection scol = new SortedCollection(col, cmp_id);
-      var callback = expectAsync0((){});
-      scol.events.listen((Map event) {
-        if (event['eventtype'] == 'modelRemoved') {
-          expect(scol.sorted, equals(correct));
-          callback();
-        }
-      });
-      col.remove(m2);
+
+    test('SortedCollection gets updated when some of the models change.', () {
+      sorted1.onChange.listen(expectAsync1((event) {
+        expect(sorted1.toList(), orderedEquals([model2, model3, model4, model1]));
+      }));
+      sorted2.onChange.listen(expectAsync1((event) {
+        expect(sorted2.toList(), orderedEquals([model1, model4, model3, model2]));
+      }));
+      model1['value'] = 10;
     });
+
+    test('SortedCollection gets updated when the parent changes.', () {
+      sorted1.onChange.listen(expectAsync1((event) {
+        expect(sorted1.toList(), orderedEquals([model1, model2, model3, model4, model6]));
+      }));
+      sorted2.onChange.listen(expectAsync1((event) {
+        expect(sorted2.toList(), orderedEquals([model4, model2, model1]));
+      }));
+
+      collection.add(model6);
+      collection2.remove(3);
+    });
+
   });
 }

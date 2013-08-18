@@ -5,56 +5,32 @@
 part of clean_data;
 
 class SortedCollection extends ChildCollection {
-  var compare_function;
-  List<Model> sorted;
-  Model operator[](key) => sorted[key];
+  final compare;
 
   /**
    * Creates a [SortedCollection] from a parent [Collection] and a compare function.
    *
    * Compare function should be compatible with [List]'s sort() method.
    */
-  SortedCollection(Collection parent, filter) : super(parent) {
-    this.read_only = true;
-    this.compare_function = filter;
-    this.sortCollection();
+  SortedCollection(Collection parent, this.compare) : super(parent) {
+    this.update(silent: true);
   }
 
-  /**
-   * (Re)sorts the collection.
-   */
-  void sortCollection() {
-    sorted = new List<Model>();
-    this.models.forEach((id, Model model) {
-      sorted.add(model);
+  void update({silent: false}) {
+    var removed = this._modelsList.toList();
+
+    this._clear();
+    for (var model in parent._modelsList) {
+      this._add(model);
+    }
+    this._modelsList.sort(this.compare);
+
+    var added = this._modelsList.toList();
+    this._onChangeController.add({
+      'removed': removed,
+      'added': added,
+      'changed': [],
+      'changes': [],
     });
-    sorted.sort(compare_function);
-  }
-
-  /**
-   * Adds the model and sorts the collection again.
-   */
-  void modelAdded(Model model) {
-    this.read_only = false;
-    this.add(model);
-    this.sortCollection();
-    this.read_only = true;
-  }
-
-  /**
-   * Sorts the collection again.
-   */
-  void modelChanged(Model model, Map oldkeys, Map newkeys) {
-    this.sortCollection();
-  }
-
-  /**
-   * Removes the model from the collection.
-   */
-  void modelRemoved(Model model) {
-    this.read_only = false;
-    this.remove(model);
-    this.sortCollection();
-    this.read_only = true;
   }
 }
