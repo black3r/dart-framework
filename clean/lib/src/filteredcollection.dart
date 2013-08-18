@@ -15,7 +15,7 @@ class FilteredCollection extends ChildCollection {
    * false if it does not pass (should not be included).
    */
   FilteredCollection(Collection parent, this.test) : super(parent) {
-    this.update();
+    this.update(silent: true);
   }
 
   void update({silent: false}) {
