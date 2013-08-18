@@ -77,7 +77,7 @@ class Collection extends Object with IterableMixin<Model> {
   }
 
   /**
-   * Removes a model from collection
+   * Removes a model from the collection.
    */
   void remove(id, {bool silent: false}) {
     var model = this._models[id];
@@ -90,6 +90,26 @@ class Collection extends Object with IterableMixin<Model> {
       this._onChangeController.add({
         'type': 'remove',
         'values': [model],
+      });
+    }
+  }
+
+  /**
+   * Removes all models from the collection.
+   */
+  void clear({bool silent: false}) {
+    for (var listener in this._modelListeners.values) {
+      listener.cancel();
+    }
+    var models = this._modelsList.toList();
+    this._models.clear();
+    this._modelListeners.clear();
+    this._modelsList.clear();
+
+    if (!silent) {
+      this._onChangeController.add({
+        'type': 'remove',
+        'values': models,
       });
     }
   }

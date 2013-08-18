@@ -28,14 +28,10 @@ void test_collection() {
       expect(collection[2], equals(model2));
     });
 
-    test('We can iterate through the collection using the for-in construct.',
+    test('Collection correctly implements the Iterable interface.',
         () {
       var collection = new Collection.fromList([model1, model2]);
-      var models = [];
-      for (var model in collection) {
-        models.add(model);
-      }
-      expect(models, equals([model1, model2]));
+      expect(collection.toList(), equals([model1, model2]));
     });
 
     test('New models are appended to the collection using the add method.', () {
@@ -63,11 +59,7 @@ void test_collection() {
       collection.remove(1);
       expect(collection.containsId(1), equals(false));
       expect(collection.containsId(2), equals(true));
-      var models = [];
-      for (var model in collection) {
-        models.add(model);
-      }
-      expect(models, equals([model2]));
+      expect(collection.toList(), equals([model2]));
     });
 
     test('Information about removed models is pushed through the'
@@ -78,6 +70,15 @@ void test_collection() {
         expect(event['values'], equals([model2]));
       }));
       collection.remove(2);
+    });
+
+    test('All models are removed using the clear method', () {
+      var collection = new Collection.fromList([model1, model2]);
+      collection.clear(silent: true);
+      expect(collection.length, equals(0));
+      expect(collection.toList(), equals([]));
+      collection.onChange.listen((event) => guardAsync(() => expect(true, isFalse)));
+      model1['name'] = 'John Doe';
     });
 
     test('Information about changed models is pushed through the'
