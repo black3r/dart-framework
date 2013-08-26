@@ -4,7 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
-import 'lib/clean_data.dart';
+import 'package:clean_data/clean_data.dart';
 
 void main() {
   test_collection();
