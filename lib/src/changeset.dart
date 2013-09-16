@@ -26,7 +26,14 @@ class ChangeSet {
   /* <children,Change> or <children, ChangeSet> */
   Map changedChildren = new Map();
   
-  addChild(child){
+  ChangeSet();
+  factory ChangeSet.from(ChangeSet other){
+    var changeSet = new ChangeSet();
+    changeSet.apply(other);
+    return changeSet;
+  }
+  
+  void addChild(child){
     if(this.removedChildren.contains(child)){
       this.removedChildren.remove(child);
     }
@@ -35,7 +42,7 @@ class ChangeSet {
     }
   }
   
-  removeChild(child){
+  void removeChild(child){
     if(addedChildren.contains(child)){
       this.addedChildren.remove(child);
     }
@@ -44,7 +51,7 @@ class ChangeSet {
     }
   }
   
-  changeChild(child, changeSet){
+  void changeChild(child, changeSet){
     if(this.addedChildren.contains(child))
       return;
     if(this.changedChildren.containsKey(child)){
@@ -55,7 +62,7 @@ class ChangeSet {
     }
   }
   
-  apply(ChangeSet changeSet){
+  void apply(ChangeSet changeSet){
     for(var child in changeSet.addedChildren)
       this.addChild(child);
     for(var child in changeSet.removedChildren)
@@ -68,7 +75,7 @@ class ChangeSet {
   /**
    * Removes all changes
    */
-  clear(){
+  void clear(){
     this.addedChildren.clear();
     this.removedChildren.clear();
     this.changedChildren.clear();
