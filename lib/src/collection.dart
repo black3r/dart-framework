@@ -13,6 +13,8 @@ class Collection extends Object with IterableMixin<Model> {
   final Map<dynamic, StreamSubscription> _modelListeners;
   int get length => this._models.length;
 
+  ChangeSet changeSet = new ChangeSet();
+  
   final StreamController _onChangeController;
   Stream<Map> get onChange => _onChangeController.stream;
 
@@ -52,12 +54,8 @@ class Collection extends Object with IterableMixin<Model> {
 
   void _addOnModelChangeListener(Model model) {
     this._modelListeners[model.id] = model.onChange.listen((event) {
-      this._onChangeController.add({
-        'added' : [],
-        'removed': [],
-        'changed': [model],
-        'changes': [event],
-      });
+      changeSet.changeChild(model,event);
+      this._onChangeController.add(changeSet);
     });
   }
 
@@ -82,12 +80,8 @@ class Collection extends Object with IterableMixin<Model> {
     this._add(model);
 
     if (!silent) {
-      this._onChangeController.add({
-        'added': [model],
-        'removed': [],
-        'changed': [],
-        'changes': [],
-      });
+      changeSet.addChild(model);
+      this._onChangeController.add(changeSet);
     }
   }
 
@@ -105,12 +99,8 @@ class Collection extends Object with IterableMixin<Model> {
     this._remove(id);
 
     if (!silent) {
-      this._onChangeController.add({
-        'added': [],
-        'removed': [model],
-        'changed': [],
-        'changes': [],
-      });
+      changeSet.removeChild(model);
+      this._onChangeController.add(changeSet);
     }
   }
 
@@ -130,10 +120,9 @@ class Collection extends Object with IterableMixin<Model> {
     this._clear();
 
     if (!silent) {
-      this._onChangeController.add({
-        'type': 'remove',
-        'values': models,
-      });
+      for(model in models)
+        changeSet.removeChild(model);
+      this._onChangeController.add(changeSet);
     }
   }
 

@@ -12,9 +12,10 @@ class Model {
   dynamic get id => _fields['id'];
   dynamic operator[](key) => this._fields[key];
 
+  ChangeSet changeSet = new ChangeSet();
+  
   final StreamController<Map> _onChangeController;
   Stream<Map> get onChange => _onChangeController.stream;
-
 
   /**
    * Creates a model with the given [id].
@@ -49,21 +50,15 @@ class Model {
     if (key == 'id') {
       throw new ArgumentError('The field "id" is read only.');
     }
+    
+    var old_value = null;
 
-    var old_values = new Map();
     if (this._fields.containsKey(key)) {
-      old_values[key] = this._fields[key];
+      old_value = this._fields[key];
     }
-
-    var new_values = new Map();
-    new_values[key] = value;
 
     this._fields[key] = value;
 
-    this._onChangeController.add({
-      'source': this,
-      'old_values': old_values,
-      'new_values': new_values
-    });
+    changeSet.changeChild(key, new Change.fromValues(old_value,value));
   }
 }

@@ -80,6 +80,7 @@ class ChangeSet {
   bool get isEmpty =>
       this.addedChildren.isEmpty && this.removedChildren.isEmpty 
         && this.changedChildren.isEmpty;
+  
   String toString(){
     var sb = new StringBuffer();
     sb.writeln('AddedChildren: ' + this.addedChildren.toString());
