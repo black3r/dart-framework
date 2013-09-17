@@ -120,15 +120,16 @@ class Collection extends Object with IterableMixin<Model> {
     this._clear();
 
     if (!silent) {
-      for(model in models)
+      for(model in models){
         changeSet.removeChild(model);
+      }
       this._onChangeController.add(changeSet);
     }
   }
   
-  void notify(){
-    Timer.run((){
-      if(!changeSet.isEmpty){
+  void notify() {
+    Timer.run(() {
+      if(!changeSet.isEmpty) {
         _onChangeController.add(changeSet); 
         changeSet.clear();
       }

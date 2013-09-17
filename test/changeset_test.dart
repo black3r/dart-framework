@@ -21,18 +21,10 @@ void test_change() {
     });
     test('Test if the changes are properly added',(){
       var change = new Change.fromValues(1,2);
-      change.apply(new Change.withNew(3));
+      change.apply(new Change.fromValues(1,3));
       
       expect(change.oldValue,equals(1));
       expect(change.newValue,equals(3));
-    });
-    test('Test setter and getters.',(){
-      var change = new Change();
-      change.newValue = 4;
-      change.oldValue = 7;
-      
-      expect(change.newValue,equals(4));
-      expect(change.oldValue,equals(7));
     });
   });
 }

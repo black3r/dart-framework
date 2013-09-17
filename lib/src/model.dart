@@ -52,7 +52,6 @@ class Model {
     }
     
     var old_value = null;
-
     if (this._fields.containsKey(key)) {
       old_value = this._fields[key];
     }

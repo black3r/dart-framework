@@ -5,19 +5,14 @@
 part of clean_data;
 
 class Change {
-  var oldValue;
-  var newValue;
+  dynamic oldValue;
+  dynamic newValue;
   
-  apply(Change change){
+  apply(Change change) {
     newValue = change.newValue;
   }
-  Change();
-  Change.fromValues(this.oldValue,this.newValue);
-  Change.withNew(this.newValue);
-  
-  toString(){
-    return oldValue.toString() + ' '+  newValue.toString();
-  }
+
+  Change.fromValues(this.oldValue, this.newValue);
 }
 
 class ChangeSet {
@@ -27,47 +22,46 @@ class ChangeSet {
   Map changedChildren = new Map();
   
   ChangeSet();
-  factory ChangeSet.from(ChangeSet other){
+  factory ChangeSet.from(ChangeSet other) {
     var changeSet = new ChangeSet();
     changeSet.apply(other);
     return changeSet;
   }
   
-  void addChild(child){
-    if(this.removedChildren.contains(child)){
+  void addChild(dynamic child) {
+    if(this.removedChildren.contains(child)) {
       this.removedChildren.remove(child);
-    }
-    else {
+    } else {
       this.addedChildren.add(child);
     }
   }
   
-  void removeChild(child){
-    if(addedChildren.contains(child)){
+  void removeChild(dynamic child) {
+    if(addedChildren.contains(child)) {
       this.addedChildren.remove(child);
-    }
-    else {
+    } else {
       this.removedChildren.add(child);
     }
   }
   
-  void changeChild(child, changeSet){
-    if(this.addedChildren.contains(child))
-      return;
-    if(this.changedChildren.containsKey(child)){
+  void changeChild(dynamic child, ChangeSet changeSet) {
+    if(this.addedChildren.contains(child)) return;
+    
+    if(this.changedChildren.containsKey(child)) {
       this.changedChildren[child].apply(changeSet);
-    }
-    else {
+    } else {
       this.changedChildren[child] = changeSet;
     }
   }
   
-  void apply(ChangeSet changeSet){
-    for(var child in changeSet.addedChildren)
+  void apply(ChangeSet changeSet) {
+    for(var child in changeSet.addedChildren ){
       this.addChild(child);
-    for(var child in changeSet.removedChildren)
+    }
+    for(var child in changeSet.removedChildren) {
       this.removeChild(child);
-    changeSet.changedChildren.forEach( (child,changeSet){
+    }
+    changeSet.changedChildren.forEach((child,changeSet) {
       this.changeChild(child,changeSet);
     });
   }
@@ -75,7 +69,7 @@ class ChangeSet {
   /**
    * Removes all changes
    */
-  void clear(){
+  void clear() {
     this.addedChildren.clear();
     this.removedChildren.clear();
     this.changedChildren.clear();
@@ -85,14 +79,7 @@ class ChangeSet {
    * Return if there are any changes
    */
   bool get isEmpty =>
-      this.addedChildren.isEmpty && this.removedChildren.isEmpty 
-        && this.changedChildren.isEmpty;
+      this.addedChildren.isEmpty && this.removedChildren.isEmpty &&
+        this.changedChildren.isEmpty;
   
-  String toString(){
-    var sb = new StringBuffer();
-    sb.writeln('AddedChildren: ' + this.addedChildren.toString());
-    sb.writeln('RemovedChildren: ' + this.removedChildren.toString());
-    sb.writeln('ChangedChildren: ' + this.changedChildren.toString());
-    return sb.toString();
-  }
 }
