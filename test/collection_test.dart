@@ -54,10 +54,9 @@ void test_collection() {
     test('Information about added models appended is pushed through the'
         ' Stream onChange.', () {
       var collection = new Collection.fromList([model1, model2]);
-      collection.onChange.listen(expectAsync1((event) {
-        expect(event['changed'], equals([]));
-        expect(event['removed'], equals([]));
-        expect(event['added'], equals([model3]));
+      collection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.addedChildren.length, equals(1));
+        expect(event.addedChildren, equals([model3]));
       }));
       collection.add(model3);
     });
@@ -73,10 +72,9 @@ void test_collection() {
     test('Information about removed models is pushed through the'
         ' Stream onChange.', () {
       var collection = new Collection.fromList([model1, model2]);
-      collection.onChange.listen(expectAsync1((event) {
-        expect(event['changed'], equals([]));
-        expect(event['removed'], equals([model2]));
-        expect(event['added'], equals([]));
+      collection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.removedChildren.length, equals(1));
+        expect(event.removedChildren, equals([model2]));
       }));
       collection.remove(2);
     });
@@ -93,10 +91,12 @@ void test_collection() {
     test('Information about changed models is pushed through the'
         ' Stream onChange', () {
       var collection = new Collection.fromList([model1, model2]);
-      collection.onChange.listen(expectAsync1((event) {
-        expect(event['changed'], equals([model1]));
-        expect(event['removed'], equals([]));
-        expect(event['added'], equals([]));
+      collection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.changedChildren.length, equals(1));
+        expect(event.changedChildren[model1]
+            .addedChildren.length, equals(1));
+        expect(event.changedChildren[model1]
+        .addedChildren.contains('name'), isTrue );
       }));
       model1['name'] = 'John Doe';
     });

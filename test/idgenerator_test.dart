@@ -23,9 +23,9 @@ test_generator(){
     });
     test('Generator correctly returns bigger ids.',(){
       var generator = new IdGenerator('');
-      for(int i=1;i<1000000;i++)
+      for(int i=1;i<1000;i++)
         generator.getId();
-      expect(generator.getId(),equals('f4240'));
+      expect(generator.getId(),equals('3e8'));
     });
     test('Generator correctly returns prefix.',(){
       var generator = new IdGenerator(prefix1);

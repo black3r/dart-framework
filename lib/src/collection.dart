@@ -16,7 +16,7 @@ class Collection extends Object with IterableMixin<Model> {
   ChangeSet changeSet = new ChangeSet();
   
   final StreamController _onChangeController;
-  Stream<Map> get onChange => _onChangeController.stream;
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   Iterator<Model> get iterator => _modelsList.iterator;
 
@@ -28,7 +28,7 @@ class Collection extends Object with IterableMixin<Model> {
       : _models = new Map<dynamic, Model>(),
         _modelsList = new List<Model>(),
         _modelListeners = new Map<dynamic, StreamSubscription>(),
-        _onChangeController = new StreamController<Map>.broadcast();
+        _onChangeController = new StreamController<ChangeSet>.broadcast();
 
 
   /**

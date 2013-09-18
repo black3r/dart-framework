@@ -4,30 +4,48 @@
 
 part of clean_data;
 
+/*
+ * Class to remember what one change since last synchronization
+ */
 class Change {
   dynamic oldValue;
   dynamic newValue;
   
+  /**
+   * Merges to changes into one
+   */
   apply(Change change) {
     newValue = change.newValue;
   }
 
-  Change.fromValues(this.oldValue, this.newValue);
+  Change(this.oldValue, this.newValue);
+  toString(){
+    return oldValue.toString() + ' '+  newValue.toString();
+  }
 }
 
+/**
+ * Class to remember collection of changes since last synchronization
+ */
 class ChangeSet {
   Set addedChildren = new Set();
   Set removedChildren = new Set();
-  /* <children,Change> or <children, ChangeSet> */
+  /** <children,Change> or <children, ChangeSet> */
   Map changedChildren = new Map();
   
   ChangeSet();
+  /**
+   * Factory to clone ChangeSet
+   */
   factory ChangeSet.from(ChangeSet other) {
     var changeSet = new ChangeSet();
     changeSet.apply(other);
     return changeSet;
   }
   
+  /**
+   * Marks child as added
+   */
   void addChild(dynamic child) {
     if(this.removedChildren.contains(child)) {
       this.removedChildren.remove(child);
@@ -36,6 +54,9 @@ class ChangeSet {
     }
   }
   
+  /**
+   * Marks [child] as deleted
+   */
   void removeChild(dynamic child) {
     if(addedChildren.contains(child)) {
       this.addedChildren.remove(child);
@@ -44,7 +65,11 @@ class ChangeSet {
     }
   }
   
-  void changeChild(dynamic child, ChangeSet changeSet) {
+  /**
+   * changeSet can be [ChangeSet[ or [Change]
+   * Marks what was changed inside child
+   */
+  void changeChild(dynamic child, changeSet) {
     if(this.addedChildren.contains(child)) return;
     
     if(this.changedChildren.containsKey(child)) {
@@ -54,6 +79,9 @@ class ChangeSet {
     }
   }
   
+  /**
+   * Merges two [ChangeSet]s together. 
+   */
   void apply(ChangeSet changeSet) {
     for(var child in changeSet.addedChildren ){
       this.addChild(child);
@@ -75,11 +103,17 @@ class ChangeSet {
     this.changedChildren.clear();
   }
   
-  /*
+  /**
    * Return if there are any changes
    */
   bool get isEmpty =>
       this.addedChildren.isEmpty && this.removedChildren.isEmpty &&
         this.changedChildren.isEmpty;
-  
+  String toString(){
+    var sb = new StringBuffer();
+    sb.writeln('AddedChildren: ' + this.addedChildren.toString());
+    sb.writeln('RemovedChildren: ' + this.removedChildren.toString());
+    sb.writeln('ChangedChildren: ' + this.changedChildren.toString());
+    return sb.toString();
+  }
 }

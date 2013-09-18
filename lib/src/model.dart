@@ -14,14 +14,14 @@ class Model {
 
   ChangeSet changeSet = new ChangeSet();
   
-  final StreamController<Map> _onChangeController;
-  Stream<Map> get onChange => _onChangeController.stream;
+  final StreamController<ChangeSet> _onChangeController;
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   /**
    * Creates a model with the given [id].
    */
   Model(id)
-      : _onChangeController = new StreamController<Map>.broadcast(),
+      : _onChangeController = new StreamController<ChangeSet>.broadcast(),
         _fields = new Map() {
     this._fields['id'] = id;
   }
@@ -54,10 +54,12 @@ class Model {
     var old_value = null;
     if (this._fields.containsKey(key)) {
       old_value = this._fields[key];
+      changeSet.changeChild(key, new Change(old_value,value));
+    } else {
+      changeSet.addChild(key);
     }
-
+    
     this._fields[key] = value;
-
-    changeSet.changeChild(key, new Change.fromValues(old_value,value));
+    this._onChangeController.add(this.changeSet);
   }
 }

@@ -54,24 +54,23 @@ void test_model() {
       var model = new Model(47);
       model['key1'] = 13;
       model['key2'] = 47;
-      model.onChange.listen(expectAsync1((event) {
-        expect(event['source'], equals(model));
-        expect(event['old_values'].length, equals(1));
-        expect(event['old_values']['key2'], equals(47));
-        expect(event['new_values'].length, equals(1));
-        expect(event['new_values']['key2'], equals(48));
-
+      model.changeSet.clear();
+      
+      model.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.changedChildren.length,equals(1));
+        expect(event.changedChildren['key2'].oldValue,equals(47));
+        expect(event.changedChildren['key2'].newValue,equals(48));
       }));
 
       model['key2'] = 48;
 
       var anotherModel = new Model(48);
       anotherModel['key0'] = 10;
-      anotherModel.onChange.listen(expectAsync1((event) {
-        expect(event['source'], equals(anotherModel));
-        expect(event['old_values'].length, equals(0));
-        expect(event['new_values'].length, equals(1));
-        expect(event['new_values']['key1'], equals(15));
+      anotherModel.changeSet.clear();
+      
+      anotherModel.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.addedChildren.length,equals(1));
+        expect(event.addedChildren.contains('key1'),isTrue);
 
       }));
       anotherModel['key1'] = 15;
