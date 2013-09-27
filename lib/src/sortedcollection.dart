@@ -32,6 +32,6 @@ class SortedCollection extends ChildCollection {
     for(Model model in removed){
       this.changeSet.removeChild(model);
     }
-    this._onChangeController.add(changeSet);
+    notify();
   }
 }

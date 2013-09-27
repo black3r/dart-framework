@@ -4,7 +4,7 @@
 
 part of clean_data;
 
-/*
+/**
  * Class to remember what one change since last synchronization
  */
 class Change {
@@ -19,9 +19,6 @@ class Change {
   }
 
   Change(this.oldValue, this.newValue);
-  toString(){
-    return oldValue.toString() + ' '+  newValue.toString();
-  }
 }
 
 /**
@@ -30,12 +27,16 @@ class Change {
 class ChangeSet {
   Set addedChildren = new Set();
   Set removedChildren = new Set();
-  /** <children,Change> or <children, ChangeSet> */
+  /**
+   * Contains mapping between the changed children and respective changes.
+   * 
+   * The changes are represented either by [ChangeSet] object or by [Change].
+   */
   Map changedChildren = new Map();
   
   ChangeSet();
   /**
-   * Factory to clone ChangeSet
+   * Creates a [ChangeSet] and initializes it to the contents of [other].
    */
   factory ChangeSet.from(ChangeSet other) {
     var changeSet = new ChangeSet();
@@ -44,7 +45,7 @@ class ChangeSet {
   }
   
   /**
-   * Marks child as added
+   * Marks [child] as added.
    */
   void addChild(dynamic child) {
     if(this.removedChildren.contains(child)) {
@@ -66,8 +67,8 @@ class ChangeSet {
   }
   
   /**
-   * changeSet can be [ChangeSet[ or [Change]
-   * Marks what was changed inside child
+   * Marks all the changes in [ChangeSet] or [Change] for a
+   * given [child]
    */
   void changeChild(dynamic child, changeSet) {
     if(this.addedChildren.contains(child)) return;
@@ -95,7 +96,7 @@ class ChangeSet {
   }
   
   /**
-   * Removes all changes
+   * Removes all changes.
    */
   void clear() {
     this.addedChildren.clear();
@@ -109,11 +110,4 @@ class ChangeSet {
   bool get isEmpty =>
       this.addedChildren.isEmpty && this.removedChildren.isEmpty &&
         this.changedChildren.isEmpty;
-  String toString(){
-    var sb = new StringBuffer();
-    sb.writeln('AddedChildren: ' + this.addedChildren.toString());
-    sb.writeln('RemovedChildren: ' + this.removedChildren.toString());
-    sb.writeln('ChangedChildren: ' + this.changedChildren.toString());
-    return sb.toString();
-  }
 }
