@@ -22,7 +22,9 @@ class Change {
 }
 
 /**
- * Class to remember collection of changes since last synchronization
+ * Contains mapping between the changed children and respective changes.
+ * 
+ * The changes are represented either by [ChangeSet] object or by [Change].
  */
 class ChangeSet {
   Set addedChildren = new Set();
