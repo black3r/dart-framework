@@ -27,13 +27,14 @@ class FilteredCollection extends ChildCollection {
       }
     }
     var added = this._modelsList.toList();
-
-    for(Model model in added){
-      this.changeSet.addChild(model);
-    }
+    
     for(Model model in removed){
       this.changeSet.removeChild(model);
     }
-    this._onChangeController.add(changeSet);
+    for(Model model in added){
+      this.changeSet.addChild(model);
+    }
+    
+    notify();
   }
 }
