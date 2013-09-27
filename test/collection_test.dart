@@ -96,7 +96,7 @@ void test_collection() {
         expect(event.changedChildren[model1]
             .addedChildren.length, equals(1));
         expect(event.changedChildren[model1]
-        .addedChildren.contains('name'), isTrue );
+            .addedChildren.contains('name'), isTrue);
       }));
       model1['name'] = 'John Doe';
     });

@@ -71,7 +71,6 @@ void test_model() {
       anotherModel.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedChildren.length,equals(1));
         expect(event.addedChildren.contains('key1'),isTrue);
-
       }));
       anotherModel['key1'] = 15;
     });

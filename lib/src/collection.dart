@@ -54,8 +54,8 @@ class Collection extends Object with IterableMixin<Model> {
 
   void _addOnModelChangeListener(Model model) {
     this._modelListeners[model.id] = model.onChange.listen((event) {
-      changeSet.changeChild(model,event);
-      this._onChangeController.add(changeSet);
+      changeSet.changeChild(model, event);
+      notify();
     });
   }
 
@@ -81,7 +81,7 @@ class Collection extends Object with IterableMixin<Model> {
 
     if (!silent) {
       changeSet.addChild(model);
-      this._onChangeController.add(changeSet);
+      notify();
     }
   }
 
@@ -100,7 +100,7 @@ class Collection extends Object with IterableMixin<Model> {
 
     if (!silent) {
       changeSet.removeChild(model);
-      this._onChangeController.add(changeSet);
+      notify();
     }
   }
 
@@ -120,18 +120,20 @@ class Collection extends Object with IterableMixin<Model> {
     this._clear();
 
     if (!silent) {
-      for(model in models){
-        changeSet.removeChild(model);
+      for(var model in models) {
+        this.changeSet.removeChild(model);
       }
-      this._onChangeController.add(changeSet);
+      notify();
     }
   }
-  
+  /**
+   * Stream all new changes marked in [changeset].
+   */
   void notify() {
     Timer.run(() {
       if(!changeSet.isEmpty) {
-        _onChangeController.add(changeSet); 
-        changeSet.clear();
+        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
+        this.changeSet.clear();
       }
     });
   }

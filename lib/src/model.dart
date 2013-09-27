@@ -54,12 +54,36 @@ class Model {
     var old_value = null;
     if (this._fields.containsKey(key)) {
       old_value = this._fields[key];
-      changeSet.changeChild(key, new Change(old_value,value));
+      changeSet.changeChild(key, new Change(old_value, value));
     } else {
       changeSet.addChild(key);
     }
     
     this._fields[key] = value;
-    this._onChangeController.add(this.changeSet);
+    notify();
+  }
+  
+  /**
+   * Removes [key] from model.
+   */
+  void remove(String key, {silent: false}) {
+    this._fields.remove(key);
+    
+    if(!silent) {
+      this.changeSet.removeChild(key);
+      notify();
+    }
+  }
+  
+  /**
+   * Streams all new changes marked in [changeSet].
+   */
+  void notify() {
+    Timer.run(() {
+      if(!changeSet.isEmpty) {
+        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
+        this.changeSet.clear();
+      }
+    });
   }
 }

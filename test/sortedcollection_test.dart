@@ -40,8 +40,6 @@ void test_sortedcollection() {
       collection2 = new Collection.fromList(models);
       sorted1 = new SortedCollection(collection, cmp1);
       sorted2 = new SortedCollection(collection2, cmp2);
-
-
     });
 
     test('SortedCollection contains elements from parent in sorted order', () {
@@ -49,7 +47,7 @@ void test_sortedcollection() {
       expect(sorted2.toList(), orderedEquals([model4, model3, model2, model1]));
     });
 
-    test('SortedCollection gets updated when some of the models change.', () {
+    solo_test('SortedCollection gets updated when some of the models change.', () {
       sorted1.onChange.listen(expectAsync1((event) {
         expect(sorted1.toList(), orderedEquals([model2, model3, model4, model1]));
       }));
