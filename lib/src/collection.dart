@@ -54,7 +54,7 @@ class Collection extends Object with IterableMixin<Model> {
 
   void _addOnModelChangeListener(Model model) {
     this._modelListeners[model.id] = model.onChange.listen((event) {
-      changeSet.changeChild(model,event);
+      changeSet.changeChild(model, event);
       notify();
     });
   }
@@ -120,7 +120,7 @@ class Collection extends Object with IterableMixin<Model> {
     this._clear();
 
     if (!silent) {
-      for(var model in models){
+      for(var model in models) {
         this.changeSet.removeChild(model);
       }
       notify();

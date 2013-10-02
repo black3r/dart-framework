@@ -66,11 +66,12 @@ class Model {
   /**
    * Removes [key] from model.
    */
-  void remove(String key, {silent: false}){
+  void remove(String key, {silent: false}) {
     this._fields.remove(key);
     
-    if(!silent){
+    if(!silent) {
       this.changeSet.removeChild(key);
+      notify();
     }
   }
   

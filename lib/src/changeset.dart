@@ -12,19 +12,20 @@ class Change {
   dynamic newValue;
   
   /**
-   * Merges to changes into one
+   * Merges [change] with this [Change].]
    */
-  apply(Change change) {
+  void apply(Change change) {
     newValue = change.newValue;
   }
-
+  
+  /**
+   * Creates new [Change] with given values.
+   */
   Change(this.oldValue, this.newValue);
 }
 
 /**
- * Contains mapping between the changed children and respective changes.
- * 
- * The changes are represented either by [ChangeSet] object or by [Change].
+ * Class to remember collection of changes since last synchronization
  */
 class ChangeSet {
   Set addedChildren = new Set();
@@ -58,7 +59,7 @@ class ChangeSet {
   }
   
   /**
-   * Marks [child] as deleted
+   * Marks [child] as deleted.
    */
   void removeChild(dynamic child) {
     if(addedChildren.contains(child)) {
@@ -70,7 +71,7 @@ class ChangeSet {
   
   /**
    * Marks all the changes in [ChangeSet] or [Change] for a
-   * given [child]
+   * given [child].
    */
   void changeChild(dynamic child, changeSet) {
     if(this.addedChildren.contains(child)) return;
@@ -107,7 +108,7 @@ class ChangeSet {
   }
   
   /**
-   * Return if there are any changes
+   * Return if there are any changes.
    */
   bool get isEmpty =>
       this.addedChildren.isEmpty && this.removedChildren.isEmpty &&
