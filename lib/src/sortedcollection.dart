@@ -25,12 +25,16 @@ class SortedCollection extends ChildCollection {
     }
     this._modelsList.sort(this.compare);
 
-    var added = this._modelsList.toList();
-    this._onChangeController.add({
-      'removed': removed,
-      'added': added,
-      'changed': [],
-      'changes': [],
-    });
+    if(!silent) {
+      var added = this._modelsList.toList();
+      
+      for(Model model in removed) {
+        this.changeSet.removeChild(model);
+      }
+      for(Model model in added) {
+        this.changeSet.addChild(model);
+      }
+      notify();
+    }
   }
 }

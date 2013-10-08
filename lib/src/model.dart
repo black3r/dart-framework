@@ -12,15 +12,16 @@ class Model {
   dynamic get id => _fields['id'];
   dynamic operator[](key) => this._fields[key];
 
-  final StreamController<Map> _onChangeController;
-  Stream<Map> get onChange => _onChangeController.stream;
-
+  ChangeSet changeSet = new ChangeSet();
+  
+  final StreamController<ChangeSet> _onChangeController;
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   /**
    * Creates a model with the given [id].
    */
   Model(id)
-      : _onChangeController = new StreamController<Map>.broadcast(),
+      : _onChangeController = new StreamController<ChangeSet>.broadcast(),
         _fields = new Map() {
     this._fields['id'] = id;
   }
@@ -49,21 +50,40 @@ class Model {
     if (key == 'id') {
       throw new ArgumentError('The field "id" is read only.');
     }
-
-    var old_values = new Map();
+    
+    var old_value = null;
     if (this._fields.containsKey(key)) {
-      old_values[key] = this._fields[key];
+      old_value = this._fields[key];
+      changeSet.changeChild(key, new Change(old_value, value));
+    } else {
+      changeSet.addChild(key);
     }
-
-    var new_values = new Map();
-    new_values[key] = value;
-
+    
     this._fields[key] = value;
-
-    this._onChangeController.add({
-      'source': this,
-      'old_values': old_values,
-      'new_values': new_values
+    notify();
+  }
+  
+  /**
+   * Removes [key] from model.
+   */
+  void remove(String key, {silent: false}) {
+    this._fields.remove(key);
+    
+    if(!silent) {
+      this.changeSet.removeChild(key);
+      notify();
+    }
+  }
+  
+  /**
+   * Streams all new changes marked in [changeSet].
+   */
+  void notify() {
+    Timer.run(() {
+      if(!changeSet.isEmpty) {
+        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
+        this.changeSet.clear();
+      }
     });
   }
 }

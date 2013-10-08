@@ -13,8 +13,10 @@ class Collection extends Object with IterableMixin<Model> {
   final Map<dynamic, StreamSubscription> _modelListeners;
   int get length => this._models.length;
 
+  ChangeSet changeSet = new ChangeSet();
+  
   final StreamController _onChangeController;
-  Stream<Map> get onChange => _onChangeController.stream;
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   Iterator<Model> get iterator => _modelsList.iterator;
 
@@ -26,7 +28,7 @@ class Collection extends Object with IterableMixin<Model> {
       : _models = new Map<dynamic, Model>(),
         _modelsList = new List<Model>(),
         _modelListeners = new Map<dynamic, StreamSubscription>(),
-        _onChangeController = new StreamController<Map>.broadcast();
+        _onChangeController = new StreamController<ChangeSet>.broadcast();
 
 
   /**
@@ -52,12 +54,8 @@ class Collection extends Object with IterableMixin<Model> {
 
   void _addOnModelChangeListener(Model model) {
     this._modelListeners[model.id] = model.onChange.listen((event) {
-      this._onChangeController.add({
-        'added' : [],
-        'removed': [],
-        'changed': [model],
-        'changes': [event],
-      });
+      changeSet.changeChild(model, event);
+      notify();
     });
   }
 
@@ -82,12 +80,8 @@ class Collection extends Object with IterableMixin<Model> {
     this._add(model);
 
     if (!silent) {
-      this._onChangeController.add({
-        'added': [model],
-        'removed': [],
-        'changed': [],
-        'changes': [],
-      });
+      changeSet.addChild(model);
+      notify();
     }
   }
 
@@ -105,12 +99,8 @@ class Collection extends Object with IterableMixin<Model> {
     this._remove(id);
 
     if (!silent) {
-      this._onChangeController.add({
-        'added': [],
-        'removed': [model],
-        'changed': [],
-        'changes': [],
-      });
+      changeSet.removeChild(model);
+      notify();
     }
   }
 
@@ -130,11 +120,22 @@ class Collection extends Object with IterableMixin<Model> {
     this._clear();
 
     if (!silent) {
-      this._onChangeController.add({
-        'type': 'remove',
-        'values': models,
-      });
+      for(var model in models) {
+        this.changeSet.removeChild(model);
+      }
+      notify();
     }
+  }
+  /**
+   * Stream all new changes marked in [changeset].
+   */
+  void notify() {
+    Timer.run(() {
+      if(!changeSet.isEmpty) {
+        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
+        this.changeSet.clear();
+      }
+    });
   }
 
 }
