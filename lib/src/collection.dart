@@ -14,7 +14,7 @@ class Collection extends Object with IterableMixin<Model> {
   int get length => this._models.length;
 
   ChangeSet changeSet = new ChangeSet();
-  
+
   final StreamController _onChangeController;
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
@@ -132,8 +132,8 @@ class Collection extends Object with IterableMixin<Model> {
   void notify() {
     Timer.run(() {
       if(!changeSet.isEmpty) {
-        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
-        this.changeSet.clear();
+        this._onChangeController.add(this.changeSet);
+        this.changeSet = new ChangeSet();
       }
     });
   }

@@ -47,15 +47,6 @@ class ChangeSet {
   ChangeSet();
 
   /**
-   * Creates a [ChangeSet] and initializes it to the contents of [other].
-   */
-  factory ChangeSet.from(ChangeSet other) {
-    var changeSet = new ChangeSet();
-    changeSet.apply(other);
-    return changeSet;
-  }
-
-  /**
    * Marks [child] as added.
    */
   void addChild(dynamic child) {

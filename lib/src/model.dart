@@ -80,10 +80,14 @@ class Model {
    */
   void notify() {
     Timer.run(() {
-      if(!changeSet.isEmpty) {
-        this._onChangeController.add(new ChangeSet.from(this.changeSet)); 
-        this.changeSet.clear();
+      if(!_changeSet.isEmpty) {
+        this._onChangeController.add(this._changeSet);
+        _clearChanges();
       }
     });
+  }
+
+  _clearChanges() {
+    this._changeSet = new ChangeSet();
   }
 }
