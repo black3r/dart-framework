@@ -9,31 +9,65 @@ part of clean_data;
  */
 class Model {
   final Map _fields;
-  dynamic get id => _fields['id'];
   dynamic operator[](key) => this._fields[key];
 
-  ChangeSet changeSet = new ChangeSet();
-  
+  ChangeSet _changeSet = new ChangeSet();
+
   final StreamController<ChangeSet> _onChangeController;
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   /**
-   * Creates a model with the given [id].
+   * Creates an empty model.
    */
-  Model(id)
+  Model()
       : _onChangeController = new StreamController<ChangeSet>.broadcast(),
         _fields = new Map() {
-    this._fields['id'] = id;
   }
 
 
   /**
    * Creates a new model from key, value pairs [data].
    */
-  factory Model.fromData(id, Map data) {
-    var model = new Model(id);
+  factory Model.fromData(Map data) {
+    var model = new Model();
     data.forEach((k, v) => model[k] = v);
+    model._clearChanges();
     return model;
+  }
+
+  /**
+   * Returns true if there is no {key, value} pair in the [Model].
+   */
+  bool get isEmpty {
+    return _fields.isEmpty;
+  }
+
+  /**
+   * Returns true if there is at least one {key, value} pair in the [Model].
+   */
+  bool get isNotEmpty {
+    return _fields.isNotEmpty;
+  }
+
+  /**
+   * The keys of [Model].
+   */
+  Iterable get keys {
+    return _fields.keys;
+  }
+
+  /**
+   * The values of [Model].
+   */
+  Iterable get values {
+    return _fields.values;
+  }
+
+  /**
+   * The number of {key, value} pairs in the [Model].
+   */
+  int get length {
+    return _fields.length;
   }
 
   /**
@@ -47,34 +81,25 @@ class Model {
    * Assignes the [value] to the [key] field.
    */
   void operator[]=(String key, value) {
-    if (key == 'id') {
-      throw new ArgumentError('The field "id" is read only.');
-    }
-    
-    var old_value = null;
     if (this._fields.containsKey(key)) {
-      old_value = this._fields[key];
-      changeSet.changeChild(key, new Change(old_value, value));
+      _changeSet.changeChild(key, new Change(this._fields[key], value));
     } else {
-      changeSet.addChild(key);
+      _changeSet.addChild(key);
     }
-    
+
     this._fields[key] = value;
     notify();
   }
-  
+
   /**
    * Removes [key] from model.
    */
-  void remove(String key, {silent: false}) {
+  void remove(String key) {
     this._fields.remove(key);
-    
-    if(!silent) {
-      this.changeSet.removeChild(key);
-      notify();
-    }
+    this._changeSet.removeChild(key);
+    notify();
   }
-  
+
   /**
    * Streams all new changes marked in [changeSet].
    */

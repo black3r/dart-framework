@@ -15,9 +15,9 @@ void test_collection() {
 
     Model model1, model2, model3;
     setUp(() {
-      model1 = new Model(1);
-      model2 = new Model(2);
-      model3 = new Model(3);
+      model1 = new Model.fromData({'id': 1});
+      model2 = new Model.fromData({'id': 2});
+      model3 = new Model.fromData({'id': 3});
     });
 
     test('Collection.fromList creates an collection containing the models from'

@@ -53,7 +53,7 @@ class Collection extends Object with IterableMixin<Model> {
   bool containsId(id) => this._models.containsKey(id);
 
   void _addOnModelChangeListener(Model model) {
-    this._modelListeners[model.id] = model.onChange.listen((event) {
+    this._modelListeners[model['id']] = model.onChange.listen((event) {
       changeSet.changeChild(model, event);
       notify();
     });
@@ -65,7 +65,7 @@ class Collection extends Object with IterableMixin<Model> {
   }
 
   void _add(Model model) {
-    this._models[model.id] = model;
+    this._models[model['id']] = model;
     this._modelsList.add(model);
     this._addOnModelChangeListener(model);
   }

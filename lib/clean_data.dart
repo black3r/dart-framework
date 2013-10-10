@@ -13,8 +13,5 @@ import "dart:collection";
 
 part 'src/model.dart';
 part 'src/collection.dart';
-part 'src/childcollection.dart';
-part 'src/filteredcollection.dart';
-part 'src/sortedcollection.dart';
 part 'src/idgenerator.dart';
 part 'src/changeset.dart';
