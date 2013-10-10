@@ -7,148 +7,189 @@ import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
-  test_change();
-  test_changeSet();
-}
 
-void test_change() {
   group('Change', () {
-    test('Test init.', () {
-      var change = new Change(1, 2);
-      expect(change.oldValue, equals(1));
-      expect(change.newValue, equals(2));
-    });
-    test('Test if the changes are properly added',() {
-      var change = new Change(1, 2);
-      change.apply(new Change(1, 3));
-      
-      expect(change.oldValue, equals(1));
-      expect(change.newValue, equals(3));
-    });
-  });
-}
 
-void test_changeSet() {
+    test('initialize.', () {
+
+      // when
+      var change = new Change("old", "new");
+
+      // then
+      expect(change.oldValue, equals("old"));
+      expect(change.newValue, equals("new"));
+    });
+
+    test('apply another change object.', () {
+      // given
+      var firstChange = new Change("old", "new");
+      var secondChange = new Change("new", "newer");
+
+      // when
+      firstChange.apply(secondChange);
+
+      // then
+      expect(firstChange.oldValue, equals("old"));
+      expect(firstChange.newValue, equals("newer"));
+    });
+
+  });
+
   group('ChangeSet', () {
+
     ChangeSet changeSet;
-    
+    List children;
+
     setUp((){
       changeSet = new ChangeSet();
+      children = ['first', 'second', 'third'];
     });
-    
-    test('Test addding.', () {
-      changeSet.addChild(1);
-      changeSet.addChild(2);
-      changeSet.addChild(1);
-      
-      expect(changeSet.addedChildren.length, equals(2));
-      expect(changeSet.addedChildren.contains(1), isTrue);
-      expect(changeSet.addedChildren.contains(2), isTrue);
-      expect(changeSet.addedChildren.contains(3), isFalse);
-      
+
+    test('initialization.', () {
+      // when
+      var changeSet = new ChangeSet();
+
+      // then
+      expect(changeSet.addedChildren.isEmpty, isTrue);
+      expect(changeSet.removedChildren.isEmpty, isTrue);
+      expect(changeSet.changedChildren.isEmpty, isTrue);
+      expect(changeSet.isEmpty, isTrue);
+    });
+
+    test('add children.', () {
+      // when
+      for (var child in children) {
+        changeSet.addChild(child);
+      }
+
+      //  then
+      expect(changeSet.isEmpty, isFalse);
+      expect(changeSet.removedChildren.isEmpty, isTrue);
+      expect(changeSet.changedChildren.isEmpty, isTrue);
+      expect(changeSet.addedChildren, unorderedEquals(children));
+    });
+
+    test('remove children.', () {
+      // when
+      for (var child in children) {
+        changeSet.removeChild(child);
+      }
+
+      // then
+      expect(changeSet.isEmpty, isFalse);
+      expect(changeSet.addedChildren.isEmpty, isTrue);
+      expect(changeSet.changedChildren.isEmpty, isTrue);
+      expect(changeSet.removedChildren, unorderedEquals(children));
+    });
+
+    test('add previously removed children.', () {
+      // given
+      for (var child in children) {
+        changeSet.removeChild(child);
+      }
+
+      // when
+      for (var child in children) {
+        changeSet.addChild(child);
+      }
+
+      // then
+      expect(changeSet.isEmpty, isTrue);
+    });
+
+    test('remove previosly added children.', () {
+      // given
+      for (var child in children) {
+        changeSet.addChild(child);
+      }
+
+      // when
+      for (var child in children) {
+        changeSet.removeChild(child);
+      }
+
+      // then
+      expect(changeSet.isEmpty, isTrue);
+    });
+
+    test('change children.', () {
+      // given
+      var changes =
+        {'first': new Mock(), 'second': new Mock(), 'third': new Mock()};
+
+      // when
+      for (var child in changes.keys) {
+        changeSet.changeChild(child, changes[child]);
+      }
+
+      // then
+      expect(changeSet.isEmpty, isFalse);
+      expect(changeSet.addedChildren.isEmpty, isTrue);
+      expect(changeSet.removedChildren.isEmpty, isTrue);
+      expect(changeSet.changedChildren.length, equals(changes.length));
+      for (var child in changeSet.changedChildren.keys) {
+        expect(changeSet.changedChildren[child], equals(changes[child]));
+      }
+    });
+
+    test('change child that was changed before.', () {
+      // given
+      var firstChange = new Mock();
+      var secondChange = new Mock();
+      var child = 'child';
+      changeSet.changeChild(child, firstChange);
+
+      // when
+      changeSet.changeChild(child, secondChange);
+
+      // then
+      expect(changeSet.isEmpty, isFalse);
+      expect(changeSet.addedChildren.isEmpty, isTrue);
+      expect(changeSet.removedChildren.isEmpty, isTrue);
+      firstChange.getLogs(callsTo('apply', secondChange)).verify(happenedOnce);
+      expect(changeSet.changedChildren[child], equals(firstChange));
+    });
+
+    test('change child that was added before.',() {
+      // given
+      for (var child in children) {
+        changeSet.addChild(child);
+      }
+      var someChange = new Mock();
+
+      // when
+      for (var child in children) {
+        changeSet.changeChild(child, someChange);
+      }
+
+      // then
+      expect(changeSet.addedChildren, unorderedEquals(children));
       expect(changeSet.removedChildren.isEmpty, isTrue);
       expect(changeSet.changedChildren.isEmpty, isTrue);
     });
-    
-    test('Test removing.', () {
-      changeSet.removeChild(1);
-      changeSet.removeChild(2);
-      changeSet.removeChild(1);
-      
-      expect(changeSet.removedChildren.length, equals(2));
-      expect(changeSet.removedChildren.contains(1), isTrue);
-      expect(changeSet.removedChildren.contains(2), isTrue);
-      expect(changeSet.removedChildren.contains(3), isFalse);
-      
-      expect(changeSet.addedChildren.isEmpty, isTrue);
-      expect(changeSet.changedChildren.isEmpty, isTrue);
-    });
-    
-    test('Test isEmpty', () {
-      expect(changeSet.isEmpty, isTrue);
-      
-      changeSet.addChild(1);
-      expect(changeSet.isEmpty, isFalse);
-      
-      changeSet = new ChangeSet();
-      changeSet.removeChild(2);
-      expect(changeSet.isEmpty, isFalse);
-      
-      changeSet = new ChangeSet();
-      changeSet.changeChild(2, new Change(1, 2));
-      expect(changeSet.isEmpty, isFalse);
-    });
 
-    test('Test adding previosly removed.', () {
-      changeSet.removeChild(2);
-      changeSet.addChild(2);
-      expect(changeSet.isEmpty, isTrue);
-    });
-    
-    test('Test removing previosly added.', () {
-      changeSet.addChild(2);
-      changeSet.removeChild(2);
-      expect(changeSet.isEmpty, isTrue);
-    });
-    
-    test('Test changing.', () {
-      var change = new Change(47, 42);
-      changeSet.changeChild(1, change);
-      changeSet.changeChild(2, change);
-      expect(changeSet.changedChildren[1], equals(change));
-      expect(changeSet.changedChildren[2], equals(change));
-    });
-    
-    test('Test changing previosly changed.', () {
-      var change = new Change(47, 42);
-      var spyChange = new Mock.spy(change);
-      var performedChange = new Change(47, 19);
-      
-      changeSet.changeChild(1, spyChange);
-      changeSet.changeChild(1, performedChange);
-      
-      expect(changeSet.changedChildren[1].newValue, equals(19));
-      expect(changeSet.changedChildren[1].oldValue, equals(47));
-      
-      spyChange.getLogs(callsTo('apply', performedChange)).verify(happenedOnce);
-    });
-    
-    test('Test changing previosly added.',() {
-      changeSet.addChild('1');
-      changeSet.changeChild('1', new Change(1,2));
-      expect(changeSet.changedChildren.length,isZero);
-    });
-    
-    test('Test clear', (){
-      changeSet.addChild(1);
-      changeSet.removeChild(2);
-      changeSet.changeChild(1, new Change(1, 2));
-      
-      changeSet.clear();
-      expect(changeSet.isEmpty,isTrue);
-    });
-    
-    test('Test apply', () {
-      changeSet.addChild(1);
-      changeSet.addChild(2);
-      changeSet.removeChild(5);
-      changeSet.removeChild(6);
-      changeSet.changeChild(7,new Change(1, 2));
-      
-      ChangeSet changeSet2 = new ChangeSet();
-      changeSet2.addChild(3);
-      changeSet2.addChild(5);
-      changeSet2.removeChild(1);
-      changeSet2.removeChild(4);
-      changeSet2.changeChild(7, new Change(1, 5));
-      changeSet2.changeChild(8, new Change(1, 5));
-      
-      changeSet.apply(changeSet2);
-      
-      expect(changeSet.addedChildren, equals(new Set.from([2, 3])));
-      expect(changeSet.removedChildren, equals(new Set.from([6, 4])));
-      expect(changeSet.changedChildren[7].newValue, equals(5));
-      expect(changeSet.changedChildren[8].newValue, equals(5));
+    test('apply another ChangeSet.', () {
+      // given
+      var change = new Mock();
+      changeSet.addChild('added');
+      changeSet.removeChild('removed');
+      changeSet.changeChild('changed', change);
+
+      var anotherChangeSet = new ChangeSet();
+      var anotherChange = new Mock();
+      anotherChangeSet.addChild('anotherAdded');
+      anotherChangeSet.removeChild('anotherRemoved');
+      anotherChangeSet.changeChild('anotherChanged', anotherChange);
+
+      // when
+      changeSet.apply(anotherChangeSet);
+
+      // then
+      expect(changeSet.addedChildren, unorderedEquals(['added', 'anotherAdded']));
+      expect(changeSet.removedChildren, unorderedEquals(['removed', 'anotherRemoved']));
+      expect(changeSet.changedChildren.length, equals(2));
+      expect(changeSet.changedChildren['changed'], equals(change));
+      expect(changeSet.changedChildren['anotherChanged'], equals(anotherChange));
     });
   });
 }

@@ -5,39 +5,47 @@
 part of clean_data;
 
 /**
- * Class to remember what one change since last synchronization
+ * A representation of a single change in a scalar value.
  */
 class Change {
   dynamic oldValue;
   dynamic newValue;
-  
+
   /**
-   * Merges [change] with this [Change].]
+   * Creates new [Change] from information about the value before change
+   * [oldValue] and after the change [newValue].
+   */
+  Change(this.oldValue, this.newValue);
+
+  /**
+   * Applies another [change] to get representation of whole change.
    */
   void apply(Change change) {
     newValue = change.newValue;
   }
-  
-  /**
-   * Creates new [Change] with given values.
-   */
-  Change(this.oldValue, this.newValue);
+
 }
 
 /**
- * Class to remember collection of changes since last synchronization
+ * A representation of a change of map like object.
  */
 class ChangeSet {
+
   Set addedChildren = new Set();
   Set removedChildren = new Set();
+
   /**
    * Contains mapping between the changed children and respective changes.
-   * 
+   *
    * The changes are represented either by [ChangeSet] object or by [Change].
    */
   Map changedChildren = new Map();
-  
+
+  /**
+   * Creates an empty [ChangeSet].
+   */
   ChangeSet();
+
   /**
    * Creates a [ChangeSet] and initializes it to the contents of [other].
    */
@@ -46,7 +54,7 @@ class ChangeSet {
     changeSet.apply(other);
     return changeSet;
   }
-  
+
   /**
    * Marks [child] as added.
    */
@@ -57,9 +65,9 @@ class ChangeSet {
       this.addedChildren.add(child);
     }
   }
-  
+
   /**
-   * Marks [child] as deleted.
+   * Marks [child] as removed.
    */
   void removeChild(dynamic child) {
     if(addedChildren.contains(child)) {
@@ -68,23 +76,23 @@ class ChangeSet {
       this.removedChildren.add(child);
     }
   }
-  
+
   /**
    * Marks all the changes in [ChangeSet] or [Change] for a
    * given [child].
    */
   void changeChild(dynamic child, changeSet) {
     if(this.addedChildren.contains(child)) return;
-    
+
     if(this.changedChildren.containsKey(child)) {
       this.changedChildren[child].apply(changeSet);
     } else {
       this.changedChildren[child] = changeSet;
     }
   }
-  
+
   /**
-   * Merges two [ChangeSet]s together. 
+   * Merges two [ChangeSet]s together.
    */
   void apply(ChangeSet changeSet) {
     for(var child in changeSet.addedChildren ){
@@ -97,20 +105,13 @@ class ChangeSet {
       this.changeChild(child,changeSet);
     });
   }
-  
+
+
   /**
-   * Removes all changes.
-   */
-  void clear() {
-    this.addedChildren.clear();
-    this.removedChildren.clear();
-    this.changedChildren.clear();
-  }
-  
-  /**
-   * Return if there are any changes.
+   * Returns true if there are no changes in the [ChangeSet].
    */
   bool get isEmpty =>
-      this.addedChildren.isEmpty && this.removedChildren.isEmpty &&
-        this.changedChildren.isEmpty;
+    this.addedChildren.isEmpty &&
+    this.removedChildren.isEmpty &&
+    this.changedChildren.isEmpty;
 }
