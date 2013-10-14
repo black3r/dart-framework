@@ -4,26 +4,115 @@
 
 part of clean_data;
 
-/**
- * A representation for a single unit of structured data.
- */
-class Model {
-  final Map _fields;
+abstract class ModelView {
+
+  /**
+   * Returns the value for the given key or null if key is not in the model.
+   * Because null values are supported, one should use containsKey to
+   * distinguish between an absent key and a null value.
+   */
+  dynamic operator[](key);
+
+  /**
+   * Stream populated with [ChangeSet] events whenever the model gets changed.
+   */
+  Stream<ChangeSet> get onChange;
+
+  /**
+   * Returns true if there is no {key, value} pair in the model.
+   */
+  bool get isEmpty;
+
+  /**
+   * Returns true if there is at least one {key, value} pair in the model.
+   */
+  bool get isNotEmpty;
+
+  /**
+   * The keys of model.
+   */
+  Iterable get keys;
+
+  /**
+   * The values of [Model].
+   */
+  Iterable get values;
+
+  /**
+   * The number of {key, value} pairs in the [Model].
+   */
+  int get length;
+
+  /**
+   * Returns whether this model contains the given [key].
+   */
+  bool containsKey(String key);
+}
+
+abstract class ModelViewMixin implements ModelView {
+
+  final Map _fields = new Map();
+
   dynamic operator[](key) => this._fields[key];
 
   ChangeSet _changeSet = new ChangeSet();
 
-  final StreamController<ChangeSet> _onChangeController;
+  final StreamController<ChangeSet> _onChangeController =
+      new StreamController<ChangeSet>.broadcast();
+
   Stream<ChangeSet> get onChange => _onChangeController.stream;
+
+  bool get isEmpty {
+    return _fields.isEmpty;
+  }
+
+  bool get isNotEmpty {
+    return _fields.isNotEmpty;
+  }
+
+  Iterable get keys {
+    return _fields.keys;
+  }
+
+  Iterable get values {
+    return _fields.values;
+  }
+
+  int get length {
+    return _fields.length;
+  }
+
+  bool containsKey(String key) {
+    return this._fields.containsKey(key);
+  }
+
+  /**
+   * Streams all new changes marked in [changeSet].
+   */
+  void _notify() {
+    Timer.run(() {
+      if(!_changeSet.isEmpty) {
+        this._onChangeController.add(this._changeSet);
+        _clearChanges();
+      }
+    });
+  }
+
+  _clearChanges() {
+    this._changeSet = new ChangeSet();
+  }
+
+}
+
+/**
+ * A representation for a single unit of structured data.
+ */
+class Model extends Object with ModelViewMixin implements ModelView {
 
   /**
    * Creates an empty model.
    */
-  Model()
-      : _onChangeController = new StreamController<ChangeSet>.broadcast(),
-        _fields = new Map() {
-  }
-
+  Model();
 
   /**
    * Creates a new model from key, value pairs [data].
@@ -33,48 +122,6 @@ class Model {
     data.forEach((k, v) => model[k] = v);
     model._clearChanges();
     return model;
-  }
-
-  /**
-   * Returns true if there is no {key, value} pair in the [Model].
-   */
-  bool get isEmpty {
-    return _fields.isEmpty;
-  }
-
-  /**
-   * Returns true if there is at least one {key, value} pair in the [Model].
-   */
-  bool get isNotEmpty {
-    return _fields.isNotEmpty;
-  }
-
-  /**
-   * The keys of [Model].
-   */
-  Iterable get keys {
-    return _fields.keys;
-  }
-
-  /**
-   * The values of [Model].
-   */
-  Iterable get values {
-    return _fields.values;
-  }
-
-  /**
-   * The number of {key, value} pairs in the [Model].
-   */
-  int get length {
-    return _fields.length;
-  }
-
-  /**
-   * Returns whether this model contains the given [key].
-   */
-  bool containsKey(String key) {
-    return this._fields.containsKey(key);
   }
 
   /**
@@ -88,7 +135,7 @@ class Model {
     }
 
     this._fields[key] = value;
-    notify();
+    _notify();
   }
 
   /**
@@ -97,22 +144,7 @@ class Model {
   void remove(String key) {
     this._fields.remove(key);
     this._changeSet.removeChild(key);
-    notify();
+    _notify();
   }
 
-  /**
-   * Streams all new changes marked in [changeSet].
-   */
-  void notify() {
-    Timer.run(() {
-      if(!_changeSet.isEmpty) {
-        this._onChangeController.add(this._changeSet);
-        _clearChanges();
-      }
-    });
-  }
-
-  _clearChanges() {
-    this._changeSet = new ChangeSet();
-  }
 }
