@@ -5,137 +5,125 @@
 part of clean_data;
 
 /**
- * Collection of [Model]s.
+ * Provides the read operations with collection of models.
  */
-class Collection extends Object with IterableMixin<Model> {
-  final Map<dynamic, Model> _models;
-  final List<Model> _modelsList;
-  final Map<dynamic, StreamSubscription> _modelListeners;
+abstract class CollectionView implements Iterable {
+
+  /**
+   * Stream populated with [ChangeSet] events whenever the collection or any
+   * of models contained gets changed.
+   */
+  Stream<ChangeSet> get onChange;
+
+  /**
+   * Returns whether this collection contains the given [model].
+   */
+  bool contains(ModelView model);
+}
+
+abstract class CollectionViewMixin implements CollectionView {
+  final Set<ModelView> _models = new Set<ModelView>();
+
+  final Map<dynamic, StreamSubscription> _modelListeners =
+      new Map<dynamic, StreamSubscription>();
+
   int get length => this._models.length;
 
-  ChangeSet changeSet = new ChangeSet();
+  ChangeSet _changeSet = new ChangeSet();
 
-  final StreamController _onChangeController;
+  final StreamController _onChangeController =
+      new StreamController<ChangeSet>.broadcast();
+
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
-  Iterator<Model> get iterator => _modelsList.iterator;
+  bool contains(ModelView model) => this._models.contains(model);
 
+  void _clearChanges() {
+    this._changeSet = new ChangeSet();
+  }
+
+  /**
+   * Stream all new changes marked in [changeset].
+   */
+  void _notify() {
+    Timer.run(() {
+      if(!_changeSet.isEmpty) {
+        this._onChangeController.add(this._changeSet);
+        this._clearChanges();
+      }
+    });
+  }
+}
+
+/**
+ * Collection of [ModelView]s.
+ */
+class Collection extends Object with CollectionViewMixin,
+    IterableMixin<ModelView> {
+
+  Iterator<ModelView> get iterator => _models.iterator;
 
   /**
    * Creates an empty collection.
    */
-  Collection()
-      : _models = new Map<dynamic, Model>(),
-        _modelsList = new List<Model>(),
-        _modelListeners = new Map<dynamic, StreamSubscription>(),
-        _onChangeController = new StreamController<ChangeSet>.broadcast();
-
+  Collection();
 
   /**
-   * Generates Collection from list of [models].
+   * Generates Collection from [Iterable] of [models].
    */
-  factory Collection.fromList(List<Model> models) {
+  factory Collection.from(Iterable<ModelView> models) {
     var collection = new Collection();
     for (var model in models) {
-      collection.add(model, silent: true);
+      collection.add(model);
     }
+    collection._clearChanges();
     return collection;
   }
 
-  /**
-   * Gets model specified by given [id].
-   */
-  Model operator[](id) => this._models[id];
-
-  /**
-   * Returns whether this collection contains the given [id].
-   */
-  bool containsId(id) => this._models.containsKey(id);
-
-  void _addOnModelChangeListener(Model model) {
-    this._modelListeners[model['id']] = model.onChange.listen((event) {
-      changeSet.changeChild(model, event);
-      notify();
+  void _addOnModelChangeListener(ModelView model) {
+    this._modelListeners[model] = model.onChange.listen((event) {
+      _changeSet.changeChild(model, event);
+      _notify();
     });
   }
 
-  void _removeOnModelChangeListener(id) {
-    this._modelListeners[id].cancel();
-    this._modelListeners.remove(id);
+  void _removeOnModelChangeListener(ModelView model) {
+    this._modelListeners[model].cancel();
+    this._modelListeners.remove(model);
   }
-
-  void _add(Model model) {
-    this._models[model['id']] = model;
-    this._modelsList.add(model);
-    this._addOnModelChangeListener(model);
-  }
-
 
   /**
    * Appends the [model] to the collection.
    *
    * Models should have unique id's.
    */
-  void add(Model model, {bool silent: false}) {
-    this._add(model);
-
-    if (!silent) {
-      changeSet.addChild(model);
-      notify();
-    }
-  }
-
-  void _remove(id) {
-    this._models.remove(id);
-    this._modelsList.removeWhere((model) => model.id == id);
-    this._removeOnModelChangeListener(id);
+  void add(ModelView model) {
+    this._models.add(model);
+    this._addOnModelChangeListener(model);
+    _changeSet.addChild(model);
+    _notify();
   }
 
   /**
    * Removes a model from the collection.
    */
-  void remove(id, {bool silent: false}) {
-    var model = this._models[id];
-    this._remove(id);
-
-    if (!silent) {
-      changeSet.removeChild(model);
-      notify();
-    }
-  }
-
-  void _clear() {
-    for (var id in this._models.keys) {
-      this._removeOnModelChangeListener(id);
-    }
-    this._models.clear();
-    this._modelsList.clear();
+  void remove(ModelView model) {
+    this._models.remove(model);
+    this._removeOnModelChangeListener(model);
+    _changeSet.removeChild(model);
+    _notify();
   }
 
   /**
    * Removes all models from the collection.
    */
-  void clear({bool silent: false}) {
-    var models = this._modelsList.toList();
-    this._clear();
-
-    if (!silent) {
-      for(var model in models) {
-        this.changeSet.removeChild(model);
-      }
-      notify();
+  void clear() {
+    for (var model in this._models) {
+      this._removeOnModelChangeListener(model);
+      this._changeSet.removeChild(model);
     }
-  }
-  /**
-   * Stream all new changes marked in [changeset].
-   */
-  void notify() {
-    Timer.run(() {
-      if(!changeSet.isEmpty) {
-        this._onChangeController.add(this.changeSet);
-        this.changeSet = new ChangeSet();
-      }
-    });
+    this._models.clear();
+    _notify();
   }
 
 }
