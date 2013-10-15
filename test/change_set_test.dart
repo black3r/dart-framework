@@ -168,26 +168,6 @@ void main() {
       expect(changeSet.changedItems.isEmpty, isTrue);
     });
     
-    test('contains no items after calling clear().',() {
-      // given
-      for (var child in children) {
-        changeSet.added(child);
-      }
-      var someChange = new Mock();
-
-      // when
-      for (var child in children) {
-        changeSet.changed(child, someChange);
-      }
-
-      changeSet.clear();
-      
-      // then
-      expect(changeSet.addedItems.isEmpty, isTrue);
-      expect(changeSet.changedItems.isEmpty, isTrue);
-      expect(changeSet.removedItems.isEmpty, isTrue);
-      expect(changeSet.isEmpty, isTrue);
-    });
 
     test('apply another ChangeSet.', () {
       // given

@@ -106,12 +106,4 @@ class ChangeSet {
     this.removedItems.isEmpty &&
     this.changedItems.isEmpty;
   
-  /*
-   * Clears all changes from the changeset.
-   */
-  void clear() {
-    addedItems.clear();
-    changedItems.clear();
-    removedItems.clear();
-  }
 }
