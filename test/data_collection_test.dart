@@ -14,13 +14,13 @@ void main() {
     setUp(() {
       models = [];
       for (var i = 0; i <= 10; i++) {
-        models.add(new Model.fromData({'id': i}));
+        models.add(new Data.fromMap({'id': i}));
       }
     });
 
     test('initialize.', () {
       // when
-      var collection = new Collection();
+      var collection = new DataCollection();
 
       // then
       expect(collection.length, equals(0));
@@ -29,7 +29,7 @@ void main() {
 
     test('initialize with data.', () {
       // when
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // then
       expect(collection.length, equals(models.length));
@@ -38,7 +38,7 @@ void main() {
 
     test('multiple listeners listen to onChange.', () {
       // given
-      var collection = new Collection();
+      var collection = new DataCollection();
 
       // when
       collection.onChange.listen((event) => null);
@@ -49,7 +49,7 @@ void main() {
 
     test('add model.', () {
       // given
-      var collection = new Collection();
+      var collection = new DataCollection();
 
       // when
       for (var model in models) {
@@ -63,8 +63,8 @@ void main() {
 
     test('remove model.', () {
       // given
-      var models = [new Model(), new Model()];
-      var collection = new Collection.from(models);
+      var models = [new Data(), new Data()];
+      var collection = new DataCollection.from(models);
 
       // when
       collection.remove(models[0]);
@@ -76,7 +76,7 @@ void main() {
 
     test('clear.', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       collection.clear();
@@ -87,54 +87,54 @@ void main() {
 
     test('listen on model added.', () {
       // given
-      var collection = new Collection();
+      var collection = new DataCollection();
 
       // when
       collection.add(models[0]);
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.removedChildren.isEmpty, isTrue);
-        expect(event.changedChildren.isEmpty, isTrue);
-        expect(event.addedChildren, unorderedEquals([models[0]]));
+        expect(event.removedItems.isEmpty, isTrue);
+        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.addedItems, unorderedEquals([models[0]]));
       }));
     });
 
     test('listen on model removed.', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       collection.remove(models[0]);
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedChildren.isEmpty, isTrue);
-        expect(event.changedChildren.isEmpty, isTrue);
-        expect(event.removedChildren, unorderedEquals([models[0]]));
+        expect(event.addedItems.isEmpty, isTrue);
+        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.removedItems, unorderedEquals([models[0]]));
       }));
     });
 
     test('listen on model changes.', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       models[0]['name'] = 'John Doe';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedChildren.isEmpty, isTrue);
-        expect(event.removedChildren.isEmpty, isTrue);
-        expect(event.changedChildren.length, equals(1));
-        expect(event.changedChildren[models[0]].addedChildren,
+        expect(event.addedItems.isEmpty, isTrue);
+        expect(event.removedItems.isEmpty, isTrue);
+        expect(event.changedItems.length, equals(1));
+        expect(event.changedItems[models[0]].addedItems,
             unorderedEquals(['name']));
       }));
     });
 
     test('do not listen on removed model changes.', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       collection.remove(models[0]);
@@ -142,13 +142,13 @@ void main() {
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.isEmpty, isTrue);
+        expect(event.changedItems.isEmpty, isTrue);
       }));
     });
 
     test('do not listen on cleared model changes.', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       collection.clear();
@@ -156,14 +156,14 @@ void main() {
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.isEmpty, isTrue);
+        expect(event.changedItems.isEmpty, isTrue);
       }));
     });
 
     test('propagate multiple add/remove changes in single [ChangeSet].', () {
       // given
-      var collection = new Collection.from(models);
-      var newModel = new Model();
+      var collection = new DataCollection.from(models);
+      var newModel = new Data();
 
       // when
       collection.remove(models[0]);
@@ -171,14 +171,14 @@ void main() {
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedChildren, unorderedEquals([newModel]));
-        expect(event.removedChildren, unorderedEquals([models[0]]));
+        expect(event.addedItems, unorderedEquals([newModel]));
+        expect(event.removedItems, unorderedEquals([models[0]]));
       }));
     });
 
     test('propagate multiple models changes in single [ChangeSet].', () {
       // given
-      var collection = new Collection.from(models);
+      var collection = new DataCollection.from(models);
 
       // when
       models[0]['name'] = 'John Doe';
@@ -186,7 +186,7 @@ void main() {
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.keys,
+        expect(event.changedItems.keys,
             unorderedEquals([models[0], models[1]]));
       }));
     });

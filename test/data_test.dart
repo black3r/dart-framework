@@ -13,7 +13,7 @@ void main() {
     test('initialize.', () {
 
       // when
-      var model = new Model();
+      var model = new Data();
 
       // then
       expect(model.isEmpty, isTrue);
@@ -30,7 +30,7 @@ void main() {
       };
 
       // when
-      var model = new Model.fromData(data);
+      var model = new Data.fromMap(data);
 
       // then
       expect(model.isEmpty, isFalse);
@@ -45,7 +45,7 @@ void main() {
 
     test('is accessed like a map.', () {
       // given
-      var model =  new Model();
+      var model =  new Data();
 
       // when
       model['key'] = 'value';
@@ -57,16 +57,16 @@ void main() {
 
     test('listen on {key, value} added.', () {
       // given
-      var model = new Model();
+      var model = new Data();
 
       // when
       model['key'] = 'value';
 
       // then
       model.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.isEmpty, isTrue);
-        expect(event.removedChildren.isEmpty, isTrue);
-        expect(event.addedChildren, unorderedEquals(['key']));
+        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.removedItems.isEmpty, isTrue);
+        expect(event.addedItems, unorderedEquals(['key']));
       }));
 
     });
@@ -74,16 +74,16 @@ void main() {
     test('listen on {key, value} removed.', () {
       // given
       var data = {'key': 'value'};
-      var model = new Model.fromData(data);
+      var model = new Data.fromMap(data);
 
       // when
       model.remove('key');
 
       // then
       model.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.isEmpty, isTrue);
-        expect(event.addedChildren.isEmpty, isTrue);
-        expect(event.removedChildren, unorderedEquals(['key']));
+        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.addedItems.isEmpty, isTrue);
+        expect(event.removedItems, unorderedEquals(['key']));
       }));
 
     });
@@ -91,17 +91,17 @@ void main() {
     test('listen on {key, value} changed.', () {
       // given
       var data = {'key': 'oldValue'};
-      var model = new Model.fromData(data);
+      var model = new Data.fromMap(data);
 
       // when
       model['key'] = 'newValue';
 
       // then
       model.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedChildren.isEmpty, isTrue);
-        expect(event.removedChildren.isEmpty, isTrue);
-        expect(event.changedChildren.length, equals(1));
-        var change = event.changedChildren['key'];
+        expect(event.addedItems.isEmpty, isTrue);
+        expect(event.removedItems.isEmpty, isTrue);
+        expect(event.changedItems.length, equals(1));
+        var change = event.changedItems['key'];
         expect(change.oldValue, equals('oldValue'));
         expect(change.newValue, equals('newValue'));
       }));
@@ -110,7 +110,7 @@ void main() {
     test('propagate multiple changes in single [ChangeSet].', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
-      var model = new Model.fromData(data);
+      var model = new Data.fromMap(data);
 
       // when
       model['key1'] = 'newValue1';
@@ -119,9 +119,9 @@ void main() {
 
       // then
       model.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedChildren.keys, unorderedEquals(['key1']));
-        expect(event.removedChildren, unorderedEquals(['key2']));
-        expect(event.addedChildren, unorderedEquals(['key3']));
+        expect(event.changedItems.keys, unorderedEquals(['key1']));
+        expect(event.removedItems, unorderedEquals(['key2']));
+        expect(event.addedItems, unorderedEquals(['key3']));
       }));
     });
   });

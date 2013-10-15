@@ -4,7 +4,7 @@
 
 part of clean_data;
 
-abstract class ModelView {
+abstract class DataView {
 
   /**
    * Returns the value for the given key or null if key is not in the model.
@@ -34,12 +34,12 @@ abstract class ModelView {
   Iterable get keys;
 
   /**
-   * The values of [Model].
+   * The values of [Data].
    */
   Iterable get values;
 
   /**
-   * The number of {key, value} pairs in the [Model].
+   * The number of {key, value} pairs in the [Data].
    */
   int get length;
 
@@ -49,7 +49,7 @@ abstract class ModelView {
   bool containsKey(String key);
 }
 
-abstract class ModelViewMixin implements ModelView {
+abstract class DataViewMixin implements DataView {
 
   final Map _fields = new Map();
 
@@ -107,31 +107,31 @@ abstract class ModelViewMixin implements ModelView {
 /**
  * A representation for a single unit of structured data.
  */
-class Model extends Object with ModelViewMixin implements ModelView {
+class Data extends Object with DataViewMixin implements DataView {
 
   /**
-   * Creates an empty model.
+   * Creates an empty data object.
    */
-  Model();
+  Data();
 
   /**
-   * Creates a new model from key, value pairs [data].
+   * Creates a new data object from key-value pairs [data].
    */
-  factory Model.fromData(Map data) {
-    var model = new Model();
+  factory Data.fromMap(Map data) {
+    var model = new Data();
     data.forEach((k, v) => model[k] = v);
     model._clearChanges();
     return model;
   }
 
   /**
-   * Assignes the [value] to the [key] field.
+   * Assigns the [value] to the [key] field.
    */
   void operator[]=(String key, value) {
     if (this._fields.containsKey(key)) {
-      _changeSet.changeChild(key, new Change(this._fields[key], value));
+      _changeSet.changed(key, new Change(this._fields[key], value));
     } else {
-      _changeSet.addChild(key);
+      _changeSet.added(key);
     }
 
     this._fields[key] = value;
@@ -139,11 +139,11 @@ class Model extends Object with ModelViewMixin implements ModelView {
   }
 
   /**
-   * Removes [key] from model.
+   * Removes [key] from the data object.
    */
   void remove(String key) {
     this._fields.remove(key);
-    this._changeSet.removeChild(key);
+    this._changeSet.removed(key);
     _notify();
   }
 

@@ -7,7 +7,7 @@ part of clean_data;
 /**
  * Provides the read operations with collection of models.
  */
-abstract class CollectionView implements Iterable {
+abstract class DataCollectionView implements Iterable {
 
   /**
    * Stream populated with [ChangeSet] events whenever the collection or any
@@ -18,11 +18,11 @@ abstract class CollectionView implements Iterable {
   /**
    * Returns whether this collection contains the given [model].
    */
-  bool contains(ModelView model);
+  bool contains(DataView model);
 }
 
-abstract class CollectionViewMixin implements CollectionView {
-  final Set<ModelView> _models = new Set<ModelView>();
+abstract class DataCollectionViewMixin implements DataCollectionView {
+  final Set<DataView> _models = new Set<DataView>();
 
   final Map<dynamic, StreamSubscription> _modelListeners =
       new Map<dynamic, StreamSubscription>();
@@ -36,7 +36,7 @@ abstract class CollectionViewMixin implements CollectionView {
 
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
-  bool contains(ModelView model) => this._models.contains(model);
+  bool contains(DataView model) => this._models.contains(model);
 
   void _clearChanges() {
     this._changeSet = new ChangeSet();
@@ -56,38 +56,38 @@ abstract class CollectionViewMixin implements CollectionView {
 }
 
 /**
- * Collection of [ModelView]s.
+ * Collection of [DataView]s.
  */
-class Collection extends Object with CollectionViewMixin,
-    IterableMixin<ModelView> {
+class DataCollection extends Object with DataCollectionViewMixin,
+    IterableMixin<DataView> {
 
-  Iterator<ModelView> get iterator => _models.iterator;
+  Iterator<DataView> get iterator => _models.iterator;
 
   /**
    * Creates an empty collection.
    */
-  Collection();
+  DataCollection();
 
   /**
-   * Generates Collection from [Iterable] of [models].
+   * Generates Collection from [Iterable] of [data].
    */
-  factory Collection.from(Iterable<ModelView> models) {
-    var collection = new Collection();
-    for (var model in models) {
+  factory DataCollection.from(Iterable<DataView> data) {
+    var collection = new DataCollection();
+    for (var model in data) {
       collection.add(model);
     }
     collection._clearChanges();
     return collection;
   }
 
-  void _addOnModelChangeListener(ModelView model) {
+  void _addOnModelChangeListener(DataView model) {
     this._modelListeners[model] = model.onChange.listen((event) {
-      _changeSet.changeChild(model, event);
+      _changeSet.changed(model, event);
       _notify();
     });
   }
 
-  void _removeOnModelChangeListener(ModelView model) {
+  void _removeOnModelChangeListener(DataView model) {
     this._modelListeners[model].cancel();
     this._modelListeners.remove(model);
   }
@@ -97,20 +97,20 @@ class Collection extends Object with CollectionViewMixin,
    *
    * Models should have unique id's.
    */
-  void add(ModelView model) {
+  void add(DataView model) {
     this._models.add(model);
     this._addOnModelChangeListener(model);
-    _changeSet.addChild(model);
+    _changeSet.added(model);
     _notify();
   }
 
   /**
    * Removes a model from the collection.
    */
-  void remove(ModelView model) {
+  void remove(DataView model) {
     this._models.remove(model);
     this._removeOnModelChangeListener(model);
-    _changeSet.removeChild(model);
+    _changeSet.removed(model);
     _notify();
   }
 
@@ -120,7 +120,7 @@ class Collection extends Object with CollectionViewMixin,
   void clear() {
     for (var model in this._models) {
       this._removeOnModelChangeListener(model);
-      this._changeSet.removeChild(model);
+      this._changeSet.removed(model);
     }
     this._models.clear();
     _notify();
