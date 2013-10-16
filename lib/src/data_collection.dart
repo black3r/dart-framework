@@ -5,54 +5,102 @@
 part of clean_data;
 
 /**
- * Provides the read operations with collection of models.
+ * Observable collection of data objects that allows for read-only operations.
+ * 
+ * By observable we mean that changes to the contents of the collection (data addition / change / removal)
+ * are propagated to registered listeners.
  */
 abstract class DataCollectionView implements Iterable {
 
   /**
    * Stream populated with [ChangeSet] events whenever the collection or any
-   * of models contained gets changed.
+   * of data object contained gets changed.
    */
   Stream<ChangeSet> get onChange;
 
   /**
-   * Returns whether this collection contains the given [model].
+   * Returns true iff this collection contains the given [dataObj].
+   * 
+   * @param dataObj Data object to be searched for. 
    */
-  bool contains(DataView model);
+  bool contains(DataView dataObj);   
+  
+  /**
+   * Filters the data collection by the given filter.
+   * 
+   * @param condition An array of form [propertyName, filteredValue].
+   * @returns A new DataCollectionView object with only those [DataView] objects
+   *          included that conform to the given filter.
+   * @throws IllegalArgumentException If the [filter] parameter is malformed.
+   * 
+   * Example:
+   * 
+   *   TODO
+   */
+  DataCollectionView whereEquals(dynamic filter);
+  
 }
 
-abstract class DataCollectionViewMixin implements DataCollectionView {
-  final Set<DataView> _models = new Set<DataView>();
 
-  final Map<dynamic, StreamSubscription> _modelListeners =
+/**
+ * A minimal implementation of [DataCollectionView]. 
+ */
+abstract class DataCollectionViewMixin implements DataCollectionView {
+  
+  Iterator<DataView> get iterator => _data.iterator;
+  
+  /**
+   * Holds data view objects for the collection.
+   */
+  final Set<DataView> _data = new Set<DataView>();
+  
+  /**
+   * Internal set of listeners for change events on individual data objects.
+   */
+  final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
 
-  int get length => this._models.length;
-
-  ChangeSet _changeSet = new ChangeSet();
+  /**
+   * Used to propagate change events to the outside world.
+   */
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   final StreamController _onChangeController =
       new StreamController<ChangeSet>.broadcast();
 
-  Stream<ChangeSet> get onChange => _onChangeController.stream;
+  /**
+   * Current state of the collection expressed by a [ChangeSet].
+   */
+  ChangeSet _changeSet = new ChangeSet();
 
-  bool contains(DataView model) => this._models.contains(model);
-
+  int get length => _data.length;
+  bool contains(DataView dataObj) => _data.contains(dataObj);
+  
+  /**
+   * Reset the change log of the collection.
+   */
   void _clearChanges() {
-    this._changeSet = new ChangeSet();
+    _changeSet = new ChangeSet();
   }
 
   /**
-   * Stream all new changes marked in [changeset].
+   * Stream all new changes marked in [ChangeSet].
    */
   void _notify() {
     Timer.run(() {
+      
       if(!_changeSet.isEmpty) {
-        this._onChangeController.add(this._changeSet);
-        this._clearChanges();
+        _onChangeController.add(_changeSet);
+        _clearChanges();
       }
+      
     });
   }
+  
+  DataCollectionView whereEquals(dynamic filter) {
+    return new FilteredDataCollection(this, filter);
+  }
+    
 }
 
 /**
@@ -60,8 +108,6 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
  */
 class DataCollection extends Object with DataCollectionViewMixin,
     IterableMixin<DataView> {
-
-  Iterator<DataView> get iterator => _models.iterator;
 
   /**
    * Creates an empty collection.
@@ -73,57 +119,57 @@ class DataCollection extends Object with DataCollectionViewMixin,
    */
   factory DataCollection.from(Iterable<DataView> data) {
     var collection = new DataCollection();
-    for (var model in data) {
-      collection.add(model);
+    for (var dataObj in data) {
+      collection.add(dataObj);
     }
     collection._clearChanges();
     return collection;
   }
 
-  void _addOnModelChangeListener(DataView model) {
-    this._modelListeners[model] = model.onChange.listen((event) {
-      _changeSet.changed(model, event);
-      _notify();
+  /**
+   * Appends the [dataObj] to the collection.
+   *
+   * Data objects should have unique IDs.
+   */
+  void add(DataView dataObj) {    
+    _data.add(dataObj);
+    _addOnDataChangeListener(dataObj);
+    
+    _changeSet.markAdded(dataObj);
+    _notify();
+  }
+
+  /**
+   * Removes a data object from the collection.
+   */
+  void remove(DataView dataObj) {
+    _data.remove(dataObj);
+    _removeOnDataChangeListener(dataObj);
+    _changeSet.markRemoved(dataObj);
+    _notify();
+  }
+
+  /**
+   * Removes all data objects from the collection.
+   */
+  void clear() {
+    for (var dataObj in _data) {
+      _removeOnDataChangeListener(dataObj);
+      _changeSet.markRemoved(dataObj);
+    }
+    _data.clear();
+    _notify();
+  }
+
+  void _addOnDataChangeListener(DataView dataObj) {
+    _dataListeners[dataObj] = dataObj.onChange.listen((changeEvent) {
+          _changeSet.markChanged(dataObj, changeEvent);
+          _notify();
     });
   }
 
-  void _removeOnModelChangeListener(DataView model) {
-    this._modelListeners[model].cancel();
-    this._modelListeners.remove(model);
+  void _removeOnDataChangeListener(DataView dataObj) {
+    _dataListeners[dataObj].cancel();
+    _dataListeners.remove(dataObj);
   }
-
-  /**
-   * Appends the [model] to the collection.
-   *
-   * Models should have unique id's.
-   */
-  void add(DataView model) {
-    this._models.add(model);
-    this._addOnModelChangeListener(model);
-    _changeSet.added(model);
-    _notify();
-  }
-
-  /**
-   * Removes a model from the collection.
-   */
-  void remove(DataView model) {
-    this._models.remove(model);
-    this._removeOnModelChangeListener(model);
-    _changeSet.removed(model);
-    _notify();
-  }
-
-  /**
-   * Removes all models from the collection.
-   */
-  void clear() {
-    for (var model in this._models) {
-      this._removeOnModelChangeListener(model);
-      this._changeSet.removed(model);
-    }
-    this._models.clear();
-    _notify();
-  }
-
 }

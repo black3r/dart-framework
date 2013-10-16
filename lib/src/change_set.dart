@@ -47,38 +47,38 @@ class ChangeSet {
   ChangeSet();
 
   /**
-   * Marks [child] as added.
+   * Marks [dataObj] as added.
    */
-  void added(dynamic child) {
-    if(this.removedItems.contains(child)) {
-      this.removedItems.remove(child);
+  void markAdded(dynamic dataObj) {
+    if(this.removedItems.contains(dataObj)) {
+      this.removedItems.remove(dataObj);
     } else {
-      this.addedItems.add(child);
+      this.addedItems.add(dataObj);
     }
   }
 
   /**
-   * Marks [child] as removed.
+   * Marks [dataObj] as removed.
    */
-  void removed(dynamic child) {
-    if(addedItems.contains(child)) {
-      this.addedItems.remove(child);
+  void markRemoved(dynamic dataObj) {
+    if(addedItems.contains(dataObj)) {
+      this.addedItems.remove(dataObj);
     } else {
-      this.removedItems.add(child);
+      this.removedItems.add(dataObj);
     }
   }
 
   /**
    * Marks all the changes in [ChangeSet] or [Change] for a
-   * given [child].
+   * given [dataObj].
    */
-  void changed(dynamic child, changeSet) {
-    if(this.addedItems.contains(child)) return;
+  void markChanged(dynamic dataObj, changeSet) {
+    if(addedItems.contains(dataObj)) return;
 
-    if(this.changedItems.containsKey(child)) {
-      this.changedItems[child].mergeIn(changeSet);
+    if(changedItems.containsKey(dataObj)) {
+      changedItems[dataObj].mergeIn(changeSet);
     } else {
-      this.changedItems[child] = changeSet;
+      changedItems[dataObj] = changeSet;
     }
   }
 
@@ -87,13 +87,13 @@ class ChangeSet {
    */
   void mergeIn(ChangeSet changeSet) {
     for(var child in changeSet.addedItems ){
-      this.added(child);
+      markAdded(child);
     }
-    for(var child in changeSet.removedItems) {
-      this.removed(child);
+    for(var dataObj in changeSet.removedItems) {
+      markRemoved(dataObj);
     }
     changeSet.changedItems.forEach((child,changeSet) {
-      this.changed(child,changeSet);
+      markChanged(child,changeSet);
     });
   }
 

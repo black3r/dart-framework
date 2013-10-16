@@ -7,29 +7,29 @@ part of clean_data;
 abstract class DataView {
 
   /**
-   * Returns the value for the given key or null if key is not in the model.
+   * Returns the value for the given key or null if key is not in the data object.
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
   dynamic operator[](key);
 
   /**
-   * Stream populated with [ChangeSet] events whenever the model gets changed.
+   * Stream populated with [ChangeSet] events whenever the data gets changed.
    */
   Stream<ChangeSet> get onChange;
 
   /**
-   * Returns true if there is no {key, value} pair in the model.
+   * Returns true if there is no {key, value} pair in the data object.
    */
   bool get isEmpty;
 
   /**
-   * Returns true if there is at least one {key, value} pair in the model.
+   * Returns true if there is at least one {key, value} pair in the data object.
    */
   bool get isNotEmpty;
 
   /**
-   * The keys of model.
+   * The keys of data object.
    */
   Iterable get keys;
 
@@ -44,7 +44,7 @@ abstract class DataView {
   int get length;
 
   /**
-   * Returns whether this model contains the given [key].
+   * Returns whether this data object contains the given [key].
    */
   bool containsKey(String key);
 }
@@ -53,7 +53,7 @@ abstract class DataViewMixin implements DataView {
 
   final Map _fields = new Map();
 
-  dynamic operator[](key) => this._fields[key];
+  dynamic operator[](key) => _fields[key];
 
   ChangeSet _changeSet = new ChangeSet();
 
@@ -83,7 +83,7 @@ abstract class DataViewMixin implements DataView {
   }
 
   bool containsKey(String key) {
-    return this._fields.containsKey(key);
+    return _fields.containsKey(key);
   }
 
   /**
@@ -92,14 +92,14 @@ abstract class DataViewMixin implements DataView {
   void _notify() {
     Timer.run(() {
       if(!_changeSet.isEmpty) {
-        this._onChangeController.add(this._changeSet);
+        _onChangeController.add(_changeSet);
         _clearChanges();
       }
     });
   }
 
   _clearChanges() {
-    this._changeSet = new ChangeSet();
+    _changeSet = new ChangeSet();
   }
 
 }
@@ -118,23 +118,23 @@ class Data extends Object with DataViewMixin implements DataView {
    * Creates a new data object from key-value pairs [data].
    */
   factory Data.fromMap(Map data) {
-    var model = new Data();
-    data.forEach((k, v) => model[k] = v);
-    model._clearChanges();
-    return model;
+    var dataObj = new Data();
+    data.forEach((k, v) => dataObj[k] = v);
+    dataObj._clearChanges();
+    return dataObj;
   }
 
   /**
    * Assigns the [value] to the [key] field.
    */
   void operator[]=(String key, value) {
-    if (this._fields.containsKey(key)) {
-      _changeSet.changed(key, new Change(this._fields[key], value));
+    if (_fields.containsKey(key)) {
+      _changeSet.markChanged(key, new Change(_fields[key], value));
     } else {
-      _changeSet.added(key);
+      _changeSet.markAdded(key);
     }
 
-    this._fields[key] = value;
+    _fields[key] = value;
     _notify();
   }
 
@@ -142,8 +142,8 @@ class Data extends Object with DataViewMixin implements DataView {
    * Removes [key] from the data object.
    */
   void remove(String key) {
-    this._fields.remove(key);
-    this._changeSet.removed(key);
+    _fields.remove(key);
+    _changeSet.markRemoved(key);
     _notify();
   }
 

@@ -9,12 +9,12 @@ void main() {
 
   group('Collection', () {
 
-    var model0, model1, model2, model3;
-    var models;
+    var data0, data1, data2, data3;
+    var data;
     setUp(() {
-      models = [];
+      data = [];
       for (var i = 0; i <= 10; i++) {
-        models.add(new Data.fromMap({'id': i}));
+        data.add(new Data.fromMap({'id': i}));
       }
     });
 
@@ -29,11 +29,11 @@ void main() {
 
     test('initialize with data.', () {
       // when
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // then
-      expect(collection.length, equals(models.length));
-      expect(collection, unorderedEquals(models));
+      expect(collection.length, equals(data.length));
+      expect(collection, unorderedEquals(data));
     });
 
     test('multiple listeners listen to onChange.', () {
@@ -47,36 +47,36 @@ void main() {
       // Then no exception is thrown.
     });
 
-    test('add model.', () {
+    test('add data object.', () {
       // given
       var collection = new DataCollection();
 
       // when
-      for (var model in models) {
-        collection.add(model);
+      for (var dataObj in data) {
+        collection.add(dataObj);
       }
 
       // then
-      expect(collection.contains(models[0]), isTrue);
-      expect(collection, unorderedEquals(models));
+      expect(collection.contains(data[0]), isTrue);
+      expect(collection, unorderedEquals(data));
     });
 
-    test('remove model.', () {
+    test('remove dataObject.', () {
       // given
-      var models = [new Data(), new Data()];
-      var collection = new DataCollection.from(models);
+      var dataObjs = [new Data(), new Data()];
+      var collection = new DataCollection.from(dataObjs);
 
       // when
-      collection.remove(models[0]);
+      collection.remove(dataObjs[0]);
 
       // then
-      expect(collection.contains(models[0]), isFalse);
-      expect(collection, unorderedEquals([models[1]]));
+      expect(collection.contains(dataObjs[0]), isFalse);
+      expect(collection, unorderedEquals([dataObjs[1]]));
     });
 
     test('clear.', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
       collection.clear();
@@ -85,60 +85,60 @@ void main() {
       expect(collection.isEmpty, isTrue);
     });
 
-    test('listen on model added.', () {
+    test('listen on data object added.', () {
       // given
       var collection = new DataCollection();
 
       // when
-      collection.add(models[0]);
+      collection.add(data[0]);
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
-        expect(event.addedItems, unorderedEquals([models[0]]));
+        expect(event.addedItems, unorderedEquals([data[0]]));
       }));
     });
 
-    test('listen on model removed.', () {
+    test('listen on data object removed.', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
-      collection.remove(models[0]);
+      collection.remove(data[0]);
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
-        expect(event.removedItems, unorderedEquals([models[0]]));
+        expect(event.removedItems, unorderedEquals([data[0]]));
       }));
     });
 
-    test('listen on model changes.', () {
+    test('listen on data object changes.', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
-      models[0]['name'] = 'John Doe';
+      data[0]['name'] = 'John Doe';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.length, equals(1));
-        expect(event.changedItems[models[0]].addedItems,
+        expect(event.changedItems[data[0]].addedItems,
             unorderedEquals(['name']));
       }));
     });
 
-    test('do not listen on removed model changes.', () {
+    test('do not listen on removed data object changes.', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
-      collection.remove(models[0]);
-      models[0]['name'] = 'John Doe';
+      collection.remove(data[0]);
+      data[0]['name'] = 'John Doe';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
@@ -146,13 +146,13 @@ void main() {
       }));
     });
 
-    test('do not listen on cleared model changes.', () {
+    test('do not listen on cleared data object changes.', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
       collection.clear();
-      models[0]['name'] = 'John Doe';
+      data[0]['name'] = 'John Doe';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
@@ -162,34 +162,53 @@ void main() {
 
     test('propagate multiple add/remove changes in single [ChangeSet].', () {
       // given
-      var collection = new DataCollection.from(models);
-      var newModel = new Data();
+      var collection = new DataCollection.from(data);
+      var newDataObj = new Data();
 
       // when
-      collection.remove(models[0]);
-      collection.add(newModel);
+      collection.remove(data[0]);
+      collection.add(newDataObj);
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems, unorderedEquals([newModel]));
-        expect(event.removedItems, unorderedEquals([models[0]]));
+        expect(event.addedItems, unorderedEquals([newDataObj]));
+        expect(event.removedItems, unorderedEquals([data[0]]));
       }));
     });
 
-    test('propagate multiple models changes in single [ChangeSet].', () {
+    test('propagate multiple data object changes in single [ChangeSet].', () {
       // given
-      var collection = new DataCollection.from(models);
+      var collection = new DataCollection.from(data);
 
       // when
-      models[0]['name'] = 'John Doe';
-      models[1]['name'] = 'James Bond';
+      data[0]['name'] = 'John Doe';
+      data[1]['name'] = 'James Bond';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys,
-            unorderedEquals([models[0], models[1]]));
+            unorderedEquals([data[0], data[1]]));
       }));
+      
     });
 
+    // <index tests start here>
+    
+    test('propagate multiple data object changes in single [ChangeSet].', () {
+      // given
+      var collection = new DataCollection.from(data);
+
+      // when
+      data[0]['name'] = 'John Doe';
+      data[1]['name'] = 'James Bond';
+
+      // then
+      collection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.changedItems.keys,
+            unorderedEquals([data[0], data[1]]));
+      }));
+      
+    });
+    
   });
 }

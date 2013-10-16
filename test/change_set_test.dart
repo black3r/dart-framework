@@ -59,7 +59,7 @@ void main() {
     test('add children.', () {
       // when
       for (var child in children) {
-        changeSet.added(child);
+        changeSet.markAdded(child);
       }
 
       //  then
@@ -72,7 +72,7 @@ void main() {
     test('remove children.', () {
       // when
       for (var child in children) {
-        changeSet.removed(child);
+        changeSet.markRemoved(child);
       }
 
       // then
@@ -85,12 +85,12 @@ void main() {
     test('add previously removed children.', () {
       // given
       for (var child in children) {
-        changeSet.removed(child);
+        changeSet.markRemoved(child);
       }
 
       // when
       for (var child in children) {
-        changeSet.added(child);
+        changeSet.markAdded(child);
       }
 
       // then
@@ -100,12 +100,12 @@ void main() {
     test('remove previosly added children.', () {
       // given
       for (var child in children) {
-        changeSet.added(child);
+        changeSet.markAdded(child);
       }
 
       // when
       for (var child in children) {
-        changeSet.removed(child);
+        changeSet.markRemoved(child);
       }
 
       // then
@@ -119,7 +119,7 @@ void main() {
 
       // when
       for (var child in changes.keys) {
-        changeSet.changed(child, changes[child]);
+        changeSet.markChanged(child, changes[child]);
       }
 
       // then
@@ -137,10 +137,10 @@ void main() {
       var firstChange = new Mock();
       var secondChange = new Mock();
       var child = 'child';
-      changeSet.changed(child, firstChange);
+      changeSet.markChanged(child, firstChange);
 
       // when
-      changeSet.changed(child, secondChange);
+      changeSet.markChanged(child, secondChange);
 
       // then
       expect(changeSet.isEmpty, isFalse);
@@ -153,13 +153,13 @@ void main() {
     test('change child that was added before.',() {
       // given
       for (var child in children) {
-        changeSet.added(child);
+        changeSet.markAdded(child);
       }
       var someChange = new Mock();
 
       // when
       for (var child in children) {
-        changeSet.changed(child, someChange);
+        changeSet.markChanged(child, someChange);
       }
 
       // then
@@ -172,15 +172,15 @@ void main() {
     test('apply another ChangeSet.', () {
       // given
       var change = new Mock();
-      changeSet.added('added');
-      changeSet.removed('removed');
-      changeSet.changed('changed', change);
+      changeSet.markAdded('added');
+      changeSet.markRemoved('removed');
+      changeSet.markChanged('changed', change);
 
       var anotherChangeSet = new ChangeSet();
       var anotherChange = new Mock();
-      anotherChangeSet.added('anotherAdded');
-      anotherChangeSet.removed('anotherRemoved');
-      anotherChangeSet.changed('anotherChanged', anotherChange);
+      anotherChangeSet.markAdded('anotherAdded');
+      anotherChangeSet.markRemoved('anotherRemoved');
+      anotherChangeSet.markChanged('anotherChanged', anotherChange);
 
       // when
       changeSet.mergeIn(anotherChangeSet);

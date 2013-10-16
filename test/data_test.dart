@@ -8,17 +8,17 @@ import 'package:clean_data/clean_data.dart';
 
 void main() {
 
-  group('Model', () {
+  group('Data', () {
 
     test('initialize.', () {
 
       // when
-      var model = new Data();
+      var data = new Data();
 
       // then
-      expect(model.isEmpty, isTrue);
-      expect(model.isNotEmpty, isFalse);
-      expect(model.length, 0);
+      expect(data.isEmpty, isTrue);
+      expect(data.isNotEmpty, isFalse);
+      expect(data.length, 0);
     });
 
     test('initialize with data.', () {
@@ -30,40 +30,40 @@ void main() {
       };
 
       // when
-      var model = new Data.fromMap(data);
+      var dataObj = new Data.fromMap(data);
 
       // then
-      expect(model.isEmpty, isFalse);
-      expect(model.isNotEmpty, isTrue);
-      expect(model.length, equals(data.length));
-      expect(model.keys, equals(data.keys));
-      expect(model.values, equals(data.values));
+      expect(dataObj.isEmpty, isFalse);
+      expect(dataObj.isNotEmpty, isTrue);
+      expect(dataObj.length, equals(data.length));
+      expect(dataObj.keys, equals(data.keys));
+      expect(dataObj.values, equals(data.values));
       for (var key in data.keys) {
-        expect(model[key], equals(data[key]));
+        expect(dataObj[key], equals(data[key]));
       }
     });
 
     test('is accessed like a map.', () {
       // given
-      var model =  new Data();
+      var dataObj =  new Data();
 
       // when
-      model['key'] = 'value';
+      dataObj['key'] = 'value';
 
       // then
-      expect(model['key'], equals('value'));
+      expect(dataObj['key'], equals('value'));
     });
 
 
     test('listen on {key, value} added.', () {
       // given
-      var model = new Data();
+      var dataObj = new Data();
 
       // when
-      model['key'] = 'value';
+      dataObj['key'] = 'value';
 
       // then
-      model.onChange.listen(expectAsync1((ChangeSet event) {
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.addedItems, unorderedEquals(['key']));
@@ -74,13 +74,13 @@ void main() {
     test('listen on {key, value} removed.', () {
       // given
       var data = {'key': 'value'};
-      var model = new Data.fromMap(data);
+      var dataObj = new Data.fromMap(data);
 
       // when
-      model.remove('key');
+      dataObj.remove('key');
 
       // then
-      model.onChange.listen(expectAsync1((ChangeSet event) {
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems, unorderedEquals(['key']));
@@ -91,13 +91,13 @@ void main() {
     test('listen on {key, value} changed.', () {
       // given
       var data = {'key': 'oldValue'};
-      var model = new Data.fromMap(data);
+      var dataObj = new Data.fromMap(data);
 
       // when
-      model['key'] = 'newValue';
+      dataObj['key'] = 'newValue';
 
       // then
-      model.onChange.listen(expectAsync1((ChangeSet event) {
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.length, equals(1));
@@ -110,15 +110,15 @@ void main() {
     test('propagate multiple changes in single [ChangeSet].', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
-      var model = new Data.fromMap(data);
+      var dataObj = new Data.fromMap(data);
 
       // when
-      model['key1'] = 'newValue1';
-      model.remove('key2');
-      model['key3'] = 'value3';
+      dataObj['key1'] = 'newValue1';
+      dataObj.remove('key2');
+      dataObj['key3'] = 'value3';
 
       // then
-      model.onChange.listen(expectAsync1((ChangeSet event) {
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals(['key1']));
         expect(event.removedItems, unorderedEquals(['key2']));
         expect(event.addedItems, unorderedEquals(['key3']));
