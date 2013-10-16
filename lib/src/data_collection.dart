@@ -26,21 +26,18 @@ abstract class DataCollectionView implements Iterable {
   bool contains(DataView dataObj);   
   
   /**
-   * Filters the data collection by the given filter.
+   * Filters the data collection w.r.t. the given filter function [test].
    * 
-   * @param condition An array of form [propertyName, filteredValue].
-   * @returns A new DataCollectionView object with only those [DataView] objects
-   *          included that conform to the given filter.
-   * @throws IllegalArgumentException If the [filter] parameter is malformed.
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
    * 
-   * Example:
-   * 
-   *   TODO
+   * For the synchronization to work properly, the [test] function must nost:
+   *  * change the source collection, or any of its elements
+   *  * depend on a non-final outside variable
    */
-  DataCollectionView whereEquals(dynamic filter);
+   DataCollectionView where(bool test(DataView d));
   
 }
-
 
 /**
  * A minimal implementation of [DataCollectionView]. 
@@ -97,8 +94,8 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     });
   }
   
-  DataCollectionView whereEquals(dynamic filter) {
-    return new FilteredDataCollection(this, filter);
+  DataCollectionView where(bool test(DataView d)) {
+    return new FilteredDataCollection(this, test);
   }
     
 }
@@ -106,8 +103,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
 /**
  * Collection of [DataView]s.
  */
-class DataCollection extends Object with DataCollectionViewMixin,
-    IterableMixin<DataView> {
+class DataCollection extends Object with IterableMixin<DataView>,DataCollectionViewMixin {
 
   /**
    * Creates an empty collection.
@@ -163,8 +159,8 @@ class DataCollection extends Object with DataCollectionViewMixin,
 
   void _addOnDataChangeListener(DataView dataObj) {
     _dataListeners[dataObj] = dataObj.onChange.listen((changeEvent) {
-          _changeSet.markChanged(dataObj, changeEvent);
-          _notify();
+      _changeSet.markChanged(dataObj, changeEvent);
+      _notify();
     });
   }
 

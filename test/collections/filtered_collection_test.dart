@@ -28,11 +28,13 @@ void main() {
 
 
     test('simple filtering.', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['id',7]);
-      var filteredData2 = collection.whereEquals(['id',100]);
-      var filteredData3 = collection.whereEquals(['ID',1]);
+      
+      // when
+      var filteredData = collection.where((d)=>d['id']==7);
+      var filteredData2 = collection.where((d)=>d['id']==100);
+      var filteredData3 = collection.where((d)=>d['ID']==1);
       
       //then
       expect(filteredData, unorderedEquals([data[7]]));
@@ -42,15 +44,17 @@ void main() {
     
 
     test('double/triple filtering.', () {
-      // when
+      // given 
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['id',7])
-                                   .whereEquals(['id',7]);
-      var filteredData2 = collection.whereEquals(['name','jozef']);      
-      var filteredData3 = filteredData2.whereEquals(['id',11]);
-      var filteredData4 = filteredData3.whereEquals(['id',17]);
       
-      //then
+      // when
+      var filteredData = collection.where((d)=>d['id'] == 7)
+                                   .where((d)=>d['id'] == 7);
+      var filteredData2 = collection.where((d)=>d['name']=='jozef');      
+      var filteredData3 = filteredData2.where((d)=>d['id']==11);
+      var filteredData4 = filteredData3.where((d)=>d['id']==17);
+      
+      // then
       expect(filteredData, unorderedEquals([data[7]]));
       expect(filteredData2, unorderedEquals([data[11], data[12]]));
       expect(filteredData3, unorderedEquals([data[11]]));
@@ -59,82 +63,90 @@ void main() {
     
 
     test('adding a new data object to the filtered collection', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']);  //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef');  //data[11], data[12]
+      
+      // when 
+        // this one will make it to [filteredData]
+      var map = {'id': 47, 'name': 'jozef'};
+      collection.add(new Data.fromMap(map));
+      
+        // and this one won't
+      map = {'id': 49, 'name': 'anicka'};
+      collection.add(new Data.fromMap(map));
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
-        //then
+        // then
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.length, equals(1));
         expect(event.addedItems.first['id'], equals(47));
       }));
       
-      // this one will make it to [filteredData]
-      var map = {'id': 47, 'name': 'jozef'};
-      collection.add(new Data.fromMap(map));
       
-      // and this one won't
-      map = {'id': 49, 'name': 'anicka'};
-      collection.add(new Data.fromMap(map));
     });
     
     test('removing a data object from the filtered collection', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']); //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
+
+      // when
+      data[11]['name'] = "Anicka";
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
-        //then
+        // then
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.removedItems.length, equals(1));
         expect(event.removedItems.first['id'], equals(11));
       }));
-            
-      data[11]['name'] = "Anicka";
-      // data[12]['name'] = "jozef";
     });
     
     
     test('changing a data object in the underlying collection - gets added to the filtered collection', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']); //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
+    
+      // when
+      data[10]['name'] = "jozef";
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
-        //then
+        // then
         expect(event.addedItems, unorderedEquals([data[10]]));
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(filteredData, unorderedEquals([data[10], data[11], data[12]]));
       }));
-            
-      data[10]['name'] = "jozef";
     });
     
     test('changing a data object in the underlying collection - gets removed from the filtered collection', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']); //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
+
+      // when
+      data[11]['name'] = "Jozef";
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
-        //then
+        // then
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems, unorderedEquals([data[11]]));
         expect(filteredData, unorderedEquals([data[12]]));
       }));
-            
-      data[11]['name'] = "Jozef";
     });
 
     test('changing a data object in the underlying collection - gets changed in the filtered collection', () {
-      // when
+      // given
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']); //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
       
+      // when
+      data[11]['email'] = "jozef@mrkvicka.com";
+
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
         //then
         expect(event.addedItems.isEmpty, isTrue);
@@ -145,27 +157,36 @@ void main() {
         
         expect(filteredData, unorderedEquals([data[11],data[12]]));
       }));
-            
-      data[11]['email'] = "jozef@mrkvicka.com";
+      
     });
     
     test('clearing the underlying collection - gets changed in the filtered collection', () {
       // when
       var collection = new DataCollection.from(data);
-      var filteredData = collection.whereEquals(['name','jozef']); //data[11], data[12]
+      var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
+
+      // when
+      collection.clear();
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
-        //then
+        // then
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.length, equals(2));
         
         expect(filteredData.isEmpty, isTrue);
       }));
-            
-      collection.clear();
     });
     
-    
+    test('complex filter function - elements with even IDs get filtered.', () {
+      // given
+      var collection = new DataCollection.from(data);
+      
+      // when
+      var filteredData = collection.where((d)=>d['id']%2==0);
+      
+      // then      
+      expect(filteredData.length, equals(7)); //0,2,4,6,8,10,12
+    });
   });
 }

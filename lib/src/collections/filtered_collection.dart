@@ -6,14 +6,9 @@ part of clean_data;
 
 /**
  * Represents a read-only data collection that is a result of a filtering operation on another collection.
- * 
- * TODO: implement a multi-property filter.
  */
 class FilteredDataCollection extends Object with DataCollectionViewMixin,
 IterableMixin<DataView> {
-  
-  static const FILTER_KEY = 0;
-  static const FILTER_VALUE = 1;
   
   /**
    * The source [DataCollectionView] this collection is derived from. 
@@ -26,16 +21,10 @@ IterableMixin<DataView> {
   final filter;
 
   /**
-   * Filters a collection w.r.t. the given [filter].
+   * Filters [items] w.r.t. the given [filter] function.
    */
   Iterable<DataView> _filterAll(Iterable<DataView> items) =>
-      items.where((DataView d) => _applyFilter(d));
-  
-  /**
-   * Returns true iff the given [DataView] object complies to the [filter].
-   */
-  bool _applyFilter(DataView dataObj) => dataObj.containsKey(filter[FILTER_KEY]) &&
-                                         dataObj[filter[FILTER_KEY]] == filter[FILTER_VALUE];
+      items.toList().where((DataView d) => filter(d));
   
   /**
    * Creates a new filtered data collection from [source], w.r.t. [filter].
@@ -53,7 +42,6 @@ IterableMixin<DataView> {
   
   /**
    * Reflects [changes] in the collection w.r.t. [filter].
-   * @param changes [ChangeSet] applied to the collection.
    */
   void _mergeIn(ChangeSet changes) {
     
@@ -80,18 +68,15 @@ IterableMixin<DataView> {
   }
   
   /**
-   * Decides whether a data object that has changed in the [source] collection
-   * is added/changed/removed in this filtered collection.
-   * 
-   * @param dataObj a data object that was changed
-   * @param changedItems changes made to the object.
+   * Decides whether a [dataObj] that has changed in the [source] collection
+   * should be added/changed/removed in this filtered collection.
    */
   void _resolveChangedDataObject(DataView dataObj, Map changedItems) {
     
     ChangeSet cs = changedItems[dataObj];
     
     bool isInData = _data.contains(dataObj);
-    bool shouldBeInData = _applyFilter(dataObj);
+    bool shouldBeInData = filter(dataObj);
     
     if (isInData) {
       if (shouldBeInData) {

@@ -192,8 +192,6 @@ void main() {
       
     });
 
-    // <index tests start here>
-    
     test('propagate multiple data object changes in single [ChangeSet].', () {
       // given
       var collection = new DataCollection.from(data);
