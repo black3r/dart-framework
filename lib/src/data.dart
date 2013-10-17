@@ -89,13 +89,22 @@ abstract class DataViewMixin implements DataView {
   /**
    * Streams all new changes marked in [changeSet].
    */
-  void _notify() {
+  void _notify() {   
     Timer.run(() {
       if(!_changeSet.isEmpty) {
+        _prettifyChangeSet();
         _onChangeController.add(_changeSet);
         _clearChanges();
       }
     });
+  }
+
+  /**
+   * Strips unneccessary changedItems from the [_changeSet]. 
+   */
+  _prettifyChangeSet() {
+    _changeSet.addedItems.forEach((key) => _changeSet.changedItems.remove(key));
+    _changeSet.removedItems.forEach((key) => _changeSet.changedItems.remove(key));
   }
 
   _clearChanges() {
@@ -132,6 +141,7 @@ class Data extends Object with DataViewMixin implements DataView {
       _changeSet.markChanged(key, new Change(_fields[key], value));
     } else {
       _changeSet.markAdded(key);
+      _changeSet.markChanged(key, new Change(null, value));
     }
 
     _fields[key] = value;
@@ -142,6 +152,7 @@ class Data extends Object with DataViewMixin implements DataView {
    * Removes [key] from the data object.
    */
   void remove(String key) {
+    _changeSet.markChanged(key,new Change(_fields[key],null));
     _fields.remove(key);
     _changeSet.markRemoved(key);
     _notify();
