@@ -15,4 +15,5 @@ part 'src/data.dart';
 part 'src/data_collection.dart';
 part 'src/id_generator.dart';
 part 'src/change_set.dart';
-part 'src/collections/filtered_collection.dart';
+part 'src/collections/filtered_data_collection.dart';
+part 'src/collections/mapped_data_collection.dart';

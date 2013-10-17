@@ -37,6 +37,18 @@ abstract class DataCollectionView implements Iterable {
    */
    DataCollectionView where(bool test(DataView d));
   
+   /**
+    * Maps the data collection to a new collection w.r.t. the given [mapping].
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization.
+    * 
+    * For the synchronization to work properly, the [test] function must nost:
+    *  * change the source collection, or any of its elements
+    *  * depend on a non-final outside variable
+    */
+   DataCollectionView map(DataView mapping(DataView d));
+  
 }
 
 /**
@@ -97,7 +109,10 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   DataCollectionView where(bool test(DataView d)) {
     return new FilteredDataCollection(this, test);
   }
-    
+  
+  DataCollectionView map(DataView mapping(DataView d)) {
+    return new MappedDataCollection(this, mapping);
+  }
 }
 
 /**

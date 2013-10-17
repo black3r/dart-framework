@@ -47,7 +47,10 @@ abstract class DataView {
    * Returns whether this data object contains the given [key].
    */
   bool containsKey(String key);
+  
+  Map toMap();
 }
+
 
 abstract class DataViewMixin implements DataView {
 
@@ -102,6 +105,7 @@ abstract class DataViewMixin implements DataView {
     _changeSet = new ChangeSet();
   }
 
+  Map toMap() => _fields;
 }
 
 /**
@@ -130,8 +134,8 @@ class Data extends Object with DataViewMixin implements DataView {
   void operator[]=(String key, value) {
     if (_fields.containsKey(key)) {
       _changeSet.markChanged(key, new Change(_fields[key], value));
-    } else {
-      _changeSet.markAdded(key);
+    } else {      
+      _changeSet.markAdded(key);      
     }
 
     _fields[key] = value;

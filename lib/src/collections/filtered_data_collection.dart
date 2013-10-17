@@ -62,8 +62,8 @@ IterableMixin<DataView> {
       _resolveChangedDataObject(dataObj, changes.changedItems);
     }
       
-    if (!this._changeSet.isEmpty) {
-      this._notify();
+    if (!_changeSet.isEmpty) {
+      _notify();
     }
   }
   

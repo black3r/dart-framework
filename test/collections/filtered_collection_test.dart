@@ -7,7 +7,7 @@ import 'package:clean_data/clean_data.dart';
 
 void main() {
 
-  group('Collection', () {
+  group('FilteredDataCollection', () {
 
     var data0, data1, data2, data3;
     var data;
@@ -62,7 +62,7 @@ void main() {
     });
     
 
-    test('adding a new data object to the filtered collection', () {
+    test('adding a new data object to the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef');  //data[11], data[12]
@@ -87,7 +87,7 @@ void main() {
       
     });
     
-    test('removing a data object from the filtered collection', () {
+    test('removing a data object from the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -105,7 +105,7 @@ void main() {
     });
     
     
-    test('changing a data object in the underlying collection - gets added to the filtered collection', () {
+    test('changing a data object in the underlying collection - gets added to the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -122,7 +122,7 @@ void main() {
       }));
     });
     
-    test('changing a data object in the underlying collection - gets removed from the filtered collection', () {
+    test('changing a data object in the underlying collection - gets removed from the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -139,7 +139,7 @@ void main() {
       }));
     });
 
-    test('changing a data object in the underlying collection - gets changed in the filtered collection', () {
+    test('changing a data object in the underlying collection - gets changed in the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -160,7 +160,7 @@ void main() {
       
     });
     
-    test('clearing the underlying collection - gets changed in the filtered collection', () {
+    test('clearing the underlying collection - gets changed in the filtered collection.', () {
       // when
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -178,7 +178,7 @@ void main() {
       }));
     });
     
-    test('complex filter function - elements with even IDs get filtered.', () {
+    test('complex filter function - objects with even IDs get filtered.', () {
       // given
       var collection = new DataCollection.from(data);
       
@@ -187,6 +187,24 @@ void main() {
       
       // then      
       expect(filteredData.length, equals(7)); //0,2,4,6,8,10,12
+    });
+    
+    test('after removing an object from the filtered collection, it does not react to changes on this object anymore.', () {
+      // given
+      var collection = new DataCollection.from(data);
+      var filteredData = collection.where((d)=>d['id']==1);
+      collection.remove(data[1]);
+      
+      // when
+      data[1]['name'] = 'Bob';  
+      
+      filteredData.onChange.listen(expectAsync1((ChangeSet event) {
+        // then
+        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.addedItems.isEmpty, isTrue);
+        expect(event.removedItems.length, equals(1));       
+        expect(filteredData.isEmpty, isTrue);
+      }));
     });
   });
 }
