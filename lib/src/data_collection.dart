@@ -85,12 +85,11 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
    */
   void _notify() {
     Timer.run(() {
-      
       if(!_changeSet.isEmpty) {
+        _changeSet.prettify();
         _onChangeController.add(_changeSet);
         _clearChanges();
       }
-      
     });
   }
   

@@ -106,4 +106,12 @@ class ChangeSet {
     this.removedItems.isEmpty &&
     this.changedItems.isEmpty;
   
+  
+  /**
+   * Strips redundant changedItems from the [ChangeSet]. 
+   */
+  void prettify() {   
+      addedItems.forEach((key) => changedItems.remove(key));
+      removedItems.forEach((key) => changedItems.remove(key));
+  }
 }
