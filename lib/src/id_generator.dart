@@ -13,6 +13,6 @@ class IdGenerator {
   IdGenerator(this.prefix);
   String getId(){
     _counter++;
-    return this.prefix + _counter.toRadixString(16);
+    return prefix + _counter.toRadixString(16);
   }
 }
