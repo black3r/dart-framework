@@ -95,19 +95,11 @@ abstract class DataViewMixin implements DataView {
   void _notify() {   
     Timer.run(() {
       if(!_changeSet.isEmpty) {
-        _prettifyChangeSet();
+        _changeSet.prettify();
         _onChangeController.add(_changeSet);
         _clearChanges();
       }
     });
-  }
-
-  /**
-   * Strips unneccessary changedItems from the [_changeSet]. 
-   */
-  _prettifyChangeSet() {
-    _changeSet.addedItems.forEach((key) => _changeSet.changedItems.remove(key));
-    _changeSet.removedItems.forEach((key) => _changeSet.changedItems.remove(key));
   }
 
   _clearChanges() {

@@ -52,9 +52,10 @@ IterableMixin<DataView> {
     });
     
     // remove "removed" [DataView] objects that comply to the filter
-    _filterAll(changes.removedItems).forEach((d) {
-      _data.remove(d);
-      _changeSet.markRemoved(d);
+    changes.removedItems.forEach((d) {
+      if(_data.remove(d)) {
+        _changeSet.markRemoved(d);
+      }
     });
 
     // resolve items that were changed in the [source] collection
@@ -62,9 +63,7 @@ IterableMixin<DataView> {
       _resolveChangedDataObject(dataObj, changes.changedItems);
     }
       
-    if (!_changeSet.isEmpty) {
-      _notify();
-    }
+     _notify();
   }
   
   /**
@@ -79,12 +78,13 @@ IterableMixin<DataView> {
     bool shouldBeInData = filter(dataObj);
     
     if (isInData) {
-      if (shouldBeInData) {
-        _changeSet.markChanged(dataObj, changedItems);
-      } else {
+      _changeSet.markChanged(dataObj, changedItems);
+
+      if (!shouldBeInData) {
         _data.remove(dataObj);
         _changeSet.markRemoved(dataObj);
       }
+      
     } else if(shouldBeInData) {
         _data.add(dataObj);
         _changeSet.markAdded(dataObj);

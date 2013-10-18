@@ -9,7 +9,6 @@ void main() {
 
   group('FilteredDataCollection', () {
 
-    var data0, data1, data2, data3;
     var data;
     setUp(() {
       
@@ -67,24 +66,20 @@ void main() {
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef');  //data[11], data[12]
       
-      // when 
-        // this one will make it to [filteredData]
-      var map = {'id': 47, 'name': 'jozef'};
-      collection.add(new Data.fromMap(map));
+      var jozef = new Data.fromMap({'id': 47, 'name': 'jozef'});
+      var anicka = new Data.fromMap({'id': 49, 'name': 'anicka'});
       
-        // and this one won't
-      map = {'id': 49, 'name': 'anicka'};
-      collection.add(new Data.fromMap(map));
+      // when      
+      collection.add(jozef);
+      collection.add(anicka);
       
       filteredData.onChange.listen(expectAsync1((ChangeSet event) {
         // then
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
-        expect(event.addedItems.length, equals(1));
-        expect(event.addedItems.first['id'], equals(47));
+        expect(event.addedItems, equals([jozef]));
+        expect(filteredData, unorderedEquals([data[11], data[12], jozef]));
       }));
-      
-      
     });
     
     test('removing a data object from the filtered collection.', () {
@@ -186,8 +181,43 @@ void main() {
       var filteredData = collection.where((d)=>d['id']%2==0);
       
       // then      
-      expect(filteredData.length, equals(7)); //0,2,4,6,8,10,12
+      expect(filteredData, unorderedEquals([data[0], data[2], data[4],data[6],data[8],data[10], data[12]]));
     });
+    
+    test('when removed item gets changed so it does not comply to the filter.', (){
+      // given
+      var dataSample = new Data.fromMap({'id': 1});
+      var collection = new DataCollection.from([dataSample]);
+      var filtered = new FilteredDataCollection(collection, (dataObj) => dataObj['id'] < 10);
+      
+      // when
+      collection.remove(dataSample);
+      dataSample['id'] = 20;
+      
+      // then
+      filtered.onChange.listen(expectAsync1((ChangeSet event) {
+        //then
+        expect(filtered, unorderedEquals([]));
+      }));
+    });
+    
+    test('when item in filtered collection is removed, changed and added, it is in changedItems.',(){
+      // given
+      var dataObj = new Data.fromMap({'id': 1});
+      var collection = new DataCollection.from([dataObj]);
+      var filtered = new FilteredDataCollection(collection, (d) => d['id'] < 10);
+      
+      // when
+      collection.remove(dataObj);
+      dataObj['id'] = 5;
+      collection.add(dataObj);
+      
+      // then
+      filtered.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.changedItems.keys, unorderedEquals([dataObj]));
+      }));
+    });
+<<<<<<< HEAD
     
     test('after removing an object from the filtered collection, it does not react to changes on this object anymore.', () {
       // given
@@ -206,5 +236,8 @@ void main() {
         expect(filteredData.isEmpty, isTrue);
       }));
     });
+=======
+  
+>>>>>>> refactored-collections
   });
 }
