@@ -27,8 +27,8 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
       
       // key does not appear in the new mapping
       if(!mappedObj.keys.contains(key)) {
-        _changeSet.markRemoved(key);
         _fields.remove(key);
+        _changeSet.markRemoved(key);
         return;
       }
       
@@ -39,8 +39,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
       
       // key is in both objects, but the value was maybe changed
       if (_fields[key] != mappedObj[key]) {
-          var change = new Change(_fields[key], mappedObj[key]);
-          _changeSet.markChanged(key,  change);
+          _changeSet.markChanged(key,  new Change(_fields[key], mappedObj[key]));
       }
       
       // make sure the mapped property is updated
