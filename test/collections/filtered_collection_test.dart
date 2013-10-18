@@ -217,7 +217,6 @@ void main() {
         expect(event.changedItems.keys, unorderedEquals([dataObj]));
       }));
     });
-<<<<<<< HEAD
     
     test('after removing an object from the filtered collection, it does not react to changes on this object anymore.', () {
       // given
@@ -236,8 +235,5 @@ void main() {
         expect(filteredData.isEmpty, isTrue);
       }));
     });
-=======
-  
->>>>>>> refactored-collections
   });
 }
