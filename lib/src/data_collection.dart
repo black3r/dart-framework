@@ -4,6 +4,9 @@
 
 part of clean_data;
 
+typedef bool DataTestFunction(DataView d);
+typedef DataView DataTransformFunction(DataView d);
+
 /**
  * Observable collection of data objects that allows for read-only operations.
  * 
@@ -35,7 +38,7 @@ abstract class DataCollectionView implements Iterable {
    *  * change the source collection, or any of its elements
    *  * depend on a non-final outside variable
    */
-   DataCollectionView where(bool test(DataView d));
+   DataCollectionView where(DataTestFunction filter);
   
    /**
     * Maps the data collection to a new collection w.r.t. the given [mapping].
@@ -47,7 +50,7 @@ abstract class DataCollectionView implements Iterable {
     *  * change the source collection, or any of its elements
     *  * depend on a non-final outside variable
     */
-   DataCollectionView map(DataView mapping(DataView d));
+   DataCollectionView map(DataTransformFunction mapping);
   
 }
 
@@ -105,11 +108,11 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     });
   }
   
-  DataCollectionView where(bool test(DataView d)) {
+  DataCollectionView where(DataTestFunction test) {
     return new FilteredDataCollection(this, test);
   }
   
-  DataCollectionView map(DataView mapping(DataView d)) {
+  DataCollectionView map(DataTransformFunction mapping) {
     return new MappedDataCollection(this, mapping);
   }
 }

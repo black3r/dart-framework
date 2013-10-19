@@ -7,9 +7,9 @@ part of clean_data;
 class MappedDataView extends Object with DataViewMixin implements DataView{
   
   final DataView source;
-  final mapping;
+  final DataTransformFunction mapping;
   
-  MappedDataView(DataView this.source, DataView this.mapping(DataView dataObj)) {
+  MappedDataView(DataView this.source, DataTransformFunction this.mapping) {
     _remap(silent: true);
     source.onChange.listen((c) =>_remap());
   }
@@ -20,7 +20,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
    */
   void _remap({bool silent : false}) {
     
-    var mappedObj = mapping(source);    
+    var mappedObj = mapping(source);
     new Set.from(mappedObj.keys)
            .union(new Set.from(_fields.keys))
            .forEach((key){
@@ -34,6 +34,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
       
       // key does not appear in the previously mapped object
       if (!_fields.keys.contains(key)) {
+        // todo nema to byt aj mark changed?
         _changeSet.markAdded(key);
       } 
       
@@ -58,67 +59,45 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
 /**
  * Represents a read-only data collection that is a result of a filtering operation on another collection.
  */
-class MappedDataCollection extends Object with DataCollectionViewMixin,
-IterableMixin<DataView> {
+class MappedDataCollection extends TransformedDataCollection{
   
-  /**
-   * The source [DataCollectionView] this collection is derived from. 
-   */
-  final DataCollectionView source;
-  
-  /**
-   * The [mapping] used to derive the data from the [source] collection.
-   */
-  final mapping;
-
   /**
    * Creates a new data collection from [source] where each element e from [source] 
    * is replaced by the result of mapping(e).
    */
-  MappedDataCollection(DataCollectionView this.source, this.mapping) {
-    // run the initial mapping on the source collection
-    source.forEach((DataView dataObj){
-      _addMapped(dataObj);
-    });
-    
-    // start listening on [source] collection changes
-    source.onChange.listen(_mergeIn);
-  }
-  
+  MappedDataCollection(DataCollectionView source, DataView mapping(DataView d)): super(source, mapping);
+
+  /**
+   *  Runs the initial mapping on the source collection.
+   */
+  void _init() => source.forEach((DataView d) => _addMapped(d,silent:true));
+
   /**
    * Adds a mapped data object and starts listening to changes on it.
    */
-  void _addMapped(DataView dataObj) {
-    MappedDataView mappedDataObj = new MappedDataView(dataObj, mapping);
-    _data.add(mappedDataObj);
+  void _addMapped(DataView dataObj,{bool silent : false}) {
+    MappedDataView mappedObj = new MappedDataView(dataObj, config);
+    _data.add(mappedObj);
+    
+    if(!silent) {
+      _changeSet.markAdded(mappedObj);
+    }
     
     dataObj.onChange.listen((ChangeSet cs) {
-      _changeSet.markChanged(mappedDataObj, cs); 
-      _notify();    
+      _changeSet.markChanged(mappedObj, cs); 
+      _notify();
     });  
   }
   
-  /**
-   * Reflects [changes] in the collection w.r.t. [mapping].
-   */
-  void _mergeIn(ChangeSet changes) {
-    
-    // add "added" [DataView] objects
-    changes.addedItems.forEach((dataObj){
-      _addMapped(dataObj);
-    });
-    
-    // remove mappings of "removed" [DataView] objects
-    changes.removedItems.forEach((dataObj) {
-      var mappedDataObj = _data.toList().where((MappedDataView d) => d.source == dataObj);
-      _data.removeAll(mappedDataObj);
-      _changeSet.markRemoved(mappedDataObj);
-    });
-      
-    // ignore "changed" items - we get updates directly from corresponding objects
-    
-    if (!_changeSet.isEmpty) {
-      _notify();
-    }
+  void _treatAddedItem(DataView d) => _addMapped(d);
+  
+  void _treatRemovedItem(DataView dataObj) {
+    DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
+    _data.remove(mappedDataObj);
+    _changeSet.markRemoved(mappedDataObj);    
   }
+  
+  void _treatChangedItem(DataView d, ChangeSet c) {
+    // NOOP - MappedDataView object takes care of this.
+  }  
 }

@@ -81,7 +81,7 @@ void main() {
         expect(filteredData, unorderedEquals([data[11], data[12], jozef]));
       }));
     });
-    
+        
     test('removing a data object from the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
@@ -99,7 +99,7 @@ void main() {
       }));
     });
     
-    
+
     test('changing a data object in the underlying collection - gets added to the filtered collection.', () {
       // given
       var collection = new DataCollection.from(data);
@@ -154,7 +154,7 @@ void main() {
       }));
       
     });
-    
+
     test('clearing the underlying collection - gets changed in the filtered collection.', () {
       // when
       var collection = new DataCollection.from(data);
@@ -172,7 +172,7 @@ void main() {
         expect(filteredData.isEmpty, isTrue);
       }));
     });
-    
+   
     test('complex filter function - objects with even IDs get filtered.', () {
       // given
       var collection = new DataCollection.from(data);
@@ -183,7 +183,7 @@ void main() {
       // then      
       expect(filteredData, unorderedEquals([data[0], data[2], data[4],data[6],data[8],data[10], data[12]]));
     });
-    
+   
     test('when removed item gets changed so it does not comply to the filter.', (){
       // given
       var dataSample = new Data.fromMap({'id': 1});
@@ -217,7 +217,7 @@ void main() {
         expect(event.changedItems.keys, unorderedEquals([dataObj]));
       }));
     });
-    
+   
     test('after removing an object from the filtered collection, it does not react to changes on this object anymore.', () {
       // given
       var collection = new DataCollection.from(data);
