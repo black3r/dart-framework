@@ -31,7 +31,7 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
   void _mergeIn(ChangeSet changes) {
     changes.addedItems.forEach((dataObj) => _treatAddedItem(dataObj));
     changes.removedItems.forEach((dataObj) => _treatRemovedItem(dataObj));
-    changes.changedItems.forEach((k,v) => _treatChangedItem(k,v));
+    changes.changedItems.forEach((dataObj,changes) => _treatChangedItem(dataObj,changes));
     
     _notify();
   }

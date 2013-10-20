@@ -21,9 +21,9 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
   void _remap({bool silent : false}) {
     
     var mappedObj = mapping(source);
-    new Set.from(mappedObj.keys)
-           .union(new Set.from(_fields.keys))
-           .forEach((key){
+    Set allKeys =new Set.from(mappedObj._fields.keys)
+                        .union(new Set.from(_fields.keys));
+    allKeys.forEach((key){
       
       // key does not appear in the new mapping
       if(!mappedObj.keys.contains(key)) {
@@ -66,7 +66,12 @@ class MappedDataCollection extends TransformedDataCollection{
    * is replaced by the result of mapping(e).
    */
   MappedDataCollection(DataCollectionView source, DataView mapping(DataView d)): super(source, mapping);
-
+  
+  /**
+   * Subscriptions for change events on mapped data objects.
+   */
+  Map<DataView, StreamSubscription> _subscriptions = new Map(); 
+  
   /**
    *  Runs the initial mapping on the source collection.
    */
@@ -83,8 +88,9 @@ class MappedDataCollection extends TransformedDataCollection{
       _changeSet.markAdded(mappedObj);
     }
     
-    dataObj.onChange.listen((ChangeSet cs) {
-      _changeSet.markChanged(mappedObj, cs); 
+    // subscribe to onChange events of the mapped data object
+    _subscriptions[mappedObj] = mappedObj.onChange.listen((ChangeSet cs) {
+      _changeSet.markChanged(mappedObj, cs);
       _notify();
     });  
   }
@@ -92,12 +98,16 @@ class MappedDataCollection extends TransformedDataCollection{
   void _treatAddedItem(DataView d) => _addMapped(d);
   
   void _treatRemovedItem(DataView dataObj) {
+
+    // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
-    _data.remove(mappedDataObj);
     _changeSet.markRemoved(mappedDataObj);    
+    
+    // remove the mapped object and its stream subscription as well
+    _data.remove(mappedDataObj);
+    _subscriptions[mappedDataObj].cancel();
   }
   
-  void _treatChangedItem(DataView d, ChangeSet c) {
-    // NOOP - MappedDataView object takes care of this.
+  void _treatChangedItem(DataView dataObj, ChangeSet changes) {
   }  
 }
