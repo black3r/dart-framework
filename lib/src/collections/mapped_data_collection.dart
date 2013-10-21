@@ -4,9 +4,19 @@
 
 part of clean_data;
 
+/**
+ * DataView
+ */
 class MappedDataView extends Object with DataViewMixin implements DataView{
   
+  /**
+   * Source [DataView] object this object is derived from.
+   */
   final DataView source;
+  
+  /**
+   * Mapping function that maps a [DataView] to another [DataView]
+   */
   final DataTransformFunction mapping;
   
   MappedDataView(DataView this.source, DataTransformFunction this.mapping) {
@@ -15,8 +25,8 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
   }
   
   /**
-   * Re-applies the mapping transformation on this data object. If not [silent],
-   * any changes to the object will be broadcasted.  
+   * Re-applies the mapping transformation on this data object. If [silent],
+   * no changes will be broadcasted.  
    */
   void _remap({bool silent : false}) {
     
@@ -57,7 +67,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
 }
 
 /**
- * Represents a read-only data collection that is a result of a filtering operation on another collection.
+ * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
 class MappedDataCollection extends TransformedDataCollection{
   

@@ -10,9 +10,10 @@ part of clean_data;
 abstract class TransformedDataCollection extends DataCollectionView with IterableMixin<DataView>, DataCollectionViewMixin {
   
   /**
-   * The source [DataCollectionView] this collection is derived from. 
+   * The source [DataCollectionView](s) this collection is derived from. 
    */
   final DataCollectionView source;
+  final DataCollectionView source2;
   
   /**
    * Any kind of configuration given to this collection in the constructor. Collection behaviour 
@@ -20,7 +21,7 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
    */
   final config;
   
-  TransformedDataCollection(DataCollectionView this.source, dynamic this.config) {    
+  TransformedDataCollection(DataCollectionView this.source, dynamic this.config, {DataCollectionView this.source2 : null}) {    
     _init();
     source.onChange.listen(_mergeIn);
   }
