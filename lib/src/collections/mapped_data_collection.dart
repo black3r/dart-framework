@@ -69,13 +69,13 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
-class MappedDataCollection extends TransformedDataCollection{
+class MappedCollectionView extends TransformedDataCollection{
   
   /**
    * Creates a new data collection from [source] where each element e from [source] 
    * is replaced by the result of mapping(e).
    */
-  MappedDataCollection(DataCollectionView source, DataView mapping(DataView d)): super(source, mapping);
+  MappedCollectionView(DataCollectionView source, DataView mapping(DataView d)): super(source, null, mapping);
   
   /**
    * Subscriptions for change events on mapped data objects.
@@ -85,7 +85,7 @@ class MappedDataCollection extends TransformedDataCollection{
   /**
    *  Runs the initial mapping on the source collection.
    */
-  void _init() => source.forEach((DataView d) => _addMapped(d,silent:true));
+  void _init() => source1.forEach((DataView d) => _addMapped(d,silent:true));
 
   /**
    * Adds a mapped data object and starts listening to changes on it.
@@ -105,9 +105,9 @@ class MappedDataCollection extends TransformedDataCollection{
     });  
   }
   
-  void _treatAddedItem(DataView d) => _addMapped(d);
+  void _treatAddedItem(DataView d, int sourceNumber) => _addMapped(d);
   
-  void _treatRemovedItem(DataView dataObj) {
+  void _treatRemovedItem(DataView dataObj, int sourceNumber) {
 
     // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
@@ -118,6 +118,6 @@ class MappedDataCollection extends TransformedDataCollection{
     _subscriptions[mappedDataObj].cancel();
   }
   
-  void _treatChangedItem(DataView dataObj, ChangeSet changes) {
+  void _treatChangedItem(DataView dataObj, ChangeSet changes, int sourceNumber) {
   }  
 }

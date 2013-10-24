@@ -188,7 +188,7 @@ void main() {
       // given
       var dataSample = new Data.fromMap({'id': 1});
       var collection = new DataCollection.from([dataSample]);
-      var filtered = new FilteredDataCollection(collection, (dataObj) => dataObj['id'] < 10);
+      var filtered = new FilteredCollectionView(collection, (dataObj) => dataObj['id'] < 10);
       
       // when
       collection.remove(dataSample);
@@ -205,7 +205,7 @@ void main() {
       // given
       var dataObj = new Data.fromMap({'id': 1});
       var collection = new DataCollection.from([dataObj]);
-      var filtered = new FilteredDataCollection(collection, (d) => d['id'] < 10);
+      var filtered = new FilteredCollectionView(collection, (d) => d['id'] < 10);
       
       // when
       collection.remove(dataObj);

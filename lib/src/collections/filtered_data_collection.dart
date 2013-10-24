@@ -6,8 +6,9 @@ part of clean_data;
 
 /**
  * Represents a read-only data collection that is a result of a filtering operation on another collection.
+ * TODO: refactor this to use TransformedDataCollection as a parent
  */
-class FilteredDataCollection extends Object with DataCollectionViewMixin,
+class FilteredCollectionView extends Object with DataCollectionViewMixin,
 IterableMixin<DataView> {
   
   /**
@@ -29,7 +30,7 @@ IterableMixin<DataView> {
   /**
    * Creates a new filtered data collection from [source], w.r.t. [filter].
    */
-  FilteredDataCollection(DataCollectionView this.source, this.filter) {
+  FilteredCollectionView(DataCollectionView this.source, this.filter) {
 
     // run the initial filtration on the source collection
     var filtered = _filterAll(source);

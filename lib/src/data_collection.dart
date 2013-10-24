@@ -52,6 +52,41 @@ abstract class DataCollectionView implements Iterable {
     */
    DataCollectionView map(DataTransformFunction mapping);
   
+   /**
+    * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization.
+    * 
+    * For the synchronization to work properly, the [test] function must nost:
+    *  * change the source collection, or any of its elements
+    *  * depend on a non-final outside variable
+    */
+   DataCollectionView union(DataCollectionView other);
+   
+   /**
+    * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization.
+    * 
+    * For the synchronization to work properly, the [test] function must nost:
+    *  * change the source collection, or any of its elements
+    *  * depend on a non-final outside variable
+    */
+   DataCollectionView intersection(DataCollectionView other);
+   
+   /**
+    * Minuses the data collection with another [DataCollectionView] to form a new, [SortedDataView].
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization.
+    * 
+    * For the synchronization to work properly, the [test] function must nost:
+    *  * change the source collection, or any of its elements
+    *  * depend on a non-final outside variable
+    */
+   DataCollectionView except(DataCollectionView other);
 }
 
 /**
@@ -88,6 +123,10 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   int get length => _data.length;
   bool contains(DataView dataObj) => _data.contains(dataObj);
   
+  void unattachListeners() {
+    _onChangeController.close();  
+  }
+  
   /**
    * Reset the change log of the collection.
    */
@@ -109,11 +148,31 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   }
   
   DataCollectionView where(DataTestFunction test) {
-    return new FilteredDataCollection(this, test);
+    return new FilteredCollectionView(this, test);
   }
   
   DataCollectionView map(DataTransformFunction mapping) {
-    return new MappedDataCollection(this, mapping);
+    return new MappedCollectionView(this, mapping);
+  }
+  
+  DataCollectionView union(DataCollectionView other) {
+    return other == this 
+           ? this 
+           : new UnionedCollectionView(this, other);
+  }
+  
+  DataCollectionView intersection(DataCollectionView other) {
+    return other == this 
+           ? this 
+           : new IntersectedCollectionView(this, other);
+  }
+  
+  DataCollectionView except(DataCollectionView other) {
+    return new SortedDataView(this, other);
+  }
+  
+  SortedCollectionView sort(List order) {
+    return new SortedCollectionView(this, order);
   }
 }
 
@@ -156,10 +215,13 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
    * Removes a data object from the collection.
    */
   void remove(DataView dataObj) {
+    if (!_data.contains(dataObj)) return;
+    
     _data.remove(dataObj);
     _removeOnDataChangeListener(dataObj);
+    //TODO: there should be markChanged of some kind here!
     _changeSet.markRemoved(dataObj);
-    _notify();
+    _notify();   
   }
 
   /**

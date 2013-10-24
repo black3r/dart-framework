@@ -153,4 +153,5 @@ class Data extends Object with DataViewMixin implements DataView {
     _notify();
   }
 
+  String toString() => this.toMap().toString();
 }

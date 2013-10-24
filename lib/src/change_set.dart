@@ -114,4 +114,8 @@ class ChangeSet {
       addedItems.forEach((key) => changedItems.remove(key));
       removedItems.forEach((key) => changedItems.remove(key));
   }
+  
+  String toString() {
+    return "A:" + addedItems.toString() + " C:" + changedItems.toString() + " R:" + removedItems.toString(); 
+  }
 }
