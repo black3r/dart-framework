@@ -165,9 +165,11 @@ void main() {
       // then
       expect(changeSet.addedItems, unorderedEquals(children));
       expect(changeSet.removedItems.isEmpty, isTrue);
-      expect(changeSet.changedItems.isEmpty, isTrue);
+      for (var child in children) {
+        expect(changeSet.changedItems[child], equals(someChange));
+      }
     });
-    
+
 
     test('apply another ChangeSet.', () {
       // given
