@@ -54,6 +54,115 @@ void main() {
       expect(dataObj['key'], equals('value'));
     });
 
+    test('remove multiple keys.', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data.fromMap(data);
+
+      // when
+      dataObj.removeAll(['key1', 'key2'], author: 'Patrick');
+
+      // then
+      expect(dataObj.keys, equals(['key3']));
+    });
+
+    test('add multiple items.', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data();
+
+      // when
+      dataObj.addAll(data);
+
+      // then
+      expect(dataObj.length, equals(data.length));
+      for (var key in dataObj.keys) {
+        expect(dataObj[key], equals(data[key]));
+      }
+    });
+
+    test('listen on multiple keys removed', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var keysToRemove = ['key1', 'key2'];
+      var dataObj = new Data.fromMap(data);
+      var author = 'Patrick';
+      var listenerCalls = 0;
+
+      // then sync onChange propagates information about all changes and
+      // removals
+
+      dataObj.onChangeSync.listen(expectAsync1((event) {
+        expect(event['author'], equals(author));
+        var changeSet = event['change'];
+
+        expect(changeSet.removedItems, unorderedEquals(keysToRemove));
+        expect(changeSet.addedItems.isEmpty, isTrue);
+        expect(changeSet.changedItems.keys, unorderedEquals(keysToRemove));
+        for (var key in keysToRemove) {
+          var change = changeSet.changedItems[key];
+          expect(change.oldValue, equals(data[key]));
+          expect(change.newValue, equals(null));
+        }
+        listenerCalls++;
+
+      }));
+
+      // but async onChange drops information about changes in removed items.
+      dataObj.onChange.listen(expectAsync1((changeSet) {
+        expect(changeSet.removedItems, unorderedEquals(keysToRemove));
+        expect(changeSet.addedItems.isEmpty, isTrue);
+        expect(changeSet.changedItems.isEmpty, isTrue);
+      }));
+
+      // when
+      dataObj.removeAll(keysToRemove, author: author);
+
+      // then
+      expect(listenerCalls, equals(1));
+    });
+
+    test('listen on multiple keys added', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data();
+      var author = 'Patrick';
+      var listenerCalls = 0;
+
+      // then sync onChange propagates information about all changes and
+      // adds
+
+      dataObj.onChangeSync.listen(expectAsync1((event) {
+        expect(event['author'], equals(author));
+        var changeSet = event['change'];
+
+        expect(changeSet.removedItems.isEmpty, isTrue);
+        expect(changeSet.addedItems, unorderedEquals(data.keys));
+        expect(changeSet.changedItems.keys, unorderedEquals(data.keys));
+        data.forEach((key, value) {
+          var change = changeSet.changedItems[key];
+          expect(change.newValue, equals(value));
+          expect(change.oldValue, equals(null));
+        });
+        listenerCalls++;
+
+      }));
+
+      // but async onChange drops information about changes in added items.
+      dataObj.onChange.listen(expectAsync1((changeSet) {
+        expect(changeSet.addedItems, unorderedEquals(data.keys));
+        expect(changeSet.removedItems.isEmpty, isTrue);
+        expect(changeSet.changedItems.isEmpty, isTrue);
+      }));
+
+      // when
+      dataObj.addAll(data, author: author);
+
+      // then
+      expect(listenerCalls, equals(1));
+
+    });
+
 
     test('listen on {key, value} added.', () {
       // given

@@ -158,14 +158,22 @@ class Data extends Object with DataViewMixin implements DataView {
    * Assigns the [value] to the [key] field.
    */
   void add(String key, value, {author: null}) {
-    if (_fields.containsKey(key)) {
-      _markChanged(key, new Change(_fields[key], value));
-    } else {
-      _markChanged(key, new Change(null, value));
-      _markAdded(key);
-    }
+    addAll({key: value}, author: author);
+  }
 
-    _fields[key] = value;
+  /**
+   * Adds all key-value pairs of [other] to this data.
+   */
+  void addAll(Map other, {author: null}) {
+    other.forEach((key, value) {
+      if (_fields.containsKey(key)) {
+        _markChanged(key, new Change(_fields[key], value));
+      } else {
+        _markChanged(key, new Change(null, value));
+        _markAdded(key);
+      }
+      _fields[key] = value;
+    });
     _notify(author: author);
   }
 
@@ -180,9 +188,18 @@ class Data extends Object with DataViewMixin implements DataView {
    * Removes [key] from the data object.
    */
   void remove(String key, {author: null}) {
-    _markChanged(key, new Change(_fields[key], null));
-    _markRemoved(key);
-    _fields.remove(key);
+    removeAll([key], author: author);
+  }
+
+  /**
+   * Remove all [keys] from the data object.
+   */
+  void removeAll(List<String> keys, {author: null}) {
+    for (var key in keys) {
+      _markChanged(key, new Change(_fields[key], null));
+      _markRemoved(key);
+      _fields.remove(key);
+    }
     _notify(author: author);
   }
 
