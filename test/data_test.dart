@@ -71,6 +71,31 @@ void main() {
 
     });
 
+    test('listen on {key, value} added synchronously.', () {
+      // given
+      var dataObj = new Data();
+      var listenerCalls = 0;
+
+      // then
+      dataObj.onChangeSync.listen((event) {
+        expect(event['author'], equals('John Doe'));
+        expect(event['change'].removedItems.isEmpty, isTrue);
+        expect(event['change'].addedItems, unorderedEquals(['key']));
+        expect(event['change'].changedItems.length, equals(1));
+
+        var change = event['change'].changedItems['key'];
+        expect(change.oldValue, equals(null));
+        expect(change.newValue, equals('value'));
+        listenerCalls++;
+      });
+
+      // when
+      dataObj.add('key', 'value', author: 'John Doe');
+
+      // then
+      expect(listenerCalls, equals(1));
+    });
+
     test('listen on {key, value} removed.', () {
       // given
       var data = {'key': 'value'};
@@ -86,6 +111,31 @@ void main() {
         expect(event.removedItems, unorderedEquals(['key']));
       }));
 
+    });
+
+    test('listen on {key, value} removed synchronously.', () {
+      // given
+      var dataObj = new Data.fromMap({'key': 'value'});
+      var listenerCalls = 0;
+
+      // then
+      dataObj.onChangeSync.listen((event) {
+        expect(event['author'], equals('author'));
+        expect(event['change'].addedItems.isEmpty, isTrue);
+        expect(event['change'].removedItems, unorderedEquals(['key']));
+        expect(event['change'].changedItems.length, equals(1));
+
+        var change = event['change'].changedItems['key'];
+        expect(change.oldValue, equals('value'));
+        expect(change.newValue, equals(null));
+        listenerCalls++;
+      });
+
+      // when
+      dataObj.remove('key', author: 'author');
+
+      // then
+      expect(listenerCalls, equals(1));
     });
 
     test('listen on {key, value} changed.', () {
@@ -124,55 +174,55 @@ void main() {
         expect(event.addedItems, unorderedEquals(['key3']));
       }));
     });
-    
+
 
     test('when property is added then changed, only addition is in the [ChangeSet].', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
       dataObj['key3'] = 'John Doe';
       dataObj['key3'] = 'John Doe II.';
-      
+
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.addedItems, unorderedEquals(['key3']));
         expect(event.removedItems, unorderedEquals([]));
-      }));      
+      }));
     });
-    
+
 
     test('when existing property is removed then re-added, this is a change.', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
       dataObj.remove('key1');
       dataObj['key1'] = 'John Doe II.';
-      
+
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals(['key1']));
-        
+
         Change change = event.changedItems['key1'];
         expect(change.oldValue, equals('value1'));
         expect(change.newValue, equals('John Doe II.'));
-        
+
         expect(event.addedItems, unorderedEquals([]));
         expect(event.removedItems, unorderedEquals([]));
-      }));      
+      }));
     });
-    
+
     test('when property is changed then removed, only deletion is in the [ChangeSet].', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
-      dataObj['key1'] = 'John Doe';      
-      
+
+      dataObj['key1'] = 'John Doe';
+
       // when
       dataObj.remove('key1');
 
@@ -180,19 +230,19 @@ void main() {
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.removedItems, unorderedEquals(['key1']));
-      }));      
+      }));
     });
 
     test('when property is added then removed, no changes are broadcasted.', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
-      dataObj['key3'] = 'John Doe';      
+      dataObj['key3'] = 'John Doe';
       dataObj.remove('key3');
 
-      // then  
+      // then
       dataObj.onChange.listen(protectAsync1((e) => expect(true, isFalse)));
      });
 
@@ -200,9 +250,9 @@ void main() {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
-      dataObj['key3'] = 'John Doe';      
+      dataObj['key3'] = 'John Doe';
       dataObj['key3'] = 'John Doe II';
       dataObj.remove('key3');
 

@@ -19,6 +19,12 @@ abstract class DataView {
   Stream<ChangeSet> get onChange;
 
   /**
+   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
+   * synchronously at the moment when the data get changed.
+   */
+  Stream<Map> get onChangeSync;
+
+  /**
    * Returns true if there is no {key, value} pair in the data object.
    */
   bool get isEmpty;
@@ -56,11 +62,17 @@ abstract class DataViewMixin implements DataView {
   dynamic operator[](key) => _fields[key];
 
   ChangeSet _changeSet = new ChangeSet();
+  ChangeSet _changeSetSync = new ChangeSet();
 
   final StreamController<ChangeSet> _onChangeController =
       new StreamController<ChangeSet>.broadcast();
 
+  final StreamController<Map> _onChangeSyncController =
+      new StreamController.broadcast(sync: true);
+
   Stream<ChangeSet> get onChange => _onChangeController.stream;
+
+  Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
   bool get isEmpty {
     return _fields.isEmpty;
@@ -89,7 +101,8 @@ abstract class DataViewMixin implements DataView {
   /**
    * Streams all new changes marked in [changeSet].
    */
-  void _notify() {   
+  void _notify({author: null}) {
+    _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
@@ -100,7 +113,23 @@ abstract class DataViewMixin implements DataView {
   }
 
   _clearChanges() {
+    _changeSetSync = new ChangeSet();
     _changeSet = new ChangeSet();
+  }
+
+  _markAdded(String key) {
+    _changeSetSync.markAdded(key);
+    _changeSet.markAdded(key);
+  }
+
+  _markRemoved(String key) {
+    _changeSet.markRemoved(key);
+    _changeSetSync.markRemoved(key);
+  }
+
+  _markChanged(String key, Change change) {
+    _changeSet.markChanged(key, change);
+    _changeSetSync.markChanged(key, change);
   }
 
 }
@@ -128,26 +157,33 @@ class Data extends Object with DataViewMixin implements DataView {
   /**
    * Assigns the [value] to the [key] field.
    */
-  void operator[]=(String key, value) {
+  void add(String key, value, {author: null}) {
     if (_fields.containsKey(key)) {
-      _changeSet.markChanged(key, new Change(_fields[key], value));
+      _markChanged(key, new Change(_fields[key], value));
     } else {
-      _changeSet.markAdded(key);
-      _changeSet.markChanged(key, new Change(null, value));
+      _markChanged(key, new Change(null, value));
+      _markAdded(key);
     }
 
     _fields[key] = value;
-    _notify();
+    _notify(author: author);
+  }
+
+  /**
+   * Assigns the [value] to the [key] field.
+   */
+  void operator[]=(String key, value) {
+    add(key, value);
   }
 
   /**
    * Removes [key] from the data object.
    */
-  void remove(String key) {
-    _changeSet.markChanged(key,new Change(_fields[key],null));
+  void remove(String key, {author: null}) {
+    _markChanged(key, new Change(_fields[key], null));
+    _markRemoved(key);
     _fields.remove(key);
-    _changeSet.markRemoved(key);
-    _notify();
+    _notify(author: author);
   }
 
 }
