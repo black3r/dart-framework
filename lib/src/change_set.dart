@@ -73,8 +73,6 @@ class ChangeSet {
    * given [dataObj].
    */
   void markChanged(dynamic dataObj, changeSet) {
-    if(addedItems.contains(dataObj)) return;
-
     if(changedItems.containsKey(dataObj)) {
       changedItems[dataObj].mergeIn(changeSet);
     } else {
@@ -105,12 +103,12 @@ class ChangeSet {
     this.addedItems.isEmpty &&
     this.removedItems.isEmpty &&
     this.changedItems.isEmpty;
-  
-  
+
+
   /**
-   * Strips redundant changedItems from the [ChangeSet]. 
+   * Strips redundant changedItems from the [ChangeSet].
    */
-  void prettify() {   
+  void prettify() {
       addedItems.forEach((key) => changedItems.remove(key));
       removedItems.forEach((key) => changedItems.remove(key));
   }
