@@ -6,7 +6,7 @@ part of clean_data;
 
 /**
  * Observable collection of data objects that allows for read-only operations.
- * 
+ *
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
@@ -19,38 +19,45 @@ abstract class DataCollectionView implements Iterable {
   Stream<ChangeSet> get onChange;
 
   /**
-   * Returns true iff this collection contains the given [dataObj].
-   * 
-   * @param dataObj Data object to be searched for. 
+   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
+   * synchronously at the moment when the collection or any data object contained
+   * gets changed.
    */
-  bool contains(DataView dataObj);   
-  
+  Stream<Map> get onChangeSync;
+
+  /**
+   * Returns true iff this collection contains the given [dataObj].
+   *
+   * @param dataObj Data object to be searched for.
+   */
+  bool contains(DataView dataObj);
+
   /**
    * Filters the data collection w.r.t. the given filter function [test].
-   * 
+   *
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
-   * 
+   *
    * For the synchronization to work properly, the [test] function must nost:
    *  * change the source collection, or any of its elements
    *  * depend on a non-final outside variable
    */
    DataCollectionView where(bool test(DataView d));
-  
+
 }
 
 /**
- * A minimal implementation of [DataCollectionView]. 
+ * A minimal implementation of [DataCollectionView].
  */
 abstract class DataCollectionViewMixin implements DataCollectionView {
-  
+
   Iterator<DataView> get iterator => _data.iterator;
-  
+
   /**
    * Holds data view objects for the collection.
    */
   final Set<DataView> _data = new Set<DataView>();
-  
+
   /**
    * Internal set of listeners for change events on individual data objects.
    */
@@ -61,18 +68,22 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
    * Used to propagate change events to the outside world.
    */
   Stream<ChangeSet> get onChange => _onChangeController.stream;
+  Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
-  final StreamController _onChangeController =
-      new StreamController<ChangeSet>.broadcast();
+  final StreamController<ChangeSet> _onChangeController =
+      new StreamController.broadcast();
+  final StreamController<Map> _onChangeSyncController =
+      new StreamController.broadcast(sync: true);
 
   /**
    * Current state of the collection expressed by a [ChangeSet].
    */
   ChangeSet _changeSet = new ChangeSet();
+  ChangeSet _changeSetSync = new ChangeSet();
 
   int get length => _data.length;
   bool contains(DataView dataObj) => _data.contains(dataObj);
-  
+
   /**
    * Reset the change log of the collection.
    */
@@ -80,10 +91,16 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     _changeSet = new ChangeSet();
   }
 
+  void _clearChangesSync() {
+    _changeSetSync = new ChangeSet();
+  }
+
   /**
    * Stream all new changes marked in [ChangeSet].
    */
-  void _notify() {
+  void _notify({author: null}) {
+    _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+    _clearChangesSync();
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
@@ -92,11 +109,24 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
       }
     });
   }
-  
+
+  void _markAdded(DataView dataObj) {
+    _changeSet.markAdded(dataObj);
+    _changeSetSync.markAdded(dataObj);
+  }
+  void _markRemoved(DataView dataObj) {
+    _changeSet.markRemoved(dataObj);
+    _changeSetSync.markRemoved(dataObj);
+  }
+  void _markChanged(DataView dataObj, ChangeSet changeSet) {
+    _changeSet.markChanged(dataObj, changeSet);
+    _changeSetSync.markChanged(dataObj, changeSet);
+  }
+
   DataCollectionView where(bool test(DataView d)) {
     return new FilteredDataCollection(this, test);
   }
-    
+
 }
 
 /**
@@ -118,6 +148,7 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
       collection.add(dataObj);
     }
     collection._clearChanges();
+    collection._clearChangesSync();
     return collection;
   }
 
@@ -126,22 +157,22 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
    *
    * Data objects should have unique IDs.
    */
-  void add(DataView dataObj) {    
+  void add(DataView dataObj, {author: null}) {
     _data.add(dataObj);
     _addOnDataChangeListener(dataObj);
-    
-    _changeSet.markAdded(dataObj);
-    _notify();
+
+    _markAdded(dataObj);
+    _notify(author: author);
   }
 
   /**
    * Removes a data object from the collection.
    */
-  void remove(DataView dataObj) {
+  void remove(DataView dataObj, {author: null}) {
     _data.remove(dataObj);
     _removeOnDataChangeListener(dataObj);
-    _changeSet.markRemoved(dataObj);
-    _notify();
+    _markRemoved(dataObj);
+    _notify(author: author);
   }
 
   /**
@@ -150,16 +181,16 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   void clear() {
     for (var dataObj in _data) {
       _removeOnDataChangeListener(dataObj);
-      _changeSet.markRemoved(dataObj);
+      _markRemoved(dataObj);
     }
     _data.clear();
     _notify();
   }
 
   void _addOnDataChangeListener(DataView dataObj) {
-    _dataListeners[dataObj] = dataObj.onChange.listen((changeEvent) {
-      _changeSet.markChanged(dataObj, changeEvent);
-      _notify();
+    _dataListeners[dataObj] = dataObj.onChangeSync.listen((changeEvent) {
+      _markChanged(dataObj, changeEvent['change']);
+      _notify(author: changeEvent['author']);
     });
   }
 

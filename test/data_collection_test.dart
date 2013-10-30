@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:unittest/unittest.dart';
+import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
 
   group('Collection', () {
 
-    var data0, data1, data2, data3;
     var data;
     setUp(() {
       data = [];
@@ -88,9 +88,16 @@ void main() {
     test('listen on data object added.', () {
       // given
       var collection = new DataCollection();
+      var mock = new Mock();
+      collection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      collection.add(data[0]);
+      collection.add(data[0], author: 'John Doe');
+
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().logs.first.args.first;
+      expect(event['author'], equals('John Doe'));
+      expect(event['change'].addedItems, unorderedEquals([data[0]]));
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
@@ -103,11 +110,18 @@ void main() {
     test('listen on data object removed.', () {
       // given
       var collection = new DataCollection.from(data);
+      var mock = new Mock();
+      collection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      collection.remove(data[0]);
+      collection.remove(data[0], author: "John Doe");
 
       // then
+      mock.log.verify(happenedOnce);
+      var event = mock.log.first.args.first;
+      expect(event['author'], equals('John Doe'));
+      expect(event['change'].removedItems, unorderedEquals([data[0]]));
+
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
@@ -115,20 +129,49 @@ void main() {
       }));
     });
 
+    test('listen synchronously on multiple data objects removed.', () {
+      // given
+      var collection = new DataCollection.from(data);
+      var mock = new Mock();
+      collection.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      collection.remove(data[0], author: 'John Doe');
+      collection.remove(data[1], author: 'Peter Pan');
+
+      // then
+      mock.log.verify(happenedExactly(2));
+      var event1 = mock.log.logs[0].args.first;
+      var event2 = mock.log.logs[1].args.first;
+
+      expect(event1['author'], equals('John Doe'));
+      expect(event1['change'].removedItems, equals([data[0]]));
+
+      expect(event2['author'], equals('Peter Pan'));
+      expect(event2['change'].removedItems, equals([data[1]]));
+    });
+
     test('listen on data object changes.', () {
       // given
       var collection = new DataCollection.from(data);
+      var mock = new Mock();
+      collection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      data[0]['name'] = 'John Doe';
+      data[0].add('size', 'XXL', author: 'John Doe');
 
       // then
+      mock.log.verify(happenedOnce);
+      var event = mock.log.first.args.first;
+      expect(event['author'], equals('John Doe'));
+      expect(event['change'].changedItems[data[0]].addedItems, equals(['size']));
+
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.length, equals(1));
         expect(event.changedItems[data[0]].addedItems,
-            unorderedEquals(['name']));
+            unorderedEquals(['size']));
       }));
     });
 
@@ -160,7 +203,7 @@ void main() {
       }));
     });
 
-    test('propagate multiple add/remove changes in single [ChangeSet].', () {
+    test('propagate multiple changes in single [ChangeSet].', () {
       // given
       var collection = new DataCollection.from(data);
       var newDataObj = new Data();
@@ -168,45 +211,17 @@ void main() {
       // when
       collection.remove(data[0]);
       collection.add(newDataObj);
+      data[1]['name'] = 'James Bond';
+      data[2]['name'] = 'John Doe';
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems, unorderedEquals([newDataObj]));
         expect(event.removedItems, unorderedEquals([data[0]]));
-      }));
-    });
-
-    test('propagate multiple data object changes in single [ChangeSet].', () {
-      // given
-      var collection = new DataCollection.from(data);
-
-      // when
-      data[0]['name'] = 'John Doe';
-      data[1]['name'] = 'James Bond';
-
-      // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys,
-            unorderedEquals([data[0], data[1]]));
+            unorderedEquals([data[1], data[2]]));
       }));
-      
     });
 
-    test('propagate multiple data object changes in single [ChangeSet].', () {
-      // given
-      var collection = new DataCollection.from(data);
-
-      // when
-      data[0]['name'] = 'John Doe';
-      data[1]['name'] = 'James Bond';
-
-      // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys,
-            unorderedEquals([data[0], data[1]]));
-      }));
-      
-    });
-    
   });
 }
