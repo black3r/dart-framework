@@ -31,7 +31,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
   void _remap({bool silent : false}) {
     
     var mappedObj = mapping(source);
-    Set allKeys =new Set.from(mappedObj._fields.keys)
+    Set allKeys = new Set.from(mappedObj._fields.keys)
                         .union(new Set.from(_fields.keys));
     allKeys.forEach((key){
       
@@ -75,7 +75,7 @@ class MappedCollectionView extends TransformedDataCollection{
    * Creates a new data collection from [source] where each element e from [source] 
    * is replaced by the result of mapping(e).
    */
-  MappedCollectionView(DataCollectionView source, DataView mapping(DataView d)): super(source, null, mapping);
+  MappedCollectionView(DataCollectionView source, DataTransformFunction mapping): super(source, null, mapping);
   
   /**
    * Subscriptions for change events on mapped data objects.

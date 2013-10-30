@@ -28,11 +28,11 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
     
     // start listening for changes on both sources
     source1.onChange.listen((ChangeSet changes) 
-            =>_mergeIn(changes, SetOpMixin.MASK_SRC1));
+            =>_mergeIn(changes, 1));
     
     if (source2 != null) {
       source2.onChange.listen((ChangeSet changes) 
-            =>_mergeIn(changes, SetOpMixin.MASK_SRC2));
+            =>_mergeIn(changes, 2));
     }
   }
   
@@ -55,12 +55,12 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
 }
 
 /**
- * A mixin providing bitwise counting and set-op functionality.   
+ * Provides a multiset-like implementation for up to two occurences.   
  */
-abstract class SetOpMixin {
+class SetOp2<E> {
   
-  static const MASK_SRC1 = 1;
-  static const MASK_SRC2 = 2;
+  static const BIT_1 = 1;
+  static const BIT_2 = 2;
   
   /**
    * Information which sources does each data object in the collection appear in. Encoded as bit-array of size 2.
@@ -70,60 +70,61 @@ abstract class SetOpMixin {
    *  - 2 (=MASK_SRC2) object is in the second source collection
    *  - 3 (=MASK_SRC1|MASK_SRC2) object is in both collections
    */
-  Map<DataView, int> _refMap = new Map(); 
+  Map<E, int> _refMap = new Map<E,int>(); 
   
   /**
-   * Returns true iff there is a reference for [dataObj] in [sourceRef].
+   * Returns true iff there is a reference for [key] in [bit].
    */
-  bool _hasRef(DataView dataObj, int sourceRef) {
-    return _refMap.keys.contains(dataObj) &&
-           (_refMap[dataObj] & sourceRef) != 0;  
-  }
+  bool hasRef(E key, int bit) => 
+        _refMap.keys.contains(key) && 
+        (_refMap[key] & bit) != 0;  
+
   
   /**
-   * Adds a reference for [dataObj] to a source denoted by [sourceRef].
+   * Adds a reference for [key] to a source denoted by [bit].
    */
-  void _addRef(DataView dataObj, int sourceRef) {
-    if (!_refMap.keys.contains(dataObj)) {
-      _refMap[dataObj] = 0;
+  void addRef(E key, int bit) {
+    if (!_refMap.keys.contains(key)) {
+      _refMap[key] = 0;
     }    
-    _refMap[dataObj] |= sourceRef;
+    _refMap[key] |= bit;
   }
 
   /**
-   * Removes a reference for [dataObj] to source denoted by [sourceRef].
+   * Removes a reference for [key] to source denoted by [bit].
+   * True is returned iff there still remains a reference after this operation.
    */
-  bool _removeRef(DataView dataObj, int sourceRef) {
-    if (!_refMap.keys.contains(dataObj)) {
-      return false;
-    }    
+  bool removeRef(E key, int bit) {
+    if (!_refMap.keys.contains(key)) return false;
     
-    _refMap[dataObj] &= ~sourceRef;
+    _refMap[key] &= ~bit;
     
-    if (_refMap[dataObj] == 0) {
-      _refMap.remove(dataObj);
+    if (_refMap[key] == 0) {
+      _refMap.remove(key);
       return false;
     }
+    return true;
   }
   
   /**
-   * Returns true iff there are two references for [dataObj].
+   * Returns true iff there are exactly two references for [key].
    */
-  bool _hasBothRefs(DataView dataObj) 
-        => _hasRef(dataObj, SetOpMixin.MASK_SRC1) &&
-           _hasRef(dataObj, SetOpMixin.MASK_SRC2); 
+  bool hasBothRefs(E key) 
+        => hasRef(key, BIT_1) &&
+           hasRef(key, BIT_2); 
   
   /**
-   * Returns true iff there are no references for [dataObj].
+   * Returns true iff there are no references for [key].
    */
-  bool _hasNoRefs(DataView dataObj) 
-        => !_hasRef(dataObj, SetOpMixin.MASK_SRC1) &&
-           !_hasRef(dataObj, SetOpMixin.MASK_SRC2); 
+  bool hasNoRefs(E key) 
+        => !hasRef(key, BIT_1) &&
+           !hasRef(key, BIT_2); 
   
   /**
-   * Returns true iff there are no references for [dataObj].
+   * Returns true iff there are no references for [key].
    */
-  bool _hasOneRef(DataView dataObj) 
-        => !(_hasBothRefs(dataObj) || _hasNoRefs(dataObj)); 
+  bool hasOneRef(E key) 
+        => !(hasBothRefs(key) || 
+            hasNoRefs(key)); 
   
 }

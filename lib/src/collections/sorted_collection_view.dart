@@ -5,14 +5,15 @@
 part of clean_data;
 
 /**
- * Represents a read-only data collection that is a result of a mapping operation on another collection.
+ * Represents a read-only data collection that provides a sorted version of source collection w.r.t sorting parameters.
+ * TODO specify compare semantics for NULL/undefined values (http://goo.gl/Lbfpdc).
+ * TODO specify changeset semantics for sorted collections
+ * TODO use insertion sort for small changes
  */
 class SortedCollectionView extends TransformedDataCollection{
   
   static const ASCENDING = 1;
   static const DESCENDING = -1;
-  static const SORT_ALL_THRESHOLD = 0;
-  
   
   Iterator<DataView> get iterator => _items.iterator;
   
@@ -30,24 +31,35 @@ class SortedCollectionView extends TransformedDataCollection{
   int _compare(DataView d1, DataView d2) {
     
     for (int i=0; i<_order.length; i++) {
-      var rule = _order[i],
-          val1 = d1[rule[0]], 
-          val2 = d2[rule[0]];
       
-      int res = val1 > val2 
-                ? 1 
-                : (val2 > val1 ? -1 : 0);
-
-      if (res == 0) continue;
-      return rule[1] == ASCENDING 
-             ? res
-             : -res;
+      var rule = _order[i],
+          attr = rule[0],
+          multiplier = rule[1],
+          nullOrMissing1 = !d1.containsKey(attr) || d1[attr] == null,
+          nullOrMissing2 = !d2.containsKey(attr) || d2[attr] == null;
+      
+      // missing/null attribute semantics (undef/null < ANYTHING)
+      if (nullOrMissing1 && !nullOrMissing2) return -multiplier;
+      if (!nullOrMissing1 && nullOrMissing2) return  multiplier;
+      if (nullOrMissing1 && nullOrMissing2) continue;
+      
+      // value semantics
+      int res = d1[attr] < d2[attr]
+                ? -1 
+                : (d2[attr] < d1[attr] ? 1 : 0);
+      
+      // still equal? Decide by next attribute
+      if (res != 0) {
+        return res * multiplier;
+      }
     }
+    
+    // totally equal w.r.t. [order]
     return 0;
   }
   
   /**
-   *  Runs the initial mapping on the source collection.
+   *  Runs the initial sort on the source collection.
    */
   void _init(){
     _items.addAll(source1);
@@ -65,51 +77,27 @@ class SortedCollectionView extends TransformedDataCollection{
                        changes.removedItems.length +
                        changes.changedItems.length;
     
-    if (changeNumber < SORT_ALL_THRESHOLD) {
-      _insertChanges(changes);    
-    } else {
-      changes.addedItems.forEach((d) {
-        if(!_items.contains(d)) {
-          _items.add(d);
-          _changeSet.markAdded(d);
-        }
-      });
+
+    changes.addedItems.forEach((d) {
+      if(!_items.contains(d)) {
+        _items.add(d);
+        _changeSet.markAdded(d);
+      }
+    });
       
-      changes.removedItems.forEach((d) {
-        if(_items.contains(d)) {
-          _items.remove(d);
-          _changeSet.markRemoved(d);
-        }
-      });
-      
-      _sortAll();
-    }
-    
+    changes.removedItems.forEach((d) {
+      if(_items.contains(d)) {
+        _items.remove(d);
+        _changeSet.markRemoved(d);
+      }
+    });
+
     changes.changedItems.forEach((d,c) => _changeSet.markChanged(d,c));
-    
+      
+    _sortAll();
     _notify();
   }
   
-  // TODO be smarter when doing this: 
-  //   1. replace changes for removal+addition.
-  //   2. sort all the add/remove operations with [_compare]
-  //   3. do a classical one-pass merge with [_items]
-  List _insertChanges(ChangeSet changes) {
-    
-    changes.changedItems.keys.forEach((d) => _items.remove(d));
-    changes.removedItems.forEach((d) => _items.remove(d));
-    
-    changes.addedItems.forEach((d){
-      int smaller = _items.takeWhile((d2) => _compare(d,d2) > 0).length;
-      _items.insert(smaller, d);
-    });
-    
-    changes.changedItems.keys.forEach((d){
-      int smaller = _items.takeWhile((d2) => _compare(d,d2) > 0).length;
-      _items.insert(smaller, d);
-    });       
-  }
-
   void _treatAddedItem(DataView dataObj, int sourceNumber) {
   }
 

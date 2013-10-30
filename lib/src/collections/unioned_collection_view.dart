@@ -7,19 +7,21 @@ part of clean_data;
 /**
  * Represents a read-only data collection that is a result of a union operation on another collection.
  */
-class UnionedCollectionView extends TransformedDataCollection with SetOpMixin{
+class UnionedCollectionView extends TransformedDataCollection{
   
   /**
    * Creates a new data collection from [source1] and [source2] with all elements from both collections. 
    */
   UnionedCollectionView(DataCollectionView source1, DataCollectionView source2): super(source1, source2, null);
   
+  SetOp2<DataView> _srcRefs = new SetOp2<DataView>();
+  
   /**
    *  Performs the initial union operation.
    */
   void _init() {
-    source1.forEach((DataView d)  => _addDataObject(d, SetOpMixin.MASK_SRC1, silent:true));
-    source2.forEach((DataView d)  => _addDataObject(d, SetOpMixin.MASK_SRC2, silent:true));
+    source1.forEach((DataView d)  => _addDataObject(d, 1, silent:true));
+    source2.forEach((DataView d)  => _addDataObject(d, 2, silent:true));
   }
 
   /**
@@ -27,9 +29,9 @@ class UnionedCollectionView extends TransformedDataCollection with SetOpMixin{
    */
   void _addDataObject(DataView dataObj,int sourceRef, {bool silent : false}) {
     
-    if (_hasRef(dataObj, sourceRef)) return;
+    if (_srcRefs.hasRef(dataObj, sourceRef)) return;
     
-    _addRef(dataObj, sourceRef);
+    _srcRefs.addRef(dataObj, sourceRef);
     
     if (_data.contains(dataObj)) return;
     
@@ -43,9 +45,9 @@ class UnionedCollectionView extends TransformedDataCollection with SetOpMixin{
   void _treatAddedItem(DataView d, int sourceRef) => _addDataObject(d, sourceRef);
   
   void _treatRemovedItem(DataView dataObj, int sourceRef) {
-    _removeRef(dataObj,sourceRef);
+    _srcRefs.removeRef(dataObj,sourceRef);
     
-    if (_hasNoRefs(dataObj)) {
+    if (_srcRefs.hasNoRefs(dataObj)) {
       _changeSet.markRemoved(dataObj);    
       _data.remove(dataObj);      
     }

@@ -7,7 +7,9 @@ part of clean_data;
 /**
  * Represents a read-only data collection that is a result of an intersect operation of two collections.
  */
-class SortedDataView extends TransformedDataCollection with SetOpMixin{
+class SortedDataView extends TransformedDataCollection {
+  
+  SetOp2<DataView> _srcRefs = new SetOp2<DataView>();
   
   /**
    * Creates a new data collection from [source1] and [source2] only with elements that appear in A but not B. 
@@ -20,11 +22,11 @@ class SortedDataView extends TransformedDataCollection with SetOpMixin{
   void _init() {
     
     source1.forEach((DataView d){
-      _processSourceAddition(d, SetOpMixin.MASK_SRC1, silent: true);
+      _processSourceAddition(d, 1, silent: true);
     });
     
     source2.forEach((DataView d){
-      _processSourceAddition(d, SetOpMixin.MASK_SRC2, silent: true);
+      _processSourceAddition(d, 2, silent: true);
     });
     
   }
@@ -36,27 +38,25 @@ class SortedDataView extends TransformedDataCollection with SetOpMixin{
    */
   void _processSourceAddition(DataView dataObj,int sourceRef, {bool silent : false}) {
     
-    if (_hasRef(dataObj, sourceRef)) return;
+    if (_srcRefs.hasRef(dataObj, sourceRef)) return;
 
     // mark that [dataObj] is in [sourceRef]-th source collection
-    _addRef(dataObj, sourceRef);
+    _srcRefs.addRef(dataObj, sourceRef);
     
-    if (sourceRef == SetOpMixin.MASK_SRC2) {
+    if (sourceRef == 2) {
       if (_data.contains(dataObj)) {
         _data.remove(dataObj);
         
         if(!silent) {
           _changeSet.markRemoved(dataObj);
-          _notify();
         }
       }
     } else { // a ref to source1 was added...
-      if (!_hasRef(dataObj, SetOpMixin.MASK_SRC2)) {
+      if (!_srcRefs.hasRef(dataObj, 2)) {
         _data.add(dataObj);
         
         if(!silent) {
           _changeSet.markAdded(dataObj);
-          _notify(); // todo treba to tu?
         }
       }
     }
@@ -65,25 +65,25 @@ class SortedDataView extends TransformedDataCollection with SetOpMixin{
   void _treatAddedItem(DataView d, int sourceRef) => _processSourceAddition(d, sourceRef);
   
   void _treatRemovedItem(DataView dataObj, int sourceRef) {
-    _removeRef(dataObj,sourceRef);
+    _srcRefs.removeRef(dataObj,sourceRef);
     
     if(_data.contains(dataObj) &&
-       (!_hasRef(dataObj, SetOpMixin.MASK_SRC1) ||
-        _hasRef(dataObj, SetOpMixin.MASK_SRC2))){    
+       (!_srcRefs.hasRef(dataObj, 1) ||
+         _srcRefs.hasRef(dataObj, 2))){    
 
       _changeSet.markRemoved(dataObj);    
       _data.remove(dataObj);
     } else if (!_data.contains(dataObj) && 
-               !_hasRef(dataObj, SetOpMixin.MASK_SRC2) &&
-                _hasRef(dataObj, SetOpMixin.MASK_SRC1)) {
+               !_srcRefs.hasRef(dataObj, 2) &&
+               _srcRefs.hasRef(dataObj, 1)) {
       _changeSet.markAdded(dataObj);
       _data.add(dataObj);
     }
   }
   
   void _treatChangedItem(DataView dataObj, ChangeSet changes, int sourceRef) {
-    if (_hasRef(dataObj, SetOpMixin.MASK_SRC1) &&
-        !_hasRef(dataObj, SetOpMixin.MASK_SRC2)) {
+    if (_srcRefs.hasRef(dataObj, 1) &&
+        !_srcRefs.hasRef(dataObj, 2)) {
       _changeSet.markChanged(dataObj, changes);
     }
   }  

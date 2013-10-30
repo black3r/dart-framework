@@ -5,7 +5,7 @@
 part of clean_data;
 
 typedef bool DataTestFunction(DataView d);
-typedef DataView DataTransformFunction(DataView d);
+typedef dynamic DataTransformFunction(DataView d);
 
 /**
  * Observable collection of data objects that allows for read-only operations.
@@ -87,6 +87,11 @@ abstract class DataCollectionView implements Iterable {
     *  * depend on a non-final outside variable
     */
    DataCollectionView except(DataCollectionView other);
+   
+   SortedCollectionView sort(List order);
+   
+   
+   SortedCollectionView limit({int offset: 0, int limit: -1});
 }
 
 /**
@@ -107,6 +112,59 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
 
+// ============================ index ======================
+  
+  /**
+   * The index on columns that speeds up retrievals and removals by property value.
+   */
+  final Map<String, HashIndex> _index = new Map<String, HashIndex>();    
+
+  /**
+   * Finds all objects that have [property] equal to [value] in this collection.
+   */
+  Iterable<DataView> findBy(String property, dynamic value){
+    if (!_index.containsKey(property)) {
+      throw new IndexException('Property $property is not indexed.');
+    }
+    return _index[property][value];
+  }
+  
+  void _indexItem(DataView dataObj) {
+    dataObj.keys.forEach((k){
+       if (_index.containsKey(k)) {
+         _index[k].add(dataObj[k], dataObj);
+       }
+    });
+  }
+  
+  void addIndex([Iterable<String> indexedProps]) {
+    if (indexedProps != null) {
+      
+      for(String prop in indexedProps){
+       
+        if(!_index.containsKey(prop)) {
+          
+          // create and initialize the index
+          _index[prop] = new HashIndex();
+          _recountIndex(prop);
+          
+          // TODO listen on changes
+          
+        }
+      }
+    }
+  }
+
+  void _recountIndex(String prop) {
+    for(DataView d in this){
+      if (d.containsKey(prop)) {
+        _index[prop].add(d[prop], d);
+      }
+    }    
+  }
+  
+  // ============================ /index ======================
+  
   /**
    * Used to propagate change events to the outside world.
    */
@@ -118,8 +176,8 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   /**
    * Current state of the collection expressed by a [ChangeSet].
    */
-  ChangeSet _changeSet = new ChangeSet();
-
+  ChangeSet _changeSet = new ChangeSet();  
+  
   int get length => _data.length;
   bool contains(DataView dataObj) => _data.contains(dataObj);
   
@@ -138,6 +196,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
    * Stream all new changes marked in [ChangeSet].
    */
   void _notify() {
+    // exposed asynchronous notifications
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
@@ -174,6 +233,10 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   SortedCollectionView sort(List order) {
     return new SortedCollectionView(this, order);
   }
+  
+  SortedCollectionView limit({int offset: 0, int limit: -1}) {
+    return new LimitedCollectionView(this, limit: limit, offset: offset);
+  }
 }
 
 /**
@@ -184,7 +247,9 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   /**
    * Creates an empty collection.
    */
-  DataCollection();
+  DataCollection(){
+    
+  }
 
   /**
    * Generates Collection from [Iterable] of [data].

@@ -1,21 +1,23 @@
 // Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+library DataCollectionTest;
 
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
 
-  group('Collection', () {
+  group('(Collection)', () {
 
-    var data0, data1, data2, data3;
+    var data0, data1, data2, data3, data100;
     var data;
     setUp(() {
       data = [];
       for (var i = 0; i <= 10; i++) {
         data.add(new Data.fromMap({'id': i}));
       }
+      data100 = new Data.fromMap({'id': 100, 'name': 'Marienka'});
     });
 
     test('initialize.', () {
@@ -207,6 +209,63 @@ void main() {
       }));
       
     });
+
+
+    test('Find by index. (T15)', () {
+      
+      // given
+      var collection = new DataCollection.from(data);
+
+      // when
+      collection.addIndex(['id']);
+
+      // then
+      expect(collection.findBy('id', 7), equals([data[7]]));
+      expect(collection.findBy('id', 11).isEmpty, isTrue);
+    });
+  
+    test('Find by non-existing index. (T16)', () {
+      
+      // given
+      var collection = new DataCollection.from(data);
+      
+      // when      
+
+      // then
+      expect(() => collection.findBy('name', 'John Doe'), throws);
+    });
+  
+    test('Initialize and find by index. (T17)', () {
+      
+      // given
+      var collection = new DataCollection.from(data);
+      data[0]['name'] = 'Jozef';
+      data[1]['name'] = 'Jozef';
+      data[2]['name'] = 'Anicka';
+      
+      // when      
+      collection.addIndex(['id','name']);
+      
+      // then
+      expect(collection.findBy('name', 'Jozef'), unorderedEquals([data[0], data[1]]));
+    });
+    
+    test('Index updated in real-time after addition. (T18)', () {
+      
+      // given
+      var collection = new DataCollection.from(data);
+      collection.addIndex(['id','name']);
+      
+      // when      
+      collection.add(data100);
+      
+      // then
+      var result = collection.findBy('name', 'Marienka');
+      expect(result, equals([data100]));
+    });
+    
     
   });
+  
+  
 }

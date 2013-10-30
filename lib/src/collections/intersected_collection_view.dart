@@ -7,7 +7,9 @@ part of clean_data;
 /**
  * Represents a read-only data collection that is a result of an intersect operation of two collections.
  */
-class IntersectedCollectionView extends TransformedDataCollection with SetOpMixin{
+class IntersectedCollectionView extends TransformedDataCollection {
+  
+  SetOp2<DataView> _srcRefs = new SetOp2<DataView>();
   
   /**
    * Creates a new data collection from [source1] and [source2] only with elements that appear in both collections. 
@@ -20,11 +22,11 @@ class IntersectedCollectionView extends TransformedDataCollection with SetOpMixi
   void _init() {
     
     source1.forEach((DataView d){
-      _processSourceAddition(d, SetOpMixin.MASK_SRC1, silent: true);
+      _processSourceAddition(d, 1, silent: true);
     });
     
     source2.forEach((DataView d){
-      _processSourceAddition(d, SetOpMixin.MASK_SRC2, silent: true);
+      _processSourceAddition(d, 2, silent: true);
     });
     
   }
@@ -36,13 +38,13 @@ class IntersectedCollectionView extends TransformedDataCollection with SetOpMixi
    */
   void _processSourceAddition(DataView dataObj,int sourceRef, {bool silent : false}) {
     
-    if (_hasRef(dataObj, sourceRef)) return;    
+    if (_srcRefs.hasRef(dataObj, sourceRef)) return;    
 
     // mark that [dataObj] is in [sourceRef]-th source collection
-    _addRef(dataObj, sourceRef);
+    _srcRefs.addRef(dataObj, sourceRef);
     
     // if [dataObj] is newly in both source collections, add it
-    if(_hasBothRefs(dataObj)){    
+    if(_srcRefs.hasBothRefs(dataObj)){    
       _data.add(dataObj);
          
       if(!silent) {
@@ -55,7 +57,7 @@ class IntersectedCollectionView extends TransformedDataCollection with SetOpMixi
   void _treatAddedItem(DataView d, int sourceRef) => _processSourceAddition(d, sourceRef);
   
   void _treatRemovedItem(DataView dataObj, int sourceRef) {
-    _removeRef(dataObj,sourceRef);
+    _srcRefs.removeRef(dataObj,sourceRef);
     
     // this object is no longer in both source collections
     if (_data.contains(dataObj)) {

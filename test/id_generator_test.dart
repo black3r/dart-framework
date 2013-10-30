@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library IdGeneratorTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
@@ -11,7 +13,7 @@ void main() {
 }
 
 test_generator(){
-  group('IdGenerator',(){
+  group('(IdGenerator)',(){
     var prefix1 = 'vacuumapps';
     var prefix2 = 'cleandart';
         

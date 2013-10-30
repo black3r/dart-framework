@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library IntersectedCollectionViewTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 import 'dart:async';
@@ -195,7 +197,7 @@ void main() {
           }));  
         });
 
-        test('clearing one of the sources results in an open [intersected] collection. (T14)',(){
+        test('clearing one of the sources results in an open [intersected] collection. (T13)',(){
           // given
           DataCollectionView intersected = col2.intersection(col1);
           

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library DataTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 
 
 void main() {
 
-  group('Data', () {
+  group('(Data)', () {
 
     test('initialize.', () {
 

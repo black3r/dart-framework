@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library FilteredViewCollectionTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
 
-  group('FilteredDataCollection', () {
+  group('(FilteredCollectionView)', () {
 
     var data;
     setUp(() {
@@ -26,7 +28,7 @@ void main() {
     });
 
 
-    test('simple filtering.', () {
+    test('simple filtering. (T01)', () {
       // given
       var collection = new DataCollection.from(data);
       
@@ -42,7 +44,7 @@ void main() {
     });
     
 
-    test('double/triple filtering.', () {
+    test('double/triple filtering. (T02)', () {
       // given 
       var collection = new DataCollection.from(data);
       
@@ -61,7 +63,7 @@ void main() {
     });
     
 
-    test('adding a new data object to the filtered collection.', () {
+    test('adding a new data object to the filtered collection. (T03)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef');  //data[11], data[12]
@@ -82,7 +84,7 @@ void main() {
       }));
     });
         
-    test('removing a data object from the filtered collection.', () {
+    test('removing a data object from the filtered collection. (T04)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -100,7 +102,7 @@ void main() {
     });
     
 
-    test('changing a data object in the underlying collection - gets added to the filtered collection.', () {
+    test('changing a data object in the underlying collection - gets added to the filtered collection. (T05)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -117,7 +119,7 @@ void main() {
       }));
     });
     
-    test('changing a data object in the underlying collection - gets removed from the filtered collection.', () {
+    test('changing a data object in the underlying collection - gets removed from the filtered collection. (T06)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -134,7 +136,7 @@ void main() {
       }));
     });
 
-    test('changing a data object in the underlying collection - gets changed in the filtered collection.', () {
+    test('changing a data object in the underlying collection - gets changed in the filtered collection. (T07)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -155,7 +157,7 @@ void main() {
       
     });
 
-    test('clearing the underlying collection - gets changed in the filtered collection.', () {
+    test('clearing the underlying collection - gets changed in the filtered collection. (T08)', () {
       // when
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['name']=='jozef'); //data[11], data[12]
@@ -173,7 +175,7 @@ void main() {
       }));
     });
    
-    test('complex filter function - objects with even IDs get filtered.', () {
+    test('complex filter function - objects with even IDs get filtered. (T09)', () {
       // given
       var collection = new DataCollection.from(data);
       
@@ -201,7 +203,7 @@ void main() {
       }));
     });
     
-    test('when item in filtered collection is removed, changed and added, it is in changedItems.',(){
+    test('when item in filtered collection is removed, changed and added, it is in changedItems. (T10)',(){
       // given
       var dataObj = new Data.fromMap({'id': 1});
       var collection = new DataCollection.from([dataObj]);
@@ -218,7 +220,7 @@ void main() {
       }));
     });
    
-    test('after removing an object from the filtered collection, it does not react to changes on this object anymore.', () {
+    test('after removing an object from the filtered collection, it does not react to changes on this object anymore. (T11)', () {
       // given
       var collection = new DataCollection.from(data);
       var filteredData = collection.where((d)=>d['id']==1);

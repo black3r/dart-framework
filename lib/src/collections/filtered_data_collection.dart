@@ -6,66 +6,21 @@ part of clean_data;
 
 /**
  * Represents a read-only data collection that is a result of a filtering operation on another collection.
- * TODO: refactor this to use TransformedDataCollection as a parent
  */
-class FilteredCollectionView extends Object with DataCollectionViewMixin,
-IterableMixin<DataView> {
+class FilteredCollectionView extends TransformedDataCollection {
   
-  /**
-   * The source [DataCollectionView] this collection is derived from. 
-   */
-  final DataCollectionView source;
+  bool _filter(DataView dataObj) => config(dataObj);
   
-  /**
-   * The [filter] used to derive the data from the [source] collection.
-   */
-  final filter;
-
   /**
    * Filters [items] w.r.t. the given [filter] function.
    */
   Iterable<DataView> _filterAll(Iterable<DataView> items) =>
-      items.toList().where((DataView d) => filter(d));
+      items.toList().where((DataView d) => _filter(d));
   
   /**
    * Creates a new filtered data collection from [source], w.r.t. [filter].
    */
-  FilteredCollectionView(DataCollectionView this.source, this.filter) {
-
-    // run the initial filtration on the source collection
-    var filtered = _filterAll(source);
-    _data.addAll(filtered);
-    
-    // start listening on [source] collection changes
-    source.onChange.listen(_mergeIn);
-  }
-  
-  
-  /**
-   * Reflects [changes] in the collection w.r.t. [filter].
-   */
-  void _mergeIn(ChangeSet changes) {
-    
-    // add "added" [DataView] objects that comply to the filter
-    _filterAll(changes.addedItems).forEach((d) {
-      _data.add(d);
-      _changeSet.markAdded(d);
-    });
-    
-    // remove "removed" [DataView] objects that comply to the filter
-    changes.removedItems.forEach((d) {
-      if(_data.remove(d)) {
-        _changeSet.markRemoved(d);
-      }
-    });
-
-    // resolve items that were changed in the [source] collection
-    for (var dataObj in changes.changedItems.keys){      
-      _resolveChangedDataObject(dataObj, changes.changedItems);
-    }
-      
-     _notify();
-  }
+  FilteredCollectionView(DataCollectionView source, DataTestFunction filter): super(source, null, filter);
   
   /**
    * Decides whether a [dataObj] that has changed in the [source] collection
@@ -76,7 +31,7 @@ IterableMixin<DataView> {
     ChangeSet cs = changedItems[dataObj];
     
     bool isInData = _data.contains(dataObj);
-    bool shouldBeInData = filter(dataObj);
+    bool shouldBeInData = _filter(dataObj);
     
     if (isInData) {
       _changeSet.markChanged(dataObj, changedItems);
@@ -89,6 +44,28 @@ IterableMixin<DataView> {
     } else if(shouldBeInData) {
         _data.add(dataObj);
         _changeSet.markAdded(dataObj);
+    }
+  }
+
+  void _init() {
+    // run the initial filtration on the source collection
+    _data.addAll(_filterAll(source1));
+  }
+
+  void _treatAddedItem(DataView dataObj, int sourceNumber) {
+    if (!_data.contains(dataObj) && _filter(dataObj)) {
+      _data.add(dataObj);
+      _changeSet.markAdded(dataObj);
+    }
+  }
+
+  void _treatChangedItem(DataView dataObj, ChangeSet c, int sourceNumber) {
+    _resolveChangedDataObject(dataObj, c.changedItems);
+  }
+
+  void _treatRemovedItem(DataView dataObj, int sourceNumber) {
+    if(_data.remove(dataObj)) {
+      _changeSet.markRemoved(dataObj);
     }
   }
 }
