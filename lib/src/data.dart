@@ -103,6 +103,7 @@ abstract class DataViewMixin implements DataView {
    */
   void _notify({author: null}) {
     _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+    _clearChangesSync();
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
@@ -113,8 +114,11 @@ abstract class DataViewMixin implements DataView {
   }
 
   _clearChanges() {
-    _changeSetSync = new ChangeSet();
     _changeSet = new ChangeSet();
+  }
+
+  _clearChangesSync() {
+    _changeSetSync = new ChangeSet();
   }
 
   _markAdded(String key) {
@@ -151,6 +155,7 @@ class Data extends Object with DataViewMixin implements DataView {
     var dataObj = new Data();
     data.forEach((k, v) => dataObj[k] = v);
     dataObj._clearChanges();
+    dataObj._clearChangesSync();
     return dataObj;
   }
 

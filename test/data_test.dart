@@ -169,7 +169,7 @@ void main() {
 
     });
 
-    test('listen on {key, value} added synchronously.', () {
+    test('listen synchronously on {key, value} added.', () {
       // given
       var dataObj = new Data();
       var mock = new Mock();
@@ -185,6 +185,24 @@ void main() {
       expect(event['change'].addedItems, unorderedEquals(['key']));
       expect(event['change'].changedItems['key'].oldValue, isNull);
       expect(event['change'].changedItems['key'].newValue, equals('value'));
+    });
+
+    test('listen synchronously on multiple {key, value} added.', () {
+      // given
+      var dataObj = new Data();
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj['key1'] = 'value1';
+      dataObj['key2'] = 'value2';
+
+      // then
+      mock.getLogs().verify(happenedExactly(2));
+      var event1 = mock.getLogs().logs[0].args.first;
+      var event2 = mock.getLogs().logs[1].args.first;
+      expect(event1['change'].addedItems, equals(['key1']));
+      expect(event2['change'].addedItems, equals(['key2']));
     });
 
     test('listen on {key, value} removed.', () {
@@ -204,7 +222,7 @@ void main() {
 
     });
 
-    test('listen on {key, value} removed synchronously.', () {
+    test('listen synchronously on {key, value} removed.', () {
       // given
       var dataObj = new Data.fromMap({'key': 'value'});
       var mock = new Mock();
