@@ -4,68 +4,104 @@
 
 part of clean_data;
 
-/**
- * Represents a read-only data collection that is a result of a filtering operation on another collection.
- */
-class FilteredCollectionView extends TransformedDataCollection {
-  
-  bool _filter(DataView dataObj) => config(dataObj);
-  
+abstract class FilteredCollectionBase extends TransformedDataCollection {
+
+  FilteredCollectionBase(List<DataCollectionView> sources) : super(sources) {
+    // Performs the initial minus operation.
+    for (var i = 0; i < sources.length; i++) {
+      for (var dataObj in sources[i]) {
+        if (_shouldContain(dataObj)) {
+          _data.add(dataObj);
+        }
+      }
+    }
+  }
+
   /**
-   * Filters [items] w.r.t. the given [filter] function.
+   * Returns true if [dataObj] should be present in the collection.
    */
-  Iterable<DataView> _filterAll(Iterable<DataView> items) =>
-      items.toList().where((DataView d) => _filter(d));
-  
-  /**
-   * Creates a new filtered data collection from [source], w.r.t. [filter].
-   */
-  FilteredCollectionView(DataCollectionView source, DataTestFunction filter): super(source, null, filter);
-  
+  bool _shouldContain(DataView dataObj);
+
   /**
    * Decides whether a [dataObj] that has changed in the [source] collection
    * should be added/changed/removed in this filtered collection.
    */
-  void _resolveChangedDataObject(DataView dataObj, Map changedItems) {
-    
-    ChangeSet cs = changedItems[dataObj];
-    
-    bool isInData = _data.contains(dataObj);
-    bool shouldBeInData = _filter(dataObj);
-    
-    if (isInData) {
-      _changeSet.markChanged(dataObj, changedItems);
+  void _treatItem(DataView dataObj, ChangeSet changes) {
+    bool shouldBeContained = _shouldContain(dataObj);
+    bool isContained = _data.contains(dataObj);
 
-      if (!shouldBeInData) {
-        _data.remove(dataObj);
-        _changeSet.markRemoved(dataObj);
+    if (isContained) {
+      if (changes != null) {
+        _markChanged(dataObj, changes);
       }
-      
-    } else if(shouldBeInData) {
+
+      if (!shouldBeContained) {
+        _data.remove(dataObj);
+        _markRemoved(dataObj);
+      }
+
+    } else if(shouldBeContained) {
         _data.add(dataObj);
-        _changeSet.markAdded(dataObj);
+        _markAdded(dataObj);
     }
   }
+}
 
-  void _init() {
-    // run the initial filtration on the source collection
-    _data.addAll(_filterAll(source1));
+/**
+ * Represents a read-only data collection that is a result of a filtering
+ * operation on another collection.
+ */
+class FilteredCollectionView extends FilteredCollectionBase {
+
+  final _filter;
+
+  /**
+   * Creates a new filtered data collection from [source], using [filter].
+   */
+  FilteredCollectionView(DataCollectionView source,
+      DataTestFunction this._filter): super([source]);
+
+  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) &&
+      _filter(dataObj);
+}
+
+/**
+ * Represents a read-only data collection that is a result of an minus operation of two collections.
+ */
+class ExceptedCollectionView extends FilteredCollectionBase {
+
+  /**
+   * Creates a new data collection from [source1] and [source2] only with elements that appear in A but not B.
+   */
+  ExceptedCollectionView(DataCollectionView source1,
+      DataCollectionView source2): super([source1, source2]);
+
+  bool _shouldContain(DataView dataObj) {
+    return sources[0].contains(dataObj) && !sources[1].contains(dataObj);
   }
 
-  void _treatAddedItem(DataView dataObj, int sourceNumber) {
-    if (!_data.contains(dataObj) && _filter(dataObj)) {
-      _data.add(dataObj);
-      _changeSet.markAdded(dataObj);
-    }
-  }
+}
 
-  void _treatChangedItem(DataView dataObj, ChangeSet c, int sourceNumber) {
-    _resolveChangedDataObject(dataObj, c.changedItems);
-  }
+class IntersectedCollectionView extends FilteredCollectionBase {
+  /**
+   * Creates a new data collection from [source1] and [source2] only with
+   * elements that appear in both collections.
+   */
+  IntersectedCollectionView(DataCollectionView source1,
+      DataCollectionView source2): super([source1, source2]);
 
-  void _treatRemovedItem(DataView dataObj, int sourceNumber) {
-    if(_data.remove(dataObj)) {
-      _changeSet.markRemoved(dataObj);
-    }
-  }
+  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) &&
+      sources[1].contains(dataObj);
+}
+
+class UnionedCollectionView extends FilteredCollectionBase {
+  /**
+   * Creates a new data collection from [source1] and [source2] with elements
+   * that appear in at least one of the collections.
+   */
+  UnionedCollectionView(DataCollectionView source1,
+      DataCollectionView source2): super([source1, source2]);
+
+  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) ||
+      sources[1].contains(dataObj);
 }
