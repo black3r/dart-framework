@@ -5,16 +5,16 @@
 part of clean_data;
 
 /**
- * Represents a read-only data collection that is a result of an intersect operation of two collections.
+ * Represents a read-only data collection that is a result of an minus operation of two collections.
  */
-class SortedDataView extends TransformedDataCollection {
+class ExceptedCollectionView extends TransformedDataCollection {
   
   SetOp2<DataView> _srcRefs = new SetOp2<DataView>();
   
   /**
    * Creates a new data collection from [source1] and [source2] only with elements that appear in A but not B. 
    */
-  SortedDataView(DataCollectionView source1, DataCollectionView source2): super(source1, source2, null);
+  ExceptedCollectionView(DataCollectionView source1, DataCollectionView source2): super(source1, source2, null);
   
   /**
    *  Performs the initial minus operation.

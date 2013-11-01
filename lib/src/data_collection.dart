@@ -68,7 +68,7 @@ abstract class DataCollectionView implements Iterable {
    DataCollectionView intersection(DataCollectionView other);
    
    /**
-    * Minuses the data collection with another [DataCollectionView] to form a new, [SortedDataView].
+    * Minuses the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
     * 
     * The collection remains up-to-date w.r.t. to the source collection via
     * background synchronization.
@@ -77,7 +77,7 @@ abstract class DataCollectionView implements Iterable {
    DataCollectionView except(DataCollectionView other);
    
    /**
-    * Sorts the data collection with another [DataCollectionView] to form a new, [SortedDataView].
+    * Sorts the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
     * [Order] is specified as a list of [property, direction] pairs, where direction is ascending
     * if positive, descending if negative. 
     * 
@@ -305,7 +305,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   }
   
   DataCollectionView except(DataCollectionView other) {
-    return new SortedDataView(this, other);
+    return new ExceptedCollectionView(this, other);
   }
   
   SortedCollectionView sort(List order) {

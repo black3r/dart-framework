@@ -41,10 +41,10 @@ void main() {
         DataCollectionView excepted2 = col2.except(col1);
         
         //then
-        expect(excepted is SortedDataView, isTrue);
+        expect(excepted is ExceptedCollectionView, isTrue);
         expect(excepted, unorderedEquals([data[0],data[1], data[2], data[3]]));
         
-        expect(excepted2 is SortedDataView, isTrue);
+        expect(excepted2 is ExceptedCollectionView, isTrue);
         expect(excepted2, unorderedEquals([data[5],data[6], data[7], data[8], data[9], data[10]]));
       });
       
@@ -55,7 +55,7 @@ void main() {
       DataCollectionView excepted = col1.except(col1);
       
       //then
-      expect(excepted is SortedDataView, isTrue);
+      expect(excepted is ExceptedCollectionView, isTrue);
       expect(excepted.isEmpty, isTrue);
     });
 

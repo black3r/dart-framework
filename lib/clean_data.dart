@@ -17,7 +17,7 @@ part 'src/id_generator.dart';
 part 'src/change_set.dart';
 
 part 'src/collections/transformed_collection_view.dart';
-part 'src/collections/filtered_data_collection.dart';
+part 'src/collections/filtered_collection_view.dart';
 part 'src/collections/mapped_collection_view.dart';
 
 part 'src/collections/unioned_collection_view.dart';
