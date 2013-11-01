@@ -106,7 +106,6 @@ abstract class DataViewMixin implements DataView {
    */
   void _notify({author: null}) {
     
-    _changeSetSync.prettify();
     if (!_changeSetSync.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
       _clearChangesSync();

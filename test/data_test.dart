@@ -133,7 +133,7 @@ void main() {
       var changeSet = event['change'];
       expect(changeSet.removedItems.isEmpty, isTrue);
       expect(changeSet.addedItems, unorderedEquals(data.keys));
-      expect(changeSet.changedItems.isEmpty, isTrue);
+      expect(changeSet.changedItems.length, equals(3));
 
       // but async onChange drops information about changes in added items.
       dataObj.onChange.listen(expectAsync1((changeSet) {
@@ -155,7 +155,7 @@ void main() {
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
-        expect(event.addedItems, unorderedEquals(['key']));
+        expect(event.addedItems, equals(['key']));
       }));
 
     });
@@ -173,8 +173,8 @@ void main() {
       mock.getLogs().verify(happenedOnce);
       var event = mock.getLogs().first.args[0];
       expect(event['author'], equals('John Doe'));
-      expect(event['change'].addedItems, unorderedEquals(['key']));
-      expect(event['change'].changedItems.isEmpty, isTrue);
+      expect(event['change'].addedItems, equals(['key']));
+      expect(event['change'].changedItems.keys, equals(['key']));
     });
 
     test('listen synchronously on multiple {key, value} added. (T10)', () {
@@ -227,7 +227,7 @@ void main() {
       expect(event['author'], equals('John Doe'));
       expect(event['change'].addedItems.isEmpty, isTrue);
       expect(event['change'].removedItems, unorderedEquals(['key']));
-      expect(event['change'].changedItems.length, equals(0));
+      expect(event['change'].changedItems.length, equals(1));
 
     });
 

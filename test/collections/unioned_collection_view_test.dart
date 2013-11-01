@@ -78,7 +78,7 @@ void main() {
           ChangeSet changeSet = event.changedItems[data[4]];
           expect(changeSet.addedItems, equals(['name']));
           expect(changeSet.removedItems.isEmpty, isTrue);
-          expect(changeSet.changedItems.isEmpty, isTrue);
+          expect(changeSet.changedItems.keys, equals(['name']));
         }));
       });
         
@@ -238,8 +238,11 @@ void main() {
             // b. the change event on data[0] is correct
             ChangeSet changeSet = event.changedItems[data[0]];
             expect(changeSet.removedItems.isEmpty, isTrue);
-            expect(changeSet.changedItems.isEmpty, isTrue);
-            expect(changeSet.addedItems, equals(['abc']));            
+            expect(changeSet.changedItems.keys, equals(['abc']));
+            expect(changeSet.addedItems, equals(['abc']));
+            
+            expect(changeSet.changedItems['abc'].oldValue, isNull);
+            expect(changeSet.changedItems['abc'].newValue, equals('def'));
           }));  
         });
         

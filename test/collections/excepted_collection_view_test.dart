@@ -90,7 +90,9 @@ void main() {
           ChangeSet changeSet = event.changedItems[data[2]];
           expect(changeSet.addedItems, equals(['name']));
           expect(changeSet.removedItems.isEmpty, isTrue);
-          expect(changeSet.changedItems.isEmpty, isTrue);
+          expect(changeSet.changedItems.keys, equals(['name']));
+          expect(changeSet.changedItems['name'].oldValue, isNull);
+          expect(changeSet.changedItems['name'].newValue, equals('John Doe'));
         }));
       });
     

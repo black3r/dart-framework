@@ -425,5 +425,32 @@ void main() {
      // then
      expect(collection.findBy('id', 42), equals([data1]));
    });
+   
+   test('change on data object propagates correctly to the collection. (T28)', () {
+     
+     // given
+     data1 = new Data.fromMap({"id":42});
+     var collection = new DataCollection.from(data);      
+          
+     // when      
+     data[0].remove('id');
+     data[0]['id'] = 47;     
+     // then
+     collection.onChange.listen(expectAsync1((ChangeSet event) {
+       expect(event.addedItems.isEmpty, isTrue);
+       expect(event.removedItems.isEmpty, isTrue);
+       expect(event.changedItems.keys, unorderedEquals([data[0]]));
+       
+       // verify the data object changeset is valid
+       ChangeSet dataObjChanges = event.changedItems[data[0]];
+       expect(dataObjChanges.addedItems.isEmpty, isTrue);
+       expect(dataObjChanges.removedItems.isEmpty, isTrue);
+       expect(dataObjChanges.changedItems.length, equals(1));
+       
+       Change change = dataObjChanges.changedItems['id'];
+       expect(change.oldValue, equals(0));
+       expect(change.newValue, equals(47));
+     }));
+   });
   });
 }

@@ -75,7 +75,7 @@ void main() {
           ChangeSet changeSet = event.changedItems[data[4]];
           expect(changeSet.addedItems, equals(['name']));
           expect(changeSet.removedItems.isEmpty, isTrue);
-          expect(changeSet.changedItems.isEmpty, isTrue);
+          
         }));
       });
       test('intersected collection reacts to adding a new object to the source collections. (T04)',(){
