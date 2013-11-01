@@ -9,7 +9,7 @@ import 'package:clean_data/clean_data.dart';
 
 void main() {
 
-  group('(MinusDataCollection)', () {
+  group('(ExceptedDataCollection)', () {
     
     var data;
     DataCollection col1, col2, col3;
@@ -223,15 +223,16 @@ void main() {
             expect(event.changedItems.keys, unorderedEquals([data[2]]));
           }));  
         });
-/* TODO
+        
+        
         test('item that is removed, changed and added again is broadcasted as changed - second collection. (T13)',(){
           // given
-          DataCollectionView excepted = col1.minus(col2);
+          DataCollectionView excepted = col1.except(col2);
           
           // when
-          col2.remove(data[4]);
-          data[4]['abc'] = 'def';
-          col2.add(data[4]);
+          col1.remove(data[2]);
+          data[2]['abc'] = 'def';
+          col1.add(data[2]);
 
           // then
           excepted.onChange.listen(expectAsync1((ChangeSet event) {
@@ -239,9 +240,9 @@ void main() {
             // a. only a remove event on data[0] was broadcasted
             expect(event.addedItems.isEmpty, isTrue);
             expect(event.removedItems.isEmpty, isTrue);
-            expect(event.changedItems.keys, unorderedEquals([data[4]]));
+            expect(event.changedItems.keys, unorderedEquals([data[2]]));
           }));
-        });*/
+        });
   
         test('changes on objects not in the collection are not broadcasted. (T14)',(){
           // given
@@ -256,7 +257,7 @@ void main() {
         });
         
 
-        test('clearing first source collection results in an empty collection. (T14)',(){
+        test('clearing first source collection results in an empty collection. (T15)',(){
           // given
           DataCollectionView excepted = col1.except(col2);
           
@@ -276,7 +277,7 @@ void main() {
           }));  
         });
         
-        test('clearing second source collection results in a collection equal to first collection. (T15)',(){
+        test('clearing second source collection results in a collection equal to first collection. (T16)',(){
           // given
           DataCollectionView excepted = col1.except(col2);
           

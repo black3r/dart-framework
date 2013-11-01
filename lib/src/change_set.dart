@@ -24,6 +24,7 @@ class Change {
     newValue = change.newValue;
   }
 
+  String toString() => "$oldValue->$newValue";
 }
 
 /**
@@ -73,8 +74,6 @@ class ChangeSet {
    * given [dataObj].
    */
   void markChanged(dynamic dataObj, changeSet) {
-    if(addedItems.contains(dataObj)) return;
-
     if(changedItems.containsKey(dataObj)) {
       changedItems[dataObj].mergeIn(changeSet);
     } else {
@@ -105,14 +104,24 @@ class ChangeSet {
     this.addedItems.isEmpty &&
     this.removedItems.isEmpty &&
     this.changedItems.isEmpty;
-  
-  
+
+
   /**
-   * Strips redundant changedItems from the [ChangeSet]. 
+   * Strips redundant changedItems from the [ChangeSet].
    */
-  void prettify() {   
+  void prettify() {
       addedItems.forEach((key) => changedItems.remove(key));
       removedItems.forEach((key) => changedItems.remove(key));
+      
+      var _equalityChanges = new Set();
+      changedItems.forEach((d,cs){
+        if (cs is Change && cs.oldValue == cs.newValue) {
+         _equalityChanges.add(d);
+        }
+      });
+      _equalityChanges.forEach((droppableChange) {
+        changedItems.remove(droppableChange);
+      });
   }
   
   String toString() {

@@ -5,6 +5,7 @@
 
 import 'data_test.dart' as DataTest;
 import 'data_collection_test.dart' as DataCollectionTest;
+import 'hash_index_test.dart' as HashIndexTest;
 import 'id_generator_test.dart' as IdGeneratorTest;
 import 'change_set_test.dart' as ChangeSetTest;
 
@@ -32,5 +33,5 @@ main() {
   ExceptedCollectionViewTest.main();
   SortedCollectionViewTest.main();
   LimitedCollectionViewTest.main();
-
+  HashIndexTest.main();
 }

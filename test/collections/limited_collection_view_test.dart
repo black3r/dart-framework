@@ -120,7 +120,7 @@ void main() {
       DataCollectionView sorted = col1.sort([['id',1]]).limit(offset: 0, limit: 10);
       
       //when
-      col1.remove(data[4]);
+      col1.remove(data[7]);
       
       //then
       sorted.onChange.listen((c) => expect(true, isFalse));

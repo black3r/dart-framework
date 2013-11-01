@@ -44,7 +44,6 @@ class MappedDataView extends Object with DataViewMixin implements DataView{
       
       // key does not appear in the previously mapped object
       if (!_fields.keys.contains(key)) {
-        // todo nema to byt aj mark changed?
         _changeSet.markAdded(key);
       } 
       
@@ -119,5 +118,5 @@ class MappedCollectionView extends TransformedDataCollection{
   }
   
   void _treatChangedItem(DataView dataObj, ChangeSet changes, int sourceNumber) {
-  }  
+  }
 }

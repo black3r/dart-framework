@@ -9,7 +9,7 @@ typedef dynamic DataTransformFunction(DataView d);
 
 /**
  * Observable collection of data objects that allows for read-only operations.
- * 
+ *
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
@@ -22,21 +22,24 @@ abstract class DataCollectionView implements Iterable {
   Stream<ChangeSet> get onChange;
 
   /**
-   * Returns true iff this collection contains the given [dataObj].
-   * 
-   * @param dataObj Data object to be searched for. 
+   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
+   * synchronously at the moment when the collection or any data object contained
+   * gets changed.
    */
-  bool contains(DataView dataObj);   
-  
+  Stream<Map> get onChangeSync;
+
+  /**
+   * Returns true iff this collection contains the given [dataObj].
+   *
+   * @param dataObj Data object to be searched for.
+   */
+  bool contains(DataView dataObj);
+
   /**
    * Filters the data collection w.r.t. the given filter function [test].
-   * 
+   *
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
-   * 
-   * For the synchronization to work properly, the [test] function must nost:
-   *  * change the source collection, or any of its elements
-   *  * depend on a non-final outside variable
    */
    DataCollectionView where(DataTestFunction filter);
   
@@ -45,10 +48,6 @@ abstract class DataCollectionView implements Iterable {
     * 
     * The collection remains up-to-date w.r.t. to the source collection via
     * background synchronization.
-    * 
-    * For the synchronization to work properly, the [test] function must nost:
-    *  * change the source collection, or any of its elements
-    *  * depend on a non-final outside variable
     */
    DataCollectionView map(DataTransformFunction mapping);
   
@@ -57,10 +56,6 @@ abstract class DataCollectionView implements Iterable {
     * 
     * The collection remains up-to-date w.r.t. to the source collection via
     * background synchronization.
-    * 
-    * For the synchronization to work properly, the [test] function must nost:
-    *  * change the source collection, or any of its elements
-    *  * depend on a non-final outside variable
     */
    DataCollectionView union(DataCollectionView other);
    
@@ -69,10 +64,6 @@ abstract class DataCollectionView implements Iterable {
     * 
     * The collection remains up-to-date w.r.t. to the source collection via
     * background synchronization.
-    * 
-    * For the synchronization to work properly, the [test] function must nost:
-    *  * change the source collection, or any of its elements
-    *  * depend on a non-final outside variable
     */
    DataCollectionView intersection(DataCollectionView other);
    
@@ -82,80 +73,84 @@ abstract class DataCollectionView implements Iterable {
     * The collection remains up-to-date w.r.t. to the source collection via
     * background synchronization.
     * 
-    * For the synchronization to work properly, the [test] function must nost:
-    *  * change the source collection, or any of its elements
-    *  * depend on a non-final outside variable
     */
    DataCollectionView except(DataCollectionView other);
    
+   /**
+    * Sorts the data collection with another [DataCollectionView] to form a new, [SortedDataView].
+    * [Order] is specified as a list of [property, direction] pairs, where direction is ascending
+    * if positive, descending if negative. 
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization.
+    */   
    SortedCollectionView sort(List order);
    
-   
-   SortedCollectionView limit({int offset: 0, int limit: -1});
+   /**
+    * Limits the data collection to at most [limit] elements, skipping first [offset] elements.
+    * Negative [limit] does not restrict the size of the derived collection. 
+    * 
+    * The collection remains up-to-date w.r.t. to the source collection via
+    * background synchronization. 
+    */
+   LimitedCollectionView limit({int offset: 0, int limit: -1});
+
 }
 
 /**
- * A minimal implementation of [DataCollectionView]. 
+ * A minimal implementation of [DataCollectionView].
  */
 abstract class DataCollectionViewMixin implements DataCollectionView {
-  
+
   Iterator<DataView> get iterator => _data.iterator;
-  
+
   /**
    * Holds data view objects for the collection.
    */
   final Set<DataView> _data = new Set<DataView>();
-  
+
   /**
    * Internal set of listeners for change events on individual data objects.
    */
   final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
 
+  
 // ============================ index ======================
   
   /**
    * The index on columns that speeds up retrievals and removals by property value.
    */
   final Map<String, HashIndex> _index = new Map<String, HashIndex>();    
-
+  
   /**
-   * Finds all objects that have [property] equal to [value] in this collection.
+   * Adds indices on chosen properties. Indexed properties can be 
+   * used to retrieve data by their value with the [findBy] method,
+   * or removed by their value with the [removeBy] method.
    */
-  Iterable<DataView> findBy(String property, dynamic value){
-    if (!_index.containsKey(property)) {
-      throw new IndexException('Property $property is not indexed.');
-    }
-    return _index[property][value];
-  }
-  
-  void _indexItem(DataView dataObj) {
-    dataObj.keys.forEach((k){
-       if (_index.containsKey(k)) {
-         _index[k].add(dataObj[k], dataObj);
-       }
-    });
-  }
-  
   void addIndex([Iterable<String> indexedProps]) {
+    
     if (indexedProps != null) {
+      // initialize change listener; lazy
+      if (_index.keys.length == 0) {
+         _initIndexListener();
+      }
       
       for(String prop in indexedProps){
-       
         if(!_index.containsKey(prop)) {
-          
           // create and initialize the index
           _index[prop] = new HashIndex();
-          _recountIndex(prop);
-          
-          // TODO listen on changes
-          
+          _rebuildIndex(prop);
         }
       }
     }
   }
 
-  void _recountIndex(String prop) {
+
+  /**
+   * (Re)indexes all existing data objects into [prop] index.
+   */
+  void _rebuildIndex(String prop) {
     for(DataView d in this){
       if (d.containsKey(prop)) {
         _index[prop].add(d[prop], d);
@@ -163,20 +158,69 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     }    
   }
   
+  /**
+   * Starts listening synchronously on changes to the collection
+   * and rebuilds the indices accordingly.
+   */
+  void _initIndexListener() {           
+    
+    this.onChangeSync.listen((Map changes) {
+      ChangeSet cs = changes['change'];
+      
+      // scan for each indexed property and reindex changed items
+      for (String indexProp in _index.keys) {
+        cs.addedItems.forEach((DataView d){
+          if (d.containsKey(indexProp)) {
+            _index[indexProp].add(d[indexProp], d);
+          }
+        });
+        
+        cs.removedItems.forEach((DataView d){
+          if (d.containsKey(indexProp)) {
+            _index[indexProp].remove(d[indexProp], d);
+          }
+        });
+        
+        cs.changedItems.forEach((DataView d, ChangeSet cs){
+          if (d.containsKey(indexProp) && cs.changedItems.containsKey(indexProp)) {            
+            _index[indexProp].remove(cs.changedItems[indexProp].oldValue, d);
+            _index[indexProp].add(cs.changedItems[indexProp].newValue,d);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Finds all objects that have [property] equal to [value] in this collection.
+   */
+  Iterable<DataView> findBy(String property, dynamic value){
+    if (!_index.containsKey(property)) {
+      throw new NoIndexException('Property $property is not indexed.');
+    }
+    return _index[property][value];
+  }
+
   // ============================ /index ======================
   
   /**
    * Used to propagate change events to the outside world.
    */
   Stream<ChangeSet> get onChange => _onChangeController.stream;
+  Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
-  final StreamController _onChangeController =
-      new StreamController<ChangeSet>.broadcast();
+  final StreamController<ChangeSet> _onChangeController =
+      new StreamController.broadcast();
+  final StreamController<Map> _onChangeSyncController =
+      new StreamController.broadcast(sync: true);
 
   /**
    * Current state of the collection expressed by a [ChangeSet].
    */
-  ChangeSet _changeSet = new ChangeSet();  
+  ChangeSet _changeSet = new ChangeSet();
+  ChangeSet _changeSetSync = new ChangeSet();
+
+  Set<DataView>_removedObjects = new Set<DataView>();
   
   int get length => _data.length;
   bool contains(DataView dataObj) => _data.contains(dataObj);
@@ -184,7 +228,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   void unattachListeners() {
     _onChangeController.close();  
   }
-  
+
   /**
    * Reset the change log of the collection.
    */
@@ -192,20 +236,54 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     _changeSet = new ChangeSet();
   }
 
+  void _clearChangesSync() {
+    _changeSetSync = new ChangeSet();
+  }
+
   /**
    * Stream all new changes marked in [ChangeSet].
    */
-  void _notify() {
-    // exposed asynchronous notifications
+  void _notify({author: null}) {
+    _changeSetSync.prettify();
+    if(!_changeSet.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+      _clearChangesSync();
+    }
+    
     Timer.run(() {
       if(!_changeSet.isEmpty) {
+        
+        for(DataView dataObj in _removedObjects.toList()) {
+          _removeOnDataChangeListener(dataObj);
+        }
+        _removedObjects.clear();
+        
         _changeSet.prettify();
-        _onChangeController.add(_changeSet);
-        _clearChanges();
+        
+        if(!_changeSet.isEmpty) {
+          _onChangeController.add(_changeSet);        
+          _clearChanges();
+        }
       }
     });
   }
   
+  void _addOnDataChangeListener(DataView dataObj) {
+    if (_dataListeners.containsKey(dataObj)) return;
+    
+    _dataListeners[dataObj] = dataObj.onChangeSync.listen((changeEvent) {
+      _markChanged(dataObj, changeEvent['change']);
+      _notify(author: changeEvent['author']);
+    });
+  }
+
+  void _removeOnDataChangeListener(DataView dataObj) {
+    if (_dataListeners.containsKey(dataObj)) {
+      _dataListeners[dataObj].cancel();
+      _dataListeners.remove(dataObj);       
+    }
+  }
+
   DataCollectionView where(DataTestFunction test) {
     return new FilteredCollectionView(this, test);
   }
@@ -234,9 +312,35 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
     return new SortedCollectionView(this, order);
   }
   
-  SortedCollectionView limit({int offset: 0, int limit: -1}) {
+  LimitedCollectionView limit({int offset: 0, int limit: -1}) {
     return new LimitedCollectionView(this, limit: limit, offset: offset);
   }
+
+  void _markAdded(DataView dataObj) {
+    // if this object was removed and then re-added in this event loop, don't
+    // destroy onChange listener to it.
+    _removedObjects.remove(dataObj);
+    
+    // mark the addition of [dataObj]
+    _changeSet.markAdded(dataObj);
+    _changeSetSync.markAdded(dataObj);
+  }
+  
+  void _markRemoved(DataView dataObj) {
+    // collection will stop listening to this object's changes after this 
+    // event loop.
+    _removedObjects.add(dataObj);
+    
+    // mark the removal of [dataObj]
+    _changeSet.markRemoved(dataObj);
+    _changeSetSync.markRemoved(dataObj);
+  }
+  
+  void _markChanged(DataView dataObj, ChangeSet changeSet) {
+    _changeSet.markChanged(dataObj, changeSet);
+    _changeSetSync.markChanged(dataObj, changeSet);
+  }
+
 }
 
 /**
@@ -247,8 +351,7 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   /**
    * Creates an empty collection.
    */
-  DataCollection(){
-    
+  DataCollection(){    
   }
 
   /**
@@ -260,6 +363,7 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
       collection.add(dataObj);
     }
     collection._clearChanges();
+    collection._clearChangesSync();
     return collection;
   }
 
@@ -268,25 +372,35 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
    *
    * Data objects should have unique IDs.
    */
-  void add(DataView dataObj) {    
+  void add(DataView dataObj, {author: null}) {
     _data.add(dataObj);
     _addOnDataChangeListener(dataObj);
-    
-    _changeSet.markAdded(dataObj);
-    _notify();
+
+    _markAdded(dataObj);
+    _notify(author: author);
   }
 
   /**
    * Removes a data object from the collection.
    */
-  void remove(DataView dataObj) {
-    if (!_data.contains(dataObj)) return;
-    
+  void remove(DataView dataObj, {author: null}) {
     _data.remove(dataObj);
-    _removeOnDataChangeListener(dataObj);
-    //TODO: there should be markChanged of some kind here!
-    _changeSet.markRemoved(dataObj);
-    _notify();   
+    _markRemoved(dataObj);
+    _notify(author: author);
+  }
+  
+  /**
+   * Removes all objects that have [property] equal to [value] from this collection.
+   */
+  Iterable<DataView> removeBy(String property, dynamic value){
+    if (!_index.containsKey(property)) {
+      throw new NoIndexException('Property $property is not indexed.');
+    }
+    
+    Iterable<DataView> toBeRemoved = _index[property][value];
+    toBeRemoved.forEach((DataView d) => _markRemoved(d));
+    _data.removeAll(toBeRemoved);
+    _notify();
   }
 
   /**
@@ -295,21 +409,10 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   void clear() {
     for (var dataObj in _data) {
       _removeOnDataChangeListener(dataObj);
-      _changeSet.markRemoved(dataObj);
+      _markRemoved(dataObj);
     }
     _data.clear();
     _notify();
   }
 
-  void _addOnDataChangeListener(DataView dataObj) {
-    _dataListeners[dataObj] = dataObj.onChange.listen((changeEvent) {
-      _changeSet.markChanged(dataObj, changeEvent);
-      _notify();
-    });
-  }
-
-  void _removeOnDataChangeListener(DataView dataObj) {
-    _dataListeners[dataObj].cancel();
-    _dataListeners.remove(dataObj);
-  }
 }

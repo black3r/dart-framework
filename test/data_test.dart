@@ -6,13 +6,14 @@ library DataTest;
 
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
+import 'package:unittest/mock.dart';
 
 
 void main() {
 
   group('(Data)', () {
 
-    test('initialize.', () {
+    test('initialize. (T01)', () {
 
       // when
       var data = new Data();
@@ -23,12 +24,12 @@ void main() {
       expect(data.length, 0);
     });
 
-    test('initialize with data.', () {
+    test('initialize with data. (T02)', () {
       // given
       var data = {
-        'first_key': 'first_value',
-        'second_key': 'second_value',
-        'third_key': 'third_value',
+        'key1': 'value1',
+        'key2': 'value2',
+        'key3': 'value3',
       };
 
       // when
@@ -45,7 +46,7 @@ void main() {
       }
     });
 
-    test('is accessed like a map.', () {
+    test('is accessed like a map. (T03)', () {
       // given
       var dataObj =  new Data();
 
@@ -56,8 +57,94 @@ void main() {
       expect(dataObj['key'], equals('value'));
     });
 
+    test('remove multiple keys. (T04)', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data.fromMap(data);
 
-    test('listen on {key, value} added.', () {
+      // when
+      dataObj.removeAll(['key1', 'key2']);
+
+      // then
+      expect(dataObj.keys, equals(['key3']));
+    });
+
+    test('add multiple items. (T05)', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data();
+
+      // when
+      dataObj.addAll(data);
+
+      // then
+      expect(dataObj.length, equals(data.length));
+      for (var key in dataObj.keys) {
+        expect(dataObj[key], equals(data[key]));
+      }
+    });
+
+    test('listen on multiple keys removed. (T06)', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var keysToRemove = ['key1', 'key2'];
+      var dataObj = new Data.fromMap(data);
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj.removeAll(keysToRemove, author: 'John Doe');
+
+      // then sync onChange propagates information about all changes and
+      // removals
+
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().first.args[0];
+      expect(event['author'], equals('John Doe'));
+      var changeSet = event['change'];
+      expect(changeSet.removedItems, unorderedEquals(keysToRemove));
+
+      // but async onChange drops information about changes in removed items.
+      dataObj.onChange.listen(expectAsync1((changeSet) {
+        expect(changeSet.removedItems, unorderedEquals(keysToRemove));
+        expect(changeSet.addedItems.isEmpty, isTrue);
+        expect(changeSet.changedItems.isEmpty, isTrue);
+      }));
+
+    });
+
+    test('listen on multiple keys added. (T07)', () {
+      // given
+      var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
+      var dataObj = new Data();
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj.addAll(data, author: 'John Doe');
+
+      // then sync onChange propagates information about all changes and
+      // adds
+
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().first.args.first;
+      expect(event['author'], equals('John Doe'));
+
+      var changeSet = event['change'];
+      expect(changeSet.removedItems.isEmpty, isTrue);
+      expect(changeSet.addedItems, unorderedEquals(data.keys));
+      expect(changeSet.changedItems.isEmpty, isTrue);
+
+      // but async onChange drops information about changes in added items.
+      dataObj.onChange.listen(expectAsync1((changeSet) {
+        expect(changeSet.addedItems, unorderedEquals(data.keys));
+        expect(changeSet.removedItems.isEmpty, isTrue);
+        expect(changeSet.changedItems.isEmpty, isTrue);
+      }));
+
+    });
+
+    test('listen on {key, value} added. (T08)', () {
       // given
       var dataObj = new Data();
 
@@ -73,7 +160,42 @@ void main() {
 
     });
 
-    test('listen on {key, value} removed.', () {
+    test('listen synchronously on {key, value} added. (T09)', () {
+      // given
+      var dataObj = new Data();
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj.add('key', 'value', author: 'John Doe');
+
+      // then
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().first.args[0];
+      expect(event['author'], equals('John Doe'));
+      expect(event['change'].addedItems, unorderedEquals(['key']));
+      expect(event['change'].changedItems.isEmpty, isTrue);
+    });
+
+    test('listen synchronously on multiple {key, value} added. (T10)', () {
+      // given
+      var dataObj = new Data();
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj['key1'] = 'value1';
+      dataObj['key2'] = 'value2';
+
+      // then
+      mock.getLogs().verify(happenedExactly(2));
+      var event1 = mock.getLogs().logs[0].args.first;
+      var event2 = mock.getLogs().logs[1].args.first;
+      expect(event1['change'].addedItems, equals(['key1']));
+      expect(event2['change'].addedItems, equals(['key2']));
+    });
+
+    test('listen on {key, value} removed. (T11)', () {
       // given
       var data = {'key': 'value'};
       var dataObj = new Data.fromMap(data);
@@ -90,7 +212,26 @@ void main() {
 
     });
 
-    test('listen on {key, value} changed.', () {
+    test('listen synchronously on {key, value} removed. (T12)', () {
+      // given
+      var dataObj = new Data.fromMap({'key': 'value'});
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
+
+      // when
+      dataObj.remove('key', author: 'John Doe');
+
+      // then
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().logs.first.args.first;
+      expect(event['author'], equals('John Doe'));
+      expect(event['change'].addedItems.isEmpty, isTrue);
+      expect(event['change'].removedItems, unorderedEquals(['key']));
+      expect(event['change'].changedItems.length, equals(0));
+
+    });
+
+    test('listen on {key, value} changed. (T13)', () {
       // given
       var data = {'key': 'oldValue'};
       var dataObj = new Data.fromMap(data);
@@ -109,7 +250,7 @@ void main() {
       }));
     });
 
-    test('propagate multiple changes in single [ChangeSet].', () {
+    test('propagate multiple changes in single [ChangeSet]. (T14)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
@@ -126,55 +267,55 @@ void main() {
         expect(event.addedItems, unorderedEquals(['key3']));
       }));
     });
-    
 
-    test('when property is added then changed, only addition is in the [ChangeSet].', () {
+
+    test('when property is added then changed, only addition is in the [ChangeSet]. (T15)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
       dataObj['key3'] = 'John Doe';
       dataObj['key3'] = 'John Doe II.';
-      
+
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.addedItems, unorderedEquals(['key3']));
         expect(event.removedItems, unorderedEquals([]));
-      }));      
+      }));
     });
-    
 
-    test('when existing property is removed then re-added, this is a change.', () {
+
+    test('when existing property is removed then re-added, this is a change. (T16)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
       dataObj.remove('key1');
       dataObj['key1'] = 'John Doe II.';
-      
+
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals(['key1']));
-        
+
         Change change = event.changedItems['key1'];
         expect(change.oldValue, equals('value1'));
         expect(change.newValue, equals('John Doe II.'));
-        
+
         expect(event.addedItems, unorderedEquals([]));
         expect(event.removedItems, unorderedEquals([]));
-      }));      
+      }));
     });
-    
-    test('when property is changed then removed, only deletion is in the [ChangeSet].', () {
+
+    test('when property is changed then removed, only deletion is in the [ChangeSet]. (T17)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
-      dataObj['key1'] = 'John Doe';      
-      
+
+      dataObj['key1'] = 'John Doe';
+
       // when
       dataObj.remove('key1');
 
@@ -182,29 +323,29 @@ void main() {
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.removedItems, unorderedEquals(['key1']));
-      }));      
+      }));
     });
 
-    test('when property is added then removed, no changes are broadcasted.', () {
+    test('when property is added then removed, no changes are broadcasted. (T18)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
-      dataObj['key3'] = 'John Doe';      
+      dataObj['key3'] = 'John Doe';
       dataObj.remove('key3');
 
-      // then  
+      // then
       dataObj.onChange.listen(protectAsync1((e) => expect(true, isFalse)));
      });
 
-    test('when property is added, changed then removed, no changes are broadcasted.', () {
+    test('when property is added, changed then removed, no changes are broadcasted. (T19)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
-      
+
       // when
-      dataObj['key3'] = 'John Doe';      
+      dataObj['key3'] = 'John Doe';
       dataObj['key3'] = 'John Doe II';
       dataObj.remove('key3');
 
