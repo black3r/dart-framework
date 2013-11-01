@@ -53,7 +53,7 @@ abstract class DataView {
    * Returns whether this data object contains the given [key].
    */
   bool containsKey(String key);
-  
+
   Map toMap();
 }
 
@@ -105,16 +105,16 @@ abstract class DataViewMixin implements DataView {
    * Streams all new changes marked in [changeSet].
    */
   void _notify({author: null}) {
-    
+
     if (!_changeSetSync.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
       _clearChangesSync();
     }
-    
+
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
-        
+
         if(!_changeSet.isEmpty) {
           _onChangeController.add(_changeSet);
           _clearChanges();
@@ -167,7 +167,6 @@ class Data extends Object with DataViewMixin implements DataView {
     var dataObj = new Data();
     data.forEach((k, v) => dataObj[k] = v);
     dataObj._clearChanges();
-    dataObj._clearChangesSync();
     return dataObj;
   }
 
