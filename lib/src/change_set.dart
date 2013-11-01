@@ -113,18 +113,18 @@ class ChangeSet {
       addedItems.forEach((key) => changedItems.remove(key));
       removedItems.forEach((key) => changedItems.remove(key));
       
-      var _equalityChanges = new Set();
+      var equalityChanges = new Set();
       changedItems.forEach((d,cs){
         if (cs is Change && cs.oldValue == cs.newValue) {
-         _equalityChanges.add(d);
+         equalityChanges.add(d);
         }
       });
-      _equalityChanges.forEach((droppableChange) {
+      equalityChanges.forEach((droppableChange) {
         changedItems.remove(droppableChange);
       });
   }
   
   String toString() {
-    return "A:" + addedItems.toString() + " C:" + changedItems.toString() + " R:" + removedItems.toString(); 
+    return "Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString(); 
   }
 }

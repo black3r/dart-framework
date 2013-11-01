@@ -17,7 +17,6 @@ import 'collections/excepted_collection_view_test.dart' as ExceptedCollectionVie
 import 'collections/sorted_collection_view_test.dart' as SortedCollectionViewTest;
 import 'collections/limited_collection_view_test.dart' as LimitedCollectionViewTest;
 
-// import 'hash_index_test.dart' as HashIndexTest;
 main() {
 
   DataTest.main();
