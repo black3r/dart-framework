@@ -53,11 +53,18 @@ abstract class DataView {
    * Returns whether this data object contains the given [key].
    */
   bool containsKey(String key);
+
+  /**
+   * Converts to Map.
+   */
+  Map toJson();
 }
 
 abstract class DataViewMixin implements DataView {
 
   final Map _fields = new Map();
+
+  Map toJson() => new Map.from(_fields);
 
   dynamic operator[](key) => _fields[key];
 
