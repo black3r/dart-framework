@@ -117,7 +117,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
          _initIndexListener();
       }
 
-      for(String prop in indexedProps){
+      for(String prop in indexedProps) {
         if(!_index.containsKey(prop)) {
           // create and initialize the index
           _index[prop] = new HashIndex();
@@ -156,13 +156,13 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
           }
         });
 
-        cs.removedItems.forEach((DataView d){
+        cs.removedItems.forEach((DataView d) {
           if (d.containsKey(indexProp)) {
             _index[indexProp].remove(d[indexProp], d);
           }
         });
 
-        cs.changedItems.forEach((DataView d, ChangeSet cs){
+        cs.changedItems.forEach((DataView d, ChangeSet cs) {
           if (d.containsKey(indexProp) && cs.changedItems.containsKey(indexProp)) {
             _index[indexProp].remove(cs.changedItems[indexProp].oldValue, d);
             _index[indexProp].add(cs.changedItems[indexProp].newValue,d);
@@ -175,7 +175,7 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
   /**
    * Finds all objects that have [property] equal to [value] in this collection.
    */
-  Iterable<DataView> findBy(String property, dynamic value){
+  Iterable<DataView> findBy(String property, dynamic value) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }
@@ -365,7 +365,7 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   /**
    * Removes all objects that have [property] equal to [value] from this collection.
    */
-  Iterable<DataView> removeBy(String property, dynamic value){
+  Iterable<DataView> removeBy(String property, dynamic value) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }

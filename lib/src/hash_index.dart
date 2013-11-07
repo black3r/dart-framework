@@ -5,10 +5,10 @@
 part of clean_data;
 
 /**
- * Represents an exception that is raised when an unindexed object is 
+ * Represents an exception that is raised when an unindexed object is
  * attempted to be treated as an object.
  */
-class NoIndexException implements Exception{
+class NoIndexException implements Exception {
   String cause;
   NoIndexException(this.cause);
 }
@@ -18,35 +18,35 @@ class NoIndexException implements Exception{
  */
 class HashIndex<E> {
   HashIndex();
-  
+
   /**
    * Holds the mapping of values to data objects.
    */
   Map<dynamic, Set<E>> _index = new Map<dynamic, Set<E>>();
-  
+
   /**
    * Returns a set of objects that have this value. If no such
-   * object exists, empty Set is returned.  
+   * object exists, empty Set is returned.
    */
-  Set<E> operator[](dynamic value) => _index.containsKey(value) 
-                                      ? _index[value] 
-                                      : new Set<E>();
-                                      
+  Set<E> operator[](dynamic value) => _index.containsKey(value) ?
+                                      _index[value] :
+                                      new Set<E>();
+
   /**
    * Adds a [value] to [object] mapping to the index.
    */
-  void add(dynamic value, E object){
+  void add(dynamic value, E object) {
     if (!_index.containsKey(value)) {
       _index[value] = new Set<E>();
     }
-    
+
     _index[value].add(object);
   }
 
   /**
    * Removes a [value] to [object] mapping from the index.
    */
-  void remove(dynamic value, E object){
+  void remove(dynamic value, E object) {
     if (_index.containsKey(value)) {
       _index[value].remove(object);
     }
