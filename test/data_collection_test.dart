@@ -1,7 +1,8 @@
 // Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library DataCollectionTest;
+
+library data_collection_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
@@ -15,12 +16,12 @@ void main() {
     var data, data1, dataMarienka;
     setUp(() {
       data = [];
-      
+
       for (var i = 0; i <= 10; i++) {
         data.add(new Data.fromMap({'id': i}));
       }
       dataMarienka = new Data.fromMap({'id': 100, 'name': 'Marienka'});
-      
+
     });
 
     test('initialize. (T01)', () {
@@ -227,7 +228,7 @@ void main() {
             unorderedEquals([data[1], data[2]]));
       }));
     });
-    
+
     test('propagate multiple data object changes in single [ChangeSet]. (T14)', () {
       // given
       var collection = new DataCollection.from(data);
@@ -241,18 +242,18 @@ void main() {
         expect(event.changedItems.keys,
             unorderedEquals([data[0], data[1]]));
       }));
-      
+
     });
 
     test('add, change, remove in one event loop propagate a change. (T15)', () {
       // given
       var collection = new DataCollection.from(data);
-      
+
       // when
       collection.remove(data[0]);
       data[0]['id'] = 5;
       collection.add(data[0]);
-      
+
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
@@ -260,18 +261,18 @@ void main() {
         expect(event.changedItems.keys, unorderedEquals([data[0]]));
       }));
     });
-    
+
     test('after removing, collection does not listen to changes on object anymore. (T16)', () {
       // given
       var collection = new DataCollection.from(data);
-      
+
       // when
       collection.remove(data[0]);
       Timer.run(() {
         data[0]['key'] = 'value';
-        collection.onChange.listen((c) => expect(true, isFalse)); 
+        collection.onChange.listen((c) => expect(true, isFalse));
       });
-      
+
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.removedItems, equals([data[0]]));
@@ -279,7 +280,7 @@ void main() {
     });
 
     test('Find by index. (T17)', () {
-      
+
       // given
       var collection = new DataCollection.from(data);
 
@@ -290,163 +291,163 @@ void main() {
       expect(collection.findBy('id', 7), equals([data[7]]));
       expect(collection.findBy('id', 11).isEmpty, isTrue);
     });
-  
+
     test('Find by non-existing index. (T18)', () {
-      
+
       // given
       var collection = new DataCollection.from(data);
-      
-      // when      
+
+      // when
 
       // then
       expect(() => collection.findBy('name', 'John Doe'), throws);
     });
-  
+
     test('Initialize and find by index. (T19)', () {
-      
+
       // given
       var collection = new DataCollection.from(data);
       data[0]['name'] = 'Jozef';
       data[1]['name'] = 'Jozef';
       data[2]['name'] = 'Anicka';
-      
-      // when      
+
+      // when
       collection.addIndex(['id','name']);
-      
+
       // then
       expect(collection.findBy('name', 'Jozef'), unorderedEquals([data[0], data[1]]));
     });
-    
+
     test('Index updated synchronously after addition. (T20)', () {
-      
+
       // given
       var collection = new DataCollection.from(data);
       collection.addIndex(['id','name']);
-      
-      // when      
+
+      // when
       collection.add(dataMarienka);
-      
+
       // then
       var result = collection.findBy('name', 'Marienka');
       expect(result, equals([dataMarienka]));
     });
-    
+
     test('Index updated synchronously after deletion. (T21)', () {
-      
+
       // given
-      var collection = new DataCollection.from(data); 
+      var collection = new DataCollection.from(data);
       collection.addIndex(['id']);
-      
-      // when      
+
+      // when
       collection.remove(data[0]);
-      
+
       // then
       expect(collection.findBy('id', 0).isEmpty, isTrue);
       expect(collection.findBy('id', 1), equals([data[1]]));
     });
 
     test('Index updated synchronously after change. (T22)', () {
-      
+
       // given
-      var collection = new DataCollection.from(data);      
+      var collection = new DataCollection.from(data);
       collection.addIndex(['id']);
-      
-      // when      
+
+      // when
       data[0]['id'] = 47;
-      
+
       // then
       expect(collection.findBy('id', 47), equals([data[0]]));
       expect(collection.findBy('id', 0).isEmpty, isTrue);
     });
 
     test('Remove by index works. (T23)', () {
-      
+
       // given
-      var collection = new DataCollection.from(data);      
+      var collection = new DataCollection.from(data);
       collection.addIndex(['id']);
       data[1]['id'] = 0;
-      
-      // when      
-      collection.removeBy('id', 0);
-      
-      // then
-      expect(collection.findBy('id', 0).isEmpty, isTrue);      
-    });
 
-    test('Remove by index works (version with no items to remove). (T24)', () {
-      
-      // given
-      var collection = new DataCollection.from(data);      
-      collection.addIndex(['id']);
-      
-      // when      
-      collection.removeBy('id', 47);
-      
-      // then
-      expect(true, isTrue); // no exception was thrown      
-    });
-    
-    test('Remove by index raises an exception on unindexed property. (T25)', () {
-      
-      // given
-      var collection = new DataCollection.from(data);      
-      collection.addIndex(['id']);
-      
-      // when            
-      
-      // then
-      expect(() => collection.removeBy('name', 'John Doe'), throws);           
-    });
-    
-   test('Index updated synchronously after deletion. (T26)', () {
-      
-      // given
-      var collection = new DataCollection.from(data);      
-      collection.addIndex(['id']);
-      
-      // when      
-      collection.remove(data[0]);
-      
+      // when
+      collection.removeBy('id', 0);
+
       // then
       expect(collection.findBy('id', 0).isEmpty, isTrue);
     });
-   
+
+    test('Remove by index works (version with no items to remove). (T24)', () {
+
+      // given
+      var collection = new DataCollection.from(data);
+      collection.addIndex(['id']);
+
+      // when
+      collection.removeBy('id', 47);
+
+      // then
+      expect(true, isTrue); // no exception was thrown
+    });
+
+    test('Remove by index raises an exception on unindexed property. (T25)', () {
+
+      // given
+      var collection = new DataCollection.from(data);
+      collection.addIndex(['id']);
+
+      // when
+
+      // then
+      expect(() => collection.removeBy('name', 'John Doe'), throws);
+    });
+
+   test('Index updated synchronously after deletion. (T26)', () {
+
+      // given
+      var collection = new DataCollection.from(data);
+      collection.addIndex(['id']);
+
+      // when
+      collection.remove(data[0]);
+
+      // then
+      expect(collection.findBy('id', 0).isEmpty, isTrue);
+    });
+
    test('Index updated synchronously after addition. (T27)', () {
-     
+
      // given
      data1 = new Data.fromMap({"id":42});
-     var collection = new DataCollection.from(data);      
+     var collection = new DataCollection.from(data);
      collection.addIndex(['id']);
-     
-     // when      
+
+     // when
      collection.add(data1);
      // data[1]['id'] = 45; --> this won't work. It takes one event loop to propagate the change.
-     
+
      // then
      expect(collection.findBy('id', 42), equals([data1]));
    });
-   
+
    test('change on data object propagates correctly to the collection. (T28)', () {
-     
+
      // given
      data1 = new Data.fromMap({"id":42});
-     var collection = new DataCollection.from(data);      
-          
-     // when      
+     var collection = new DataCollection.from(data);
+
+     // when
      data[0].remove('id');
-     data[0]['id'] = 47;     
+     data[0]['id'] = 47;
      // then
      collection.onChange.listen(expectAsync1((ChangeSet event) {
        expect(event.addedItems.isEmpty, isTrue);
        expect(event.removedItems.isEmpty, isTrue);
        expect(event.changedItems.keys, unorderedEquals([data[0]]));
-       
+
        // verify the data object changeset is valid
        ChangeSet dataObjChanges = event.changedItems[data[0]];
        expect(dataObjChanges.addedItems.isEmpty, isTrue);
        expect(dataObjChanges.removedItems.isEmpty, isTrue);
        expect(dataObjChanges.changedItems.length, equals(1));
-       
+
        Change change = dataObjChanges.changedItems['id'];
        expect(change.oldValue, equals(0));
        expect(change.newValue, equals(47));
