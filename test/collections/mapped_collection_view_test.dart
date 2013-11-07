@@ -12,14 +12,14 @@ void main() {
   // Transformation that capitalizes the surname property
   DataTransformFunction mapToUpper = ((DataView d){
       if (!d.containsKey('surname')) return d;
-      Data d2 = new Data.fromMap(d.toMap());
+      Data d2 = new Data.fromMap(d);
       d2['surname'] = d['surname'].toString().toUpperCase();
       return d2;
   });
 
   // Transformation that creates a new property 'full-name' by joining name and surname
   DataTransformFunction mapAppend = ((DataView d) {
-    Data mappedObj = new Data.fromMap(d.toMap());
+    Data mappedObj = new Data.fromMap(d);
     var name = d.containsKey('name') ? d['name'] : '';
     var surname = d.containsKey('surname') ? d['surname'] : '';
 

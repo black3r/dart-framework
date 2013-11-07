@@ -54,13 +54,18 @@ abstract class DataView {
    */
   bool containsKey(String key);
 
-  Map toMap();
+  /**
+   * Converts to Map.
+   */
+  Map toJson();
 }
 
 
 abstract class DataViewMixin implements DataView {
 
   final Map _fields = new Map();
+
+  Map toJson() => new Map.from(_fields);
 
   dynamic operator[](key) => _fields[key];
 
@@ -127,8 +132,6 @@ abstract class DataViewMixin implements DataView {
     _changeSet = new ChangeSet();
   }
 
-  Map toMap() => _fields;
-
   _clearChangesSync() {
     _changeSetSync = new ChangeSet();
   }
@@ -163,9 +166,11 @@ class Data extends Object with DataViewMixin implements DataView {
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory Data.fromMap(Map data) {
+  factory Data.fromMap(dynamic data) {
     var dataObj = new Data();
-    data.forEach((k, v) => dataObj[k] = v);
+    for (var key in data.keys) {
+      dataObj[key] = data[key];
+    }
     dataObj._clearChanges();
     return dataObj;
   }
@@ -220,5 +225,4 @@ class Data extends Object with DataViewMixin implements DataView {
     _notify(author: author);
   }
 
-  String toString() => this.toMap().toString();
 }
