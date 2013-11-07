@@ -20,7 +20,4 @@ part 'src/collections/transformed_collection_view.dart';
 part 'src/collections/filtered_collection_view.dart';
 part 'src/collections/mapped_collection_view.dart';
 
-part 'src/collections/sorted_collection_view.dart';
-part 'src/collections/limited_collection_view.dart';
-
 part 'src/hash_index.dart';

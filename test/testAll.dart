@@ -14,8 +14,6 @@ import 'collections/mapped_collection_view_test.dart' as MappedCollectionViewTes
 import 'collections/unioned_collection_view_test.dart' as UnionedCollectionViewTest;
 import 'collections/intersected_collection_view_test.dart' as IntersectedCollectionViewTest;
 import 'collections/excepted_collection_view_test.dart' as ExceptedCollectionViewTest;
-import 'collections/sorted_collection_view_test.dart' as SortedCollectionViewTest;
-import 'collections/limited_collection_view_test.dart' as LimitedCollectionViewTest;
 
 main() {
 
@@ -23,14 +21,12 @@ main() {
   DataCollectionTest.main();
   IdGeneratorTest.main();
   ChangeSetTest.main();
-  
+
   // collection views test
   FilteredViewCollectionTest.main();
   MappedCollectionViewTest.main();
   UnionedCollectionViewTest.main();
   IntersectedCollectionViewTest.main();
   ExceptedCollectionViewTest.main();
-  SortedCollectionViewTest.main();
-  LimitedCollectionViewTest.main();
   HashIndexTest.main();
 }

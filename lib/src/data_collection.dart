@@ -76,25 +76,6 @@ abstract class DataCollectionView implements Iterable {
     */
    DataCollectionView except(DataCollectionView other);
 
-   /**
-    * Sorts the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
-    * [Order] is specified as a list of [property, direction] pairs, where direction is ascending
-    * if positive, descending if negative.
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   SortedCollectionView sort(List order);
-
-   /**
-    * Limits the data collection to at most [limit] elements, skipping first [offset] elements.
-    * Negative [limit] does not restrict the size of the derived collection.
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   LimitedCollectionView limit({int offset: 0, int limit: -1});
-
 }
 
 /**
@@ -306,14 +287,6 @@ abstract class DataCollectionViewMixin implements DataCollectionView {
 
   DataCollectionView except(DataCollectionView other) {
     return new ExceptedCollectionView(this, other);
-  }
-
-  SortedCollectionView sort(List order) {
-    return new SortedCollectionView(this, order);
-  }
-
-  LimitedCollectionView limit({int offset: 0, int limit: -1}) {
-    return new LimitedCollectionView(this, limit: limit, offset: offset);
   }
 
   void _markAdded(DataView dataObj) {
