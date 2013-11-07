@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library id_generator_test;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
@@ -11,15 +13,15 @@ void main() {
 }
 
 test_generator(){
-  group('IdGenerator',(){
+  group('(IdGenerator)',(){
     var prefix1 = 'vacuumapps';
     var prefix2 = 'cleandart';
-        
+
     test('Generator correctly returns id when prefix is empty string.',(){
       var generator = new IdGenerator('');
       expect(generator.getId(),equals('1'));
       expect(generator.getId(),equals('2'));
-      expect(generator.getId(),equals('3'));     
+      expect(generator.getId(),equals('3'));
     });
     test('Generator correctly returns bigger ids.',(){
       var generator = new IdGenerator('');

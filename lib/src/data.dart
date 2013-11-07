@@ -60,6 +60,7 @@ abstract class DataView {
   Map toJson();
 }
 
+
 abstract class DataViewMixin implements DataView {
 
   final Map _fields = new Map();
@@ -109,13 +110,20 @@ abstract class DataViewMixin implements DataView {
    * Streams all new changes marked in [changeSet].
    */
   void _notify({author: null}) {
-    _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-    _clearChangesSync();
+
+    if (!_changeSetSync.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+      _clearChangesSync();
+    }
+
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _changeSet.prettify();
-        _onChangeController.add(_changeSet);
-        _clearChanges();
+
+        if(!_changeSet.isEmpty) {
+          _onChangeController.add(_changeSet);
+          _clearChanges();
+        }
       }
     });
   }
@@ -158,11 +166,12 @@ class Data extends Object with DataViewMixin implements DataView {
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory Data.fromMap(Map data) {
+  factory Data.fromMap(dynamic data) {
     var dataObj = new Data();
-    data.forEach((k, v) => dataObj[k] = v);
+    for (var key in data.keys) {
+      dataObj[key] = data[key];
+    }
     dataObj._clearChanges();
-    dataObj._clearChangesSync();
     return dataObj;
   }
 
@@ -194,6 +203,7 @@ class Data extends Object with DataViewMixin implements DataView {
    */
   void operator[]=(String key, value) {
     add(key, value);
+    _notify();
   }
 
   /**

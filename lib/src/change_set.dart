@@ -24,6 +24,7 @@ class Change {
     newValue = change.newValue;
   }
 
+  String toString() => "$oldValue->$newValue";
 }
 
 /**
@@ -111,5 +112,19 @@ class ChangeSet {
   void prettify() {
       addedItems.forEach((key) => changedItems.remove(key));
       removedItems.forEach((key) => changedItems.remove(key));
+      
+      var equalityChanges = new Set();
+      changedItems.forEach((d,cs){
+        if (cs is Change && cs.oldValue == cs.newValue) {
+         equalityChanges.add(d);
+        }
+      });
+      equalityChanges.forEach((droppableChange) {
+        changedItems.remove(droppableChange);
+      });
+  }
+  
+  String toString() {
+    return "Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString(); 
   }
 }
