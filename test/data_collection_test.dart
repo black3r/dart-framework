@@ -8,21 +8,13 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 import 'dart:async';
+import 'months.dart';
 
 void main() {
 
   group('(Collection)', () {
 
-    var data, data1, dataMarienka;
-    setUp(() {
-      data = [];
-
-      for (var i = 0; i <= 10; i++) {
-        data.add(new Data.fromMap({'id': i}));
-      }
-      dataMarienka = new Data.fromMap({'id': 100, 'name': 'Marienka'});
-
-    });
+    setUp(() => setUpMonths());
 
     test('initialize. (T01)', () {
       // when
@@ -34,12 +26,15 @@ void main() {
     });
 
     test('initialize with data. (T02)', () {
+      // given
+      var winter = [december, january, february];
+
       // when
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from(winter);
 
       // then
-      expect(collection.length, equals(data.length));
-      expect(collection, unorderedEquals(data));
+      expect(winterCollection.length, equals(3));
+      expect(winterCollection, unorderedEquals(winter));
     });
 
     test('multiple listeners listen to onChange. (T03)', () {
@@ -55,40 +50,42 @@ void main() {
 
     test('add data object. (T04)', () {
       // given
-      var collection = new DataCollection();
+      var winterCollection = new DataCollection();
+      var winter = [december, january, february];
 
       // when
-      for (var dataObj in data) {
-        collection.add(dataObj);
+      for (var month in winter) {
+        winterCollection.add(month);
       }
 
       // then
-      expect(collection.contains(data[0]), isTrue);
-      expect(collection, unorderedEquals(data));
+      expect(winterCollection.contains(january), isTrue);
+      expect(winterCollection, unorderedEquals(winter));
+      expect(winterCollection.length, equals(3));
     });
 
     test('remove dataObject. (T05)', () {
       // given
-      var dataObjs = [new Data(), new Data()];
-      var collection = new DataCollection.from(dataObjs);
+      var year = new DataCollection.from([december, january, february]);
 
       // when
-      collection.remove(dataObjs[0]);
+      year.remove(january);
 
       // then
-      expect(collection.contains(dataObjs[0]), isFalse);
-      expect(collection, unorderedEquals([dataObjs[1]]));
+      expect(year.contains(january), isFalse);
+      expect(year, unorderedEquals([december, february]));
     });
 
     test('clear. (T06)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
-      collection.clear();
+      winterCollection.clear();
 
       // then
-      expect(collection.isEmpty, isTrue);
+      expect(winterCollection.isEmpty, isTrue);
     });
 
     test('listen on data object added. (T07)', () {
@@ -96,54 +93,55 @@ void main() {
       var collection = new DataCollection();
       var mock = new Mock();
       collection.onChangeSync.listen((event) => mock.handler(event));
-
       // when
-      collection.add(data[0], author: 'John Doe');
+      collection.add(january, author: 'John Doe');
 
       mock.getLogs().verify(happenedOnce);
       var event = mock.getLogs().logs.first.args.first;
       expect(event['author'], equals('John Doe'));
-      expect(event['change'].addedItems, unorderedEquals([data[0]]));
+      expect(event['change'].addedItems, unorderedEquals([january]));
 
       // then
       collection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
-        expect(event.addedItems, unorderedEquals([data[0]]));
+        expect(event.addedItems, unorderedEquals([january]));
       }));
     });
 
     test('listen on data object removed. (T08)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
       var mock = new Mock();
-      collection.onChangeSync.listen((event) => mock.handler(event));
+      winterCollection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      collection.remove(data[0], author: "John Doe");
+      winterCollection.remove(january, author: "John Doe");
 
       // then
       mock.log.verify(happenedOnce);
       var event = mock.log.first.args.first;
       expect(event['author'], equals('John Doe'));
-      expect(event['change'].removedItems, unorderedEquals([data[0]]));
+      expect(event['change'].removedItems, unorderedEquals([january]));
 
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.changedItems.isEmpty, isTrue);
-        expect(event.removedItems, unorderedEquals([data[0]]));
+        expect(event.removedItems, unorderedEquals([january]));
       }));
     });
 
     test('listen synchronously on multiple data objects removed. (T09)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
       var mock = new Mock();
-      collection.onChangeSync.listen((event) => mock.handler(event));
+      winterCollection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      collection.remove(data[0], author: 'John Doe');
-      collection.remove(data[1], author: 'Peter Pan');
+      winterCollection.remove(january, author: 'John Doe');
+      winterCollection.remove(february, author: 'Peter Pan');
 
       // then
       mock.log.verify(happenedExactly(2));
@@ -151,306 +149,316 @@ void main() {
       var event2 = mock.log.logs[1].args.first;
 
       expect(event1['author'], equals('John Doe'));
-      expect(event1['change'].removedItems, equals([data[0]]));
+      expect(event1['change'].removedItems, equals([january]));
 
       expect(event2['author'], equals('Peter Pan'));
-      expect(event2['change'].removedItems, equals([data[1]]));
+      expect(event2['change'].removedItems, equals([february]));
     });
 
     test('listen on data object changes. (T10)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
       var mock = new Mock();
-      collection.onChangeSync.listen((event) => mock.handler(event));
+      winterCollection.onChangeSync.listen((event) => mock.handler(event));
 
       // when
-      data[0].add('size', 'XXL', author: 'John Doe');
+      january.add('temperature', -10, author: 'John Doe');
 
       // then
       mock.log.verify(happenedOnce);
       var event = mock.log.first.args.first;
       expect(event['author'], equals('John Doe'));
-      expect(event['change'].changedItems[data[0]].addedItems, equals(['size']));
+      expect(event['change'].changedItems[january].addedItems, equals(['temperature']));
 
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.changedItems.length, equals(1));
-        expect(event.changedItems[data[0]].addedItems,
-            unorderedEquals(['size']));
+        expect(event.changedItems[january].addedItems,
+            unorderedEquals(['temperature']));
       }));
     });
 
     test('do not listen on removed data object changes. (T11)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                february]);
 
       // when
-      collection.remove(data[0]);
-      data[0]['name'] = 'John Doe';
+      winterCollection.remove(january);
+      january['temperature'] = -10;
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.isEmpty, isTrue);
       }));
     });
 
     test('do not listen on cleared data object changes. (T12)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
-      collection.clear();
-      data[0]['name'] = 'John Doe';
+      winterCollection.clear();
+      january['temperature'] = -10;
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.isEmpty, isTrue);
       }));
     });
 
     test('propagate multiple changes in single [ChangeSet]. (T13)', () {
       // given
-      var collection = new DataCollection.from(data);
-      var newDataObj = new Data();
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      var fantasyMonth = new Data.fromMap(
+          {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
-      collection.remove(data[0]);
-      collection.add(newDataObj);
-      data[1]['name'] = 'James Bond';
-      data[2]['name'] = 'John Doe';
+      winterCollection.remove(january);
+      winterCollection.add(fantasyMonth);
+      february['temperature'] = -15;
+      december['temperature'] = 5;
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems, unorderedEquals([newDataObj]));
-        expect(event.removedItems, unorderedEquals([data[0]]));
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.addedItems, unorderedEquals([fantasyMonth]));
+        expect(event.removedItems, unorderedEquals([january]));
         expect(event.changedItems.keys,
-            unorderedEquals([data[1], data[2]]));
+            unorderedEquals([february, december]));
       }));
     });
 
     test('propagate multiple data object changes in single [ChangeSet]. (T14)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
-      data[0]['name'] = 'John Doe';
-      data[1]['name'] = 'James Bond';
+      january['temperature'] = -10;
+      february['temperature'] = -15;
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys,
-            unorderedEquals([data[0], data[1]]));
+            unorderedEquals([january, february]));
       }));
 
     });
 
     test('add, change, remove in one event loop propagate a change. (T15)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
-      collection.remove(data[0]);
-      data[0]['id'] = 5;
-      collection.add(data[0]);
+      winterCollection.remove(january);
+      january['temperature'] = -10;
+      winterCollection.add(january);
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.keys, unorderedEquals([data[0]]));
+        expect(event.changedItems.keys, unorderedEquals([january]));
       }));
     });
 
     test('after removing, collection does not listen to changes on object anymore. (T16)', () {
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
-      collection.remove(data[0]);
+      winterCollection.remove(january);
       Timer.run(() {
-        data[0]['key'] = 'value';
-        collection.onChange.listen((c) => expect(true, isFalse));
+        january['temperature'] = -10;
+        winterCollection.onChange.listen((c) => expect(true, isFalse));
       });
 
       // then
-      collection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.removedItems, equals([data[0]]));
+      winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.removedItems, equals([january]));
       }));
     });
 
     test('Find by index. (T17)', () {
-
       // given
-      var collection = new DataCollection.from(data);
+      var year = new DataCollection.from(months);
 
       // when
-      collection.addIndex(['id']);
+      year.addIndex(['number']);
 
       // then
-      expect(collection.findBy('id', 7), equals([data[7]]));
-      expect(collection.findBy('id', 11).isEmpty, isTrue);
+      expect(year.findBy('number', 7), equals([july]));
+      expect(year.findBy('number', 13).isEmpty, isTrue);
     });
 
     test('Find by non-existing index. (T18)', () {
-
       // given
-      var collection = new DataCollection.from(data);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
 
       // when
 
       // then
-      expect(() => collection.findBy('name', 'John Doe'), throws);
+      expect(() => winterCollection.findBy('number', 1),
+          throwsA(new isInstanceOf<NoIndexException>("NoIndexException")));
     });
 
     test('Initialize and find by index. (T19)', () {
-
       // given
-      var collection = new DataCollection.from(data);
-      data[0]['name'] = 'Jozef';
-      data[1]['name'] = 'Jozef';
-      data[2]['name'] = 'Anicka';
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      january['temperature'] = -10;
+      february['temperature'] = -15;
 
       // when
-      collection.addIndex(['id','name']);
+      winterCollection.addIndex(['temperature']);
 
       // then
-      expect(collection.findBy('name', 'Jozef'), unorderedEquals([data[0], data[1]]));
+      expect(winterCollection.findBy('temperature', -10), unorderedEquals([january]));
     });
 
     test('Index updated synchronously after addition. (T20)', () {
-
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id','name']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      collection.add(dataMarienka);
+      winterCollection.add(march);
 
       // then
-      var result = collection.findBy('name', 'Marienka');
-      expect(result, equals([dataMarienka]));
+      var result = winterCollection.findBy('number', 3);
+      expect(result, equals([march]));
     });
 
     test('Index updated synchronously after deletion. (T21)', () {
 
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      collection.remove(data[0]);
+      winterCollection.remove(january);
 
       // then
-      expect(collection.findBy('id', 0).isEmpty, isTrue);
-      expect(collection.findBy('id', 1), equals([data[1]]));
+      expect(winterCollection.findBy('number', 1).isEmpty, isTrue);
+      expect(winterCollection.findBy('number', 2), equals([february]));
     });
 
     test('Index updated synchronously after change. (T22)', () {
 
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      data[0]['id'] = 47;
+      january['number'] = 13;
 
       // then
-      expect(collection.findBy('id', 47), equals([data[0]]));
-      expect(collection.findBy('id', 0).isEmpty, isTrue);
+      expect(winterCollection.findBy('number', 13), equals([january]));
+      expect(winterCollection.findBy('number', 1).isEmpty, isTrue);
     });
 
     test('Remove by index works. (T23)', () {
 
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
-      data[1]['id'] = 0;
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      collection.removeBy('id', 0);
+      winterCollection.removeBy('number', 2);
 
       // then
-      expect(collection.findBy('id', 0).isEmpty, isTrue);
+      expect(winterCollection.findBy('number', 2).isEmpty, isTrue);
+      expect(winterCollection, unorderedEquals([december, january]));
     });
 
     test('Remove by index works (version with no items to remove). (T24)', () {
-
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      collection.removeBy('id', 47);
+      winterCollection.removeBy('number', 13);
 
       // then
-      expect(true, isTrue); // no exception was thrown
+      expect(winterCollection, unorderedEquals([december, january, february]));
     });
 
     test('Remove by index raises an exception on unindexed property. (T25)', () {
-
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
 
       // then
-      expect(() => collection.removeBy('name', 'John Doe'), throws);
+      expect(() => winterCollection.removeBy('temperature', -10),
+          throwsA(new isInstanceOf<NoIndexException>("NoIndexException")));
     });
 
    test('Index updated synchronously after deletion. (T26)', () {
-
       // given
-      var collection = new DataCollection.from(data);
-      collection.addIndex(['id']);
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+      winterCollection.addIndex(['number']);
 
       // when
-      collection.remove(data[0]);
+      winterCollection.remove(january);
 
       // then
-      expect(collection.findBy('id', 0).isEmpty, isTrue);
+      expect(winterCollection.findBy('number', 1).isEmpty, isTrue);
     });
 
    test('Index updated synchronously after addition. (T27)', () {
-
      // given
-     data1 = new Data.fromMap({"id":42});
-     var collection = new DataCollection.from(data);
-     collection.addIndex(['id']);
+     var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+     winterCollection.addIndex(['number']);
 
      // when
-     collection.add(data1);
-     // data[1]['id'] = 45; --> this won't work. It takes one event loop to propagate the change.
+     winterCollection.add(march);
 
      // then
-     expect(collection.findBy('id', 42), equals([data1]));
+     expect(winterCollection.findBy('number', 3), equals([march]));
    });
 
    test('change on data object propagates correctly to the collection. (T28)', () {
 
      // given
-     data1 = new Data.fromMap({"id":42});
-     var collection = new DataCollection.from(data);
+     var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
 
      // when
-     data[0].remove('id');
-     data[0]['id'] = 47;
+     february.remove('days');
+     february['days'] = 29;
+
      // then
-     collection.onChange.listen(expectAsync1((ChangeSet event) {
+     winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
        expect(event.addedItems.isEmpty, isTrue);
        expect(event.removedItems.isEmpty, isTrue);
-       expect(event.changedItems.keys, unorderedEquals([data[0]]));
+       expect(event.changedItems.keys, unorderedEquals([february]));
 
        // verify the data object changeset is valid
-       ChangeSet dataObjChanges = event.changedItems[data[0]];
-       expect(dataObjChanges.addedItems.isEmpty, isTrue);
-       expect(dataObjChanges.removedItems.isEmpty, isTrue);
-       expect(dataObjChanges.changedItems.length, equals(1));
+       ChangeSet changes = event.changedItems[february];
+       expect(changes.addedItems.isEmpty, isTrue);
+       expect(changes.removedItems.isEmpty, isTrue);
+       expect(changes.changedItems.length, equals(1));
 
-       Change change = dataObjChanges.changedItems['id'];
-       expect(change.oldValue, equals(0));
-       expect(change.newValue, equals(47));
+       Change change = changes.changedItems['days'];
+       expect(change.oldValue, equals(28));
+       expect(change.newValue, equals(29));
      }));
    });
   });
