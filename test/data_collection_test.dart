@@ -461,5 +461,30 @@ void main() {
        expect(change.newValue, equals(29));
      }));
    });
+
+   test('removeWhere spec. (T29)', () {
+
+     // given & when
+     DataCollection longMonths = new DataCollection.from(months)
+     ..removeWhere((month) => month['days'] <= 30);
+
+     // then
+     longMonths.forEach((month){
+       expect(month['days'], greaterThan(30));
+     });
+   });
+
+   test('removeAll spec. (T30)', () {
+
+     // given
+     DataCollection year = new DataCollection.from(months);
+
+     //when
+     year.removeAll(evenMonths);
+
+     // then
+     expect(year, unorderedEquals(oddMonths));
+   });
+
   });
 }
