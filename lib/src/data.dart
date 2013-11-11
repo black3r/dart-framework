@@ -156,7 +156,7 @@ abstract class DataViewMixin implements DataView {
 /**
  * A representation for a single unit of structured data.
  */
-class Data extends Object with DataViewMixin implements DataView {
+class Data extends Object with DataViewMixin implements DataView, Map {
 
   /**
    * Creates an empty data object.
@@ -225,4 +225,22 @@ class Data extends Object with DataViewMixin implements DataView {
     _notify(author: author);
   }
 
+
+  void clear() {
+    removeAll(keys.toList());
+  }
+
+  bool containsValue(Object value) {
+    return _fields.containsValue(value);
+  }
+
+  void forEach(void f(key, value)) {
+    _fields.forEach(f);
+  }
+
+  putIfAbsent(key, ifAbsent()) {
+    if(!containsKey(key)){
+      add(key, ifAbsent());
+    }
+  }
 }
