@@ -35,6 +35,18 @@ void main() {
       expect(firstChange.newValue, equals("newer"));
     });
 
+    test('clone change.', () {
+      // given
+      var change = new Change('old', 'new');
+
+      // when
+      var clone = change.clone();
+
+      // then
+      expect(clone.oldValue, equals(change.oldValue));
+      expect(clone.newValue, equals(change.newValue));
+    });
+
   });
 
   group('(ChangeSet)', () {
@@ -56,6 +68,26 @@ void main() {
       expect(changeSet.removedItems.isEmpty, isTrue);
       expect(changeSet.changedItems.isEmpty, isTrue);
       expect(changeSet.isEmpty, isTrue);
+    });
+
+    test('clone.', () {
+      // given
+      var change = new Mock();
+      change.when(callsTo('clone')).alwaysReturn(change);
+
+      var changeSet = new ChangeSet();
+      changeSet.markAdded('january');
+      changeSet.markRemoved('february');
+      changeSet.markChanged('march', change);
+
+      // when
+      var clone = changeSet.clone();
+
+      // then
+      expect(identical(clone, changeSet), isFalse);
+      expect(clone.addedItems, equals(changeSet.addedItems));
+      expect(clone.removedItems, equals(changeSet.removedItems));
+      expect(clone.changedItems, equals(changeSet.changedItems));
     });
 
     test('add children.', () {
@@ -118,6 +150,9 @@ void main() {
       // given
       var changes =
         {'first': new Mock(), 'second': new Mock(), 'third': new Mock()};
+      for (var mock in changes.values) {
+        mock.when(callsTo('clone')).alwaysReturn([mock]);
+      }
 
       // when
       for (var child in changes.keys) {
@@ -130,45 +165,50 @@ void main() {
       expect(changeSet.removedItems.isEmpty, isTrue);
       expect(changeSet.changedItems.length, equals(changes.length));
       for (var child in changeSet.changedItems.keys) {
-        expect(changeSet.changedItems[child], equals(changes[child]));
+        expect(changeSet.changedItems[child], equals(changes[child].clone()));
       }
     });
 
     test('change child that was changed before.', () {
       // given
-      var firstChange = new Mock();
-      var secondChange = new Mock();
-      var child = 'child';
-      changeSet.markChanged(child, firstChange);
+      var change = new Mock();
+      var anotherChange = new Mock();
+      var changeClone = new Mock();
+      change.when(callsTo('clone')).alwaysReturn(changeClone);
+
+      changeSet.markChanged('child', change);
 
       // when
-      changeSet.markChanged(child, secondChange);
+      changeSet.markChanged('child', anotherChange);
 
       // then
       expect(changeSet.isEmpty, isFalse);
       expect(changeSet.addedItems.isEmpty, isTrue);
       expect(changeSet.removedItems.isEmpty, isTrue);
-      firstChange.getLogs(callsTo('mergeIn', secondChange)).verify(happenedOnce);
-      expect(changeSet.changedItems[child], equals(firstChange));
+      changeClone.getLogs(callsTo('mergeIn', anotherChange)).verify(happenedOnce);
+      expect(changeSet.changedItems['child'], equals(changeClone));
     });
 
     test('change child that was added before.',() {
       // given
+      var change = new Mock();
+      var changeClone = new Mock();
+      change.when(callsTo('clone')).alwaysReturn(changeClone);
+
       for (var child in children) {
         changeSet.markAdded(child);
       }
-      var someChange = new Mock();
 
       // when
       for (var child in children) {
-        changeSet.markChanged(child, someChange);
+        changeSet.markChanged(child, change);
       }
 
       // then
       expect(changeSet.addedItems, unorderedEquals(children));
       expect(changeSet.removedItems.isEmpty, isTrue);
       for (var child in children) {
-        expect(changeSet.changedItems[child], equals(someChange));
+        expect(changeSet.changedItems[child], equals(changeClone));
       }
     });
 
@@ -176,12 +216,15 @@ void main() {
     test('apply another ChangeSet.', () {
       // given
       var change = new Mock();
+      change.when(callsTo('clone')).alwaysReturn(change);
+
       changeSet.markAdded('added');
       changeSet.markRemoved('removed');
       changeSet.markChanged('changed', change);
 
       var anotherChangeSet = new ChangeSet();
       var anotherChange = new Mock();
+      anotherChange.when(callsTo('clone')).alwaysReturn(anotherChange);
       anotherChangeSet.markAdded('anotherAdded');
       anotherChangeSet.markRemoved('anotherRemoved');
       anotherChangeSet.markChanged('anotherChanged', anotherChange);

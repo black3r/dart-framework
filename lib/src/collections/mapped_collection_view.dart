@@ -34,7 +34,7 @@ class MappedDataView extends Object with DataViewMixin implements DataView {
    */
   void _remap() {
     var mappedObj = _mapping(source);
-    Set allKeys = new Set.from(mappedObj._fields.keys)
+    Set allKeys = new Set.from(mappedObj.keys)
                         .union(new Set.from(_fields.keys));
     allKeys.forEach((key){
 

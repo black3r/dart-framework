@@ -24,6 +24,13 @@ class Change {
     newValue = change.newValue;
   }
 
+  /**
+   * Clones the [change].
+   */
+  Change clone() {
+    return new Change(oldValue, newValue);
+  }
+
   String toString() => "$oldValue->$newValue";
 }
 
@@ -46,6 +53,24 @@ class ChangeSet {
    * Creates an empty [ChangeSet].
    */
   ChangeSet();
+
+  /**
+   * Creates [ChangeSet] from [other]
+   */
+  ChangeSet.from(ChangeSet changeSet) {
+    addedItems = new Set.from(changeSet.addedItems);
+    removedItems = new Set.from(changeSet.removedItems);
+    changeSet.changedItems.forEach((key, change) {
+      changedItems[key] = change.clone();
+    });
+  }
+
+  /**
+   * Clone changeSet.
+   */
+  ChangeSet clone() {
+    return new ChangeSet.from(this);
+  }
 
   /**
    * Marks [dataObj] as added.
@@ -77,7 +102,7 @@ class ChangeSet {
     if(changedItems.containsKey(dataObj)) {
       changedItems[dataObj].mergeIn(changeSet);
     } else {
-      changedItems[dataObj] = changeSet;
+      changedItems[dataObj] = changeSet.clone();
     }
   }
 
@@ -91,8 +116,8 @@ class ChangeSet {
     for(var dataObj in changeSet.removedItems) {
       markRemoved(dataObj);
     }
-    changeSet.changedItems.forEach((child,changeSet) {
-      markChanged(child,changeSet);
+    changeSet.changedItems.forEach((child, changeSet) {
+      markChanged(child, changeSet);
     });
   }
 
@@ -110,21 +135,21 @@ class ChangeSet {
    * Strips redundant changedItems from the [ChangeSet].
    */
   void prettify() {
-      addedItems.forEach((key) => changedItems.remove(key));
-      removedItems.forEach((key) => changedItems.remove(key));
-      
-      var equalityChanges = new Set();
-      changedItems.forEach((d,cs){
-        if (cs is Change && cs.oldValue == cs.newValue) {
-         equalityChanges.add(d);
-        }
-      });
-      equalityChanges.forEach((droppableChange) {
-        changedItems.remove(droppableChange);
-      });
+    addedItems.forEach((key) => changedItems.remove(key));
+    removedItems.forEach((key) => changedItems.remove(key));
+
+    var equalityChanges = new Set();
+    changedItems.forEach((d,cs){
+      if (cs is Change && cs.oldValue == cs.newValue) {
+       equalityChanges.add(d);
+      }
+    });
+    equalityChanges.forEach((droppableChange) {
+      changedItems.remove(droppableChange);
+    });
   }
-  
+
   String toString() {
-    return "Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString(); 
+    return "Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString();
   }
 }

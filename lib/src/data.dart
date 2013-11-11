@@ -73,7 +73,7 @@ abstract class DataViewMixin implements DataView {
   ChangeSet _changeSetSync = new ChangeSet();
 
   final StreamController<ChangeSet> _onChangeController =
-      new StreamController<ChangeSet>.broadcast();
+      new StreamController.broadcast();
 
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
