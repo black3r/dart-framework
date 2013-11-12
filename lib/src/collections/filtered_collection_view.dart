@@ -76,9 +76,9 @@ class ExceptedCollectionView extends FilteredCollectionBase {
   ExceptedCollectionView(DataCollectionView source1,
       DataCollectionView source2): super([source1, source2]);
 
-  bool _shouldContain(DataView dataObj) {
-    return sources[0].contains(dataObj) && !sources[1].contains(dataObj);
-  }
+  bool _shouldContain(DataView dataObj) =>
+    sources[0].contains(dataObj) && !sources[1].contains(dataObj);
+
 
 }
 

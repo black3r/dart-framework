@@ -7,6 +7,7 @@ library excepted_collection_view_test;
 import 'package:unittest/unittest.dart';
 import '../months.dart';
 import 'package:clean_data/clean_data.dart';
+import 'package:unittest/mock.dart';
 
 void main() {
 
@@ -69,7 +70,6 @@ void main() {
         expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems, equals([january]));
-
       }));
     });
 
@@ -104,5 +104,36 @@ void main() {
       }));
     });
 
+
+    test('onBeforeAdd on add is fired before object is add - first source collection change. (T07)', () {
+      // given
+      var excepted = months.except(evenMonths);
+      var fantasyMonth = new Data.fromMap(
+          {"name": "FantasyMonth", "days": 13, "number": 13});
+
+      // when
+      months.add(fantasyMonth);
+
+      // then
+      excepted.onBeforeAdded.listen(expectAsync1((DataView d) {
+          expect(d, equals(fantasyMonth));
+          expect(excepted.contains(fantasyMonth), isFalse);
+      }));
+    });
+
+
+    test('onBeforeAdd on add is fired before object is add - second source collection change. (T08)', () {
+      // given
+      var excepted = months.except(evenMonths);
+
+      // when
+      evenMonths.remove(february);
+
+      // then
+      excepted.onBeforeAdded.listen(expectAsync1((DataView d) {
+          expect(d, equals(february));
+          expect(excepted.contains(february), isFalse);
+      }));
+    });
   });
 }
