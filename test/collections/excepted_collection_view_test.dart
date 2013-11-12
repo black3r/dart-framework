@@ -7,7 +7,6 @@ library excepted_collection_view_test;
 import 'package:unittest/unittest.dart';
 import '../months.dart';
 import 'package:clean_data/clean_data.dart';
-import 'package:unittest/mock.dart';
 
 void main() {
 
@@ -104,8 +103,7 @@ void main() {
       }));
     });
 
-
-    test('onBeforeAdd on add is fired before object is add - first source collection change. (T07)', () {
+    test('onBeforeAdd is fired before object is added - first source collection change. (T07)', () {
       // given
       var excepted = months.except(evenMonths);
       var fantasyMonth = new Data.fromMap(
@@ -121,8 +119,7 @@ void main() {
       }));
     });
 
-
-    test('onBeforeAdd on add is fired before object is add - second source collection change. (T08)', () {
+    test('onBeforeAdd is fired before object is added - second source collection change. (T08)', () {
       // given
       var excepted = months.except(evenMonths);
 
@@ -133,6 +130,34 @@ void main() {
       excepted.onBeforeAdded.listen(expectAsync1((DataView d) {
           expect(d, equals(february));
           expect(excepted.contains(february), isFalse);
+      }));
+    });
+
+    test('onBeforeRemove is fired before object is removed - first source collection change. (T09)', () {
+      // given
+      var excepted = months.except(evenMonths);
+
+      // when
+      months.remove(january);
+
+      // then
+      excepted.onBeforeRemoved.listen(expectAsync1((DataView d) {
+          expect(d, equals(january));
+          expect(excepted.contains(january), isTrue);
+      }));
+    });
+
+    test('onBeforeRemove is fired before object is removed - second source collection change. (T10)', () {
+      // given
+      var excepted = months.except(evenMonths);
+
+      // when
+      evenMonths.add(march);
+
+      // then
+      excepted.onBeforeRemoved.listen(expectAsync1((DataView d) {
+          expect(d, equals(march));
+          expect(excepted.contains(march), isTrue);
       }));
     });
   });

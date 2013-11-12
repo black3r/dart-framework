@@ -87,5 +87,35 @@ void main() {
                                             december]));
       }));
     });
+
+    test('onBeforeAdd is fired before object is added - first source collection change. (T06)', () {
+      // given
+      var filtered = months.where((month) => month['number'] % 2 == 0);
+      var fantasyMonth = new Data.fromMap(
+          {"name": "FantasyMonth", "days": 14, "number": 14});
+
+      // when
+      months.add(fantasyMonth);
+
+      // then
+      filtered.onBeforeAdded.listen(expectAsync1((DataView d) {
+          expect(d, equals(fantasyMonth));
+          expect(filtered.contains(fantasyMonth), isFalse);
+      }));
+    });
+
+    test('onBeforeRemove is fired before object is removed - first source collection change. (T07)', () {
+      // given
+      var filtered = months.where((month) => month['number'] % 2 == 0);
+
+      // when
+      months.remove(february);
+
+      // then
+      filtered.onBeforeRemoved.listen(expectAsync1((DataView d) {
+          expect(d, equals(february));
+          expect(filtered.contains(february), isTrue);
+      }));
+    });
   });
 }

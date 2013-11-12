@@ -125,5 +125,37 @@ void main() {
         expect(event.changedItems.isEmpty, isTrue);
       }));
     });
- });
+
+    //TODO is MappedDataView what we want to onBeforeAdded return?
+    test('onBeforeAdd is fired before object is added.', () {
+      // given
+      var monthsHours = months.map(hoursInMonth);
+      var fantasyMonth = new Data.fromMap(
+          {"name": "FantasyMonth", "days": 13, "number": 13});
+
+      // when
+      months.add(fantasyMonth);
+
+      // then
+      monthsHours.onBeforeAdded.listen(expectAsync1((MappedDataView mdv) {
+          expect(mdv.source, equals(fantasyMonth));
+          expect(monthsHours.contains(fantasyMonth), isFalse);
+      }));
+    });
+
+    test('onBeforeRemove is fired before object is removed.', () {
+      // given
+      var monthsHours = months.map(hoursInMonth);
+
+      // when
+      months.remove(january);
+
+      // then
+      monthsHours.onBeforeRemoved.listen(expectAsync1((MappedDataView mdv) {
+          expect(mdv.source, equals(january));
+          //TODO why not working?
+          //expect(monthsHours.contains(january), isTrue);
+      }));
+    });
+  });
 }
