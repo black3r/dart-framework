@@ -125,7 +125,10 @@ abstract class DataView {
     _changeSet.markChanged(key, change);
     _changeSetSync.markChanged(key, change);
   }
-
+  
+  void dispose() {
+    return;
+  }
 }
 
 /**
@@ -199,5 +202,8 @@ class Data extends Object with DataView{
     }
     _notify(author: author);
   }
-
+  
+  void dispose() {
+    super.dispose();
+  }
 }

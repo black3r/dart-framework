@@ -307,7 +307,10 @@ abstract class DataCollectionView implements Iterable {
     _changeSet.markChanged(dataObj, changeSet);
     _changeSetSync.markChanged(dataObj, changeSet);
   }
-
+  
+  void dispose() {
+    _dataListeners.forEach((data, subscription) => subscription.cancel());
+  }
 }
 
 /**

@@ -461,5 +461,23 @@ void main() {
        expect(change.newValue, equals(29));
      }));
    });
+   
+   test('dispose method. (T29)', () {
+
+     // given
+     var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+     // when
+     winterCollection.onChangeSync.listen((changeSet) => guardAsync(() {
+       expect(true, isFalse, reason: 'Should not be called.');
+     }));
+     
+     winterCollection.dispose();
+     february['days'] = 29;
+
+     // then
+     
+   });
   });
 }
