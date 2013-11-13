@@ -13,7 +13,7 @@ typedef dynamic DataTransformFunction(DataView d);
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
-abstract class DataCollectionView implements Iterable {
+abstract class DataCollectionView extends Object with IterableMixin<DataView> implements Iterable {
 
   Iterator<DataView> get iterator => _data.iterator;
 
@@ -107,7 +107,7 @@ abstract class DataCollectionView implements Iterable {
   /**
    * Finds all objects that have [property] equal to [value] in this collection.
    */
-   Iterable<DataView> findBy(String property, dynamic value) {
+  Iterable<DataView> findBy(String property, dynamic value) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }
@@ -115,14 +115,26 @@ abstract class DataCollectionView implements Iterable {
   }
 
   // ============================ /index ======================
-  
-  
-  
+
+
+
   /**
    * Stream populated with [ChangeSet] events whenever the collection or any
    * of data object contained gets changed.
    */
    Stream<ChangeSet> get onChange => _onChangeController.stream;
+
+  /**
+   * Stream populated with [DataView] events before any
+   * data object is added.
+   */
+   Stream<DataView> get onBeforeAdded => _onBeforeAddedController.stream;
+
+  /**
+   * Stream populated with [DataView] events before any
+   * data object is removed.
+   */
+   Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
 
   /**
    * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
@@ -146,7 +158,7 @@ abstract class DataCollectionView implements Iterable {
    */
    DataCollectionView where(DataTestFunction test) {
     return new FilteredCollectionView(this, test);
-  }
+   }
 
    /**
     * Maps the data collection to a new collection w.r.t. the given [mapping].
@@ -169,7 +181,7 @@ abstract class DataCollectionView implements Iterable {
          ? this
              : new UnionedCollectionView(this, other);
    }
-   
+
    /**
     * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
     *
@@ -205,11 +217,16 @@ abstract class DataCollectionView implements Iterable {
    * Used to propagate change events to the outside world.
    */
 
-  
+
 
   final StreamController<ChangeSet> _onChangeController =
       new StreamController.broadcast();
   final StreamController<Map> _onChangeSyncController =
+      new StreamController.broadcast(sync: true);
+
+  final StreamController<DataView> _onBeforeAddedController =
+      new StreamController.broadcast(sync: true);
+  final StreamController<DataView> _onBeforeRemovedController =
       new StreamController.broadcast(sync: true);
 
   /**
@@ -221,7 +238,7 @@ abstract class DataCollectionView implements Iterable {
   Set<DataView>_removedObjects = new Set<DataView>();
 
   int get length => _data.length;
-  
+
 
   void unattachListeners() {
     _onChangeController.close();
@@ -281,9 +298,11 @@ abstract class DataCollectionView implements Iterable {
       _dataListeners.remove(dataObj);
     }
   }
-  
-  
+
+
   void _markAdded(DataView dataObj) {
+    _onBeforeAddedController.add(dataObj);
+
     // if this object was removed and then re-added in this event loop, don't
     // destroy onChange listener to it.
     _removedObjects.remove(dataObj);
@@ -294,6 +313,8 @@ abstract class DataCollectionView implements Iterable {
   }
 
   void _markRemoved(DataView dataObj) {
+    _onBeforeRemovedController.add(dataObj);
+
     // collection will stop listening to this object's changes after this
     // event loop.
     _removedObjects.add(dataObj);
@@ -313,7 +334,7 @@ abstract class DataCollectionView implements Iterable {
 /**
  * Collection of [DataView]s.
  */
-class DataCollection extends Object with IterableMixin<DataView>,DataCollectionView {
+class DataCollection extends DataCollectionView {
 
   /**
    * Creates an empty collection.
@@ -339,10 +360,10 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
    * Data objects should have unique IDs.
    */
   void add(DataView dataObj, {author: null}) {
+    _markAdded(dataObj);
     _data.add(dataObj);
     _addOnDataChangeListener(dataObj);
 
-    _markAdded(dataObj);
     _notify(author: author);
   }
 
@@ -350,8 +371,8 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
    * Removes a data object from the collection.
    */
   void remove(DataView dataObj, {author: null}) {
-    _data.remove(dataObj);
     _markRemoved(dataObj);
+    _data.remove(dataObj);
     _notify(author: author);
     //TODO: Why aren't we removing onChangeListeners?
   }
