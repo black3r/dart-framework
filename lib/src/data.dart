@@ -226,8 +226,8 @@ class Data extends Object with DataViewMixin implements DataView, Map {
   }
 
 
-  void clear() {
-    removeAll(keys.toList());
+  void clear({author: null}) {
+    removeAll(keys.toList(), author: author);
   }
 
   bool containsValue(Object value) {

@@ -357,13 +357,19 @@ void main() {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
+      var mock = new Mock();
+      dataObj.onChangeSync.listen((event) => mock.handler(event));
       // when
-      dataObj.clear();
+      dataObj.clear(author: 'John Doe');
       // then
+      mock.getLogs().verify(happenedOnce);
+      var event = mock.getLogs().first.args[0];
+      expect(event['author'], equals('John Doe'));
       expect(dataObj.isEmpty, isTrue);
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.removedItems, unorderedEquals(['key1', 'key2']));
       }));
+      
       });
     
     test('Data implements map.containsValue(). (T21)', () {
