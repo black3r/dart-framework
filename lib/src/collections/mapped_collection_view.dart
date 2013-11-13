@@ -7,7 +7,7 @@ part of clean_data;
 /**
  * DataView
  */
-class MappedDataView extends Object with DataViewMixin implements DataView {
+class MappedDataView extends Object with DataView{
 
   /**
    * Source [DataView] object this object is derived from.

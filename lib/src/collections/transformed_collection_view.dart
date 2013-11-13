@@ -7,7 +7,7 @@ part of clean_data;
 /**
  * Represents a read-only, iterable data collection that is a result of a transformation operation.
  */
-abstract class TransformedDataCollection extends DataCollectionView with IterableMixin<DataView>, DataCollectionViewMixin {
+abstract class TransformedDataCollection extends DataCollectionView with IterableMixin<DataView> {
 
   /**
    * The source [DataCollectionView](s) this collection is derived from.
