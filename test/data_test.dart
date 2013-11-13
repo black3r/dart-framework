@@ -374,11 +374,9 @@ void main() {
     
     test('Data implements map.containsValue(). (T21)', () {
       // given
-      
-      // when
       var data = {'key1': 'value1', 'key2': 'value2'};
+      // when
       var dataObj = new Data.fromMap(data);
-      
       // then
       expect(dataObj.containsValue('value1'), isTrue);
       expect(dataObj.containsValue('notInValues'), isFalse);  
@@ -388,34 +386,29 @@ void main() {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
       var dataObj = new Data.fromMap(data);
+      var dataCopy = new Data();
       
       // when
-      dataObj.forEach((key, value) { 
-        
-        dataObj[key] =  'new$value';});
+      dataObj.forEach((key, value) {
+        dataCopy[key] = value;
+      });
       // then
-      expect(dataObj['key1'], equals('newvalue1'));
-      expect(dataObj['key2'], equals('newvalue2'));
-      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys, unorderedEquals(['key1', 'key2']));
-      }));
+      expect(dataCopy, equals(data));
     });
     
     test('Data implements map.putIfAbsent(). (T23)', () {
       // given
-      Map<String, int> data = {'Bob': 36};
+      Map<String, int> data = {'key1': "value1"};
       var dataObj = new Data.fromMap(data);
       
       // when
-      for (var key in ['Bob', 'Rohan', 'Sophena']) {
-        dataObj.putIfAbsent(key, () => key.length);
-      }
+        dataObj.putIfAbsent('key1', () => '');
+        dataObj.putIfAbsent('key2', () => '');
       // then
-      expect(dataObj['Bob'], equals(36));
-      expect(dataObj['Rohan'], equals(5));
-      expect(dataObj['Sophena'], equals(7));
+      expect(dataObj['key1'], equals('value1'));
+      expect(dataObj['key2'], equals(''));
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems,unorderedEquals(['Rohan', 'Sophena']));
+        expect(event.addedItems,unorderedEquals(['key2']));
       }));
     });
  });
