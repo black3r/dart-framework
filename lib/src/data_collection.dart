@@ -306,7 +306,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   }
 
   void dispose() {
-    _dataListeners.forEach((data, subscription) => subscription.cancel());
     if (_indexListenerSubscription != null) {
       _indexListenerSubscription.cancel();
     }
@@ -319,6 +318,9 @@ abstract class DataChangeListenersMixin {
   void _markChanged(DataView dataObj, changeEvent);
   void _notify({author});
 
+  /**
+   * Internal Set of data objects removed from Collection that still have DataListener listening.
+   */
   Set<DataView>_removedObjects = new Set<DataView>();
   /**
    * Internal set of listeners for change events on individual data objects.
@@ -327,7 +329,7 @@ abstract class DataChangeListenersMixin {
       new Map<dynamic, StreamSubscription>();
 
   void _onBeforeNotification() {
-    _removeAllOnDataChangeListener();
+    _removeAllOnDataChangeListeners();
     _removedObjects.clear();
   }
 
@@ -340,7 +342,7 @@ abstract class DataChangeListenersMixin {
     });
   }
 
-  void _removeAllOnDataChangeListener() {
+  void _removeAllOnDataChangeListeners() {
     for(DataView dataObj in _removedObjects.toList()) {
       _removeOnDataChangeListener(dataObj);
     }
@@ -427,7 +429,12 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin{
 
     Iterable<DataView> toBeRemoved = _index[property][value];
 
-    this._removeAll(toBeRemoved, author: author);
+    toBeRemoved.forEach((DataView d) {
+      _removedObjects.add(d);
+      _markRemoved(d);
+    });
+    _data.removeAll(toBeRemoved);
+    _notify();
   }
 
   /**
