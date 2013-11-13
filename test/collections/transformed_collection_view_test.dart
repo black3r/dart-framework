@@ -7,6 +7,7 @@ library transformed_collection_view_test;
 import 'package:unittest/unittest.dart';
 import '../months.dart';
 import 'package:clean_data/clean_data.dart';
+import 'package:unittest/mock.dart';
 
 void main() {
 
@@ -162,6 +163,30 @@ void main() {
           expect(d, equals(january));
           expect(excepted.contains(january), isTrue);
       }));
+    });
+
+    test('onChangeSync on derived collections  (T10)', () {
+      // given
+      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      evenMonths.onChangeSync.listen(expectAsync1((changeSet) {}));
+
+      // when
+      february['number'] = 13;
+
+      // then
+
+    });
+
+    test('onChange on derived collections  (T11)', () {
+      // given
+      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      evenMonths.onChange.listen(expectAsync1((changeSet) {}));
+
+      // when
+      february['number'] = 13;
+
+      // then
+
     });
 
   });
