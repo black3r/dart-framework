@@ -203,7 +203,4 @@ class Data extends Object with DataView{
     _notify(author: author);
   }
   
-  void dispose() {
-    super.dispose();
-  }
 }

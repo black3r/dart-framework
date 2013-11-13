@@ -389,7 +389,4 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
     _notify();
   }
   
-  void dispose() {
-    super.dispose();
-  }
 }
