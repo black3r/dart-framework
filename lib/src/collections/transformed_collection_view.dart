@@ -13,11 +13,14 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
    * The source [DataCollectionView](s) this collection is derived from.
    */
   final List<DataCollectionView> sources;
-
+  List<StreamSubscription> _sourcesSubscription;
+  
   TransformedDataCollection(List<DataCollectionView> this.sources) {
-
+    _sourcesSubscription = new List(this.sources.length);
+    
     for (var i = 0; i < sources.length; i++) {
-      this.sources[i].onChange.listen((ChangeSet changes) => _mergeIn(changes, i));
+      this._sourcesSubscription[i] = 
+          this.sources[i].onChange.listen((ChangeSet changes) => _mergeIn(changes, i));
     }
   }
 
@@ -40,4 +43,9 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
   void _treatRemovedItem(DataView dataObj, int sourceNumber) {}
   void _treatChangedItem(DataView dataObj, ChangeSet c, int sourceNumber) {}
   void _treatItem(dataObj, changeSet) {}
+  
+  void dispose() {
+    _sourcesSubscription.forEach((subscription) => subscription.cancel());
+    super.dispose();
+  }
 }

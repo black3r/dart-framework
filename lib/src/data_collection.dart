@@ -35,7 +35,8 @@ abstract class DataCollectionView implements Iterable {
    * The index on columns that speeds up retrievals and removals by property value.
    */
   final Map<String, HashIndex> _index = new Map<String, HashIndex>();
-
+  StreamSubscription _indexListenerSubscription;
+  
   /**
    * Adds indices on chosen properties. Indexed properties can be
    * used to retrieve data by their value with the [findBy] method,
@@ -77,7 +78,7 @@ abstract class DataCollectionView implements Iterable {
    */
   void _initIndexListener() {
 
-    this.onChangeSync.listen((Map changes) {
+    _indexListenerSubscription = this.onChangeSync.listen((Map changes) {
       ChangeSet cs = changes['change'];
 
       // scan for each indexed property and reindex changed items
@@ -310,6 +311,9 @@ abstract class DataCollectionView implements Iterable {
   
   void dispose() {
     _dataListeners.forEach((data, subscription) => subscription.cancel());
+    if(_indexListenerSubscription != null) {
+      _indexListenerSubscription.cancel();
+    }
   }
 }
 
@@ -321,7 +325,7 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
   /**
    * Creates an empty collection.
    */
-  DataCollection(){
+  DataCollection() {
   }
 
   /**
@@ -384,5 +388,8 @@ class DataCollection extends Object with IterableMixin<DataView>,DataCollectionV
     _data.clear();
     _notify();
   }
-
+  
+  void dispose() {
+    super.dispose();
+  }
 }

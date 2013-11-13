@@ -125,5 +125,21 @@ void main() {
         expect(event.changedItems.isEmpty, isTrue);
       }));
     });
+    
+    test('dispose method.', () {
+      // given
+      var monthsHours = months.map(hoursInMonth);
+      monthsHours.onChangeSync.listen((changeSet) => guardAsync(() {
+        expect(true, isFalse, reason: 'Should not be called.');
+      }));
+      
+      // when
+      monthsHours.dispose();
+      
+      months.remove(january);
+      january['days'] = 10;
+
+      // then
+    });
  });
 }

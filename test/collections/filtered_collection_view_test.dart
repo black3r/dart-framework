@@ -87,5 +87,20 @@ void main() {
                                             december]));
       }));
     });
+    
+    test('dispose method (T06)', () {
+      // given
+      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      evenMonths.onChangeSync.listen((changeSet) => guardAsync(() {
+        expect(true, isFalse, reason: 'Should not be called.');
+      }));
+      
+      // when
+      evenMonths.dispose();
+      february['number'] = 13;
+
+      // then
+      
+    });
   });
 }

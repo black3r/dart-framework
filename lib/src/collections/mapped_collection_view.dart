@@ -13,7 +13,7 @@ class MappedDataView extends Object with DataView{
    * Source [DataView] object this object is derived from.
    */
   final DataView source;
-
+  StreamSubscription _sourceSubscription;
   /**
    * Mapping function that maps a [DataView] to another [DataView]
    */
@@ -24,7 +24,7 @@ class MappedDataView extends Object with DataView{
     for (var key in mappedObj.keys) {
       _fields[key] = mappedObj[key];
     }
-    source.onChange.listen((c) =>_remap());
+    _sourceSubscription = source.onChange.listen((c) =>_remap());
   }
 
   /**
@@ -61,6 +61,11 @@ class MappedDataView extends Object with DataView{
 
     // broadcast the changes if needed. Anyway, clear them before leaving.
     _notify();
+  }
+  
+  void dispose() {
+    _sourceSubscription.cancel();
+    super.dispose();
   }
 }
 
@@ -105,4 +110,5 @@ class MappedCollectionView extends TransformedDataCollection{
     _data.remove(mappedDataObj);
     _removeOnDataChangeListener(mappedDataObj);
   }
+  
 }
