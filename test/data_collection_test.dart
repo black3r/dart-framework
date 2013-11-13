@@ -459,10 +459,32 @@ void main() {
        Change change = changes.changedItems['days'];
        expect(change.oldValue, equals(28));
        expect(change.newValue, equals(29));
-      }));
-    });
+     }));
+   });
 
-    test('onBeforeAdd on add is fired before object is added. (T29)', () {
+   test('removeWhere spec. (T29)', () {
+
+     // given & when
+     DataCollection longMonths = new DataCollection.from(months)
+     ..removeWhere((month) => month['days'] <= 30);
+
+     // then
+     expect(longMonths, unorderedEquals([january, march, may, july, august, october, december]));
+   });
+
+   test('removeAll spec. (T30)', () {
+
+     // given
+     DataCollection year = new DataCollection.from(months);
+
+     //when
+     year.removeAll(evenMonths);
+
+     // then
+     expect(year, unorderedEquals(oddMonths));
+   });
+
+    test('onBeforeAdd on add is fired before object is added. (T33)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                      february]);
