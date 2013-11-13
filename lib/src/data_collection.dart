@@ -13,7 +13,7 @@ typedef dynamic DataTransformFunction(DataView d);
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
-abstract class DataCollectionView extends Object with IterableMixin<DataView> implements Iterable {
+abstract class DataCollectionView extends Object with IterableMixin<DataView> implements Iterable<DataView> {
 
   Iterator<DataView> get iterator => _data.iterator;
 
