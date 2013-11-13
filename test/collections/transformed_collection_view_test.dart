@@ -177,17 +177,5 @@ void main() {
 
     });
 
-    test('onChange on derived collections  (T11)', () {
-      // given
-      var evenMonths = months.where((month) => month['number'] % 2 == 0);
-      evenMonths.onChange.listen(expectAsync1((changeSet) {}));
-
-      // when
-      february['number'] = 13;
-
-      // then
-
-    });
-
   });
 }
