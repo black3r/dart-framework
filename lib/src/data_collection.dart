@@ -374,40 +374,62 @@ class DataCollection extends DataCollectionView {
     _notify(author: author);
   }
 
+
+  void _removeAll(Iterable<DataView> toBeRemoved, {author: null}){
+    //the following causes onChangeListeners removal in the next event loop
+    toBeRemoved.forEach((DataView d) => _markRemoved(d));
+    _data.removeAll(toBeRemoved);
+    _notify(author: author);
+  }
+
+  /**
+   * Removes multiple data objects from the collection.
+   */
+  void removeAll(Iterable<DataView> toBeRemoved, {author: null}){
+    this._removeAll(toBeRemoved, author: author);
+  }
+
+
   /**
    * Removes a data object from the collection.
    */
   void remove(DataView dataObj, {author: null}) {
-    _markRemoved(dataObj);
-    _data.remove(dataObj);
-    _notify(author: author);
-    //TODO: Why aren't we removing onChangeListeners?
+    this._removeAll([dataObj], author: author);
   }
 
   /**
    * Removes all objects that have [property] equal to [value] from this collection.
    */
-  Iterable<DataView> removeBy(String property, dynamic value) {
+  Iterable<DataView> removeBy(String property, dynamic value, {author: null}) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }
 
     Iterable<DataView> toBeRemoved = _index[property][value];
-    toBeRemoved.forEach((DataView d) => _markRemoved(d));
-    _data.removeAll(toBeRemoved);
-    _notify();
+    this._removeAll(toBeRemoved, author: author);
   }
+
+  /**
+   * Removes all objects satisfying filter [test]
+   */
+  void removeWhere(DataTestFunction test, {author: null}){
+    List toBeRemoved = [];
+    for (var dataObj in _data) {
+      if(test(dataObj)){
+        toBeRemoved.add(dataObj);
+      }
+    }
+    this._removeAll(toBeRemoved, author: author);
+  }
+
 
   /**
    * Removes all data objects from the collection.
    */
-  void clear() {
-    for (var dataObj in _data) {
-      _removeOnDataChangeListener(dataObj);
-      _markRemoved(dataObj);
-    }
-    _data.clear();
-    _notify();
+  void clear({author: null}) {
+    // we shallow copy _data to avoid concurent modification of
+    // the _data field during removal
+    this._removeAll(new List.from(this._data), author:author);
   }
 
 }
