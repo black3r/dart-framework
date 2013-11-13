@@ -214,7 +214,7 @@ void main() {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                       february]);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -408,7 +408,7 @@ void main() {
           throwsA(new isInstanceOf<NoIndexException>("NoIndexException")));
     });
 
-   test('Index updated synchronously after deletion. (T26)', () {
+    test('Index updated synchronously after deletion. (T26)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                       february]);
@@ -484,5 +484,87 @@ void main() {
      expect(year, unorderedEquals(oddMonths));
    });
 
+    test('onBeforeAdd on add is fired before object is added. (T33)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeAdded.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(march), isFalse);
+          expect(d, equals(march));
+      });
+
+      // when
+      winterCollection.add(march);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
+
+    test('onBeforeRemove on remove is fired before object is removed. (T30)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(december), isTrue);
+          expect(d, equals(december));
+      });
+
+      // when
+      winterCollection.remove(december);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
+
+    test('onBeforeRemove on removeAll is fired before object is removed. (T31)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(december), isTrue);
+          expect(winterCollection.contains(january), isTrue);
+          expect(winterCollection.contains(february), isTrue);
+      });
+
+      // when
+      winterCollection.clear();
+
+      // then
+      mock.log.verify(happenedExactly(3));
+    });
+
+    test('onBeforeRemove on removeBy is fired before object is removed. (T32)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      winterCollection.addIndex(['number']);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(february), isTrue);
+          expect(d, equals(february));
+      });
+
+      // when
+      winterCollection.removeBy('number', 2);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
   });
 }

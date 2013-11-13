@@ -7,7 +7,7 @@ part of clean_data;
 /**
  * DataView
  */
-class MappedDataView extends Object with DataViewMixin implements DataView {
+class MappedDataView extends Object with DataView{
 
   /**
    * Source [DataView] object this object is derived from.
@@ -86,9 +86,9 @@ class MappedCollectionView extends TransformedDataCollection{
    */
   void _addMapped(DataView dataObj) {
     MappedDataView mappedObj = new MappedDataView(dataObj, _mapping);
-    _data.add(mappedObj);
+    _markAdded(mappedObj);
 
-    _changeSet.markAdded(mappedObj);
+    _data.add(mappedObj);
 
     _addOnDataChangeListener(mappedObj);
   }
@@ -99,7 +99,8 @@ class MappedCollectionView extends TransformedDataCollection{
 
     // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
-    _changeSet.markRemoved(mappedDataObj);
+
+    _markRemoved(mappedDataObj);
 
     // remove the mapped object and its stream subscription as well
     _data.remove(mappedDataObj);

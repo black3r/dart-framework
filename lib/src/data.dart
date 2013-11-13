@@ -6,69 +6,14 @@ part of clean_data;
 
 abstract class DataView {
 
+  final Map _fields = new Map();
   /**
    * Returns the value for the given key or null if key is not in the data object.
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
-  dynamic operator[](key);
-
-  /**
-   * Stream populated with [ChangeSet] events whenever the data gets changed.
-   */
-  Stream<ChangeSet> get onChange;
-
-  /**
-   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
-   * synchronously at the moment when the data get changed.
-   */
-  Stream<Map> get onChangeSync;
-
-  /**
-   * Returns true if there is no {key, value} pair in the data object.
-   */
-  bool get isEmpty;
-
-  /**
-   * Returns true if there is at least one {key, value} pair in the data object.
-   */
-  bool get isNotEmpty;
-
-  /**
-   * The keys of data object.
-   */
-  Iterable get keys;
-
-  /**
-   * The values of [Data].
-   */
-  Iterable get values;
-
-  /**
-   * The number of {key, value} pairs in the [Data].
-   */
-  int get length;
-
-  /**
-   * Returns whether this data object contains the given [key].
-   */
-  bool containsKey(String key);
-
-  /**
-   * Converts to Map.
-   */
-  Map toJson();
-}
-
-
-abstract class DataViewMixin implements DataView {
-
-  final Map _fields = new Map();
-
-  Map toJson() => new Map.from(_fields);
-
   dynamic operator[](key) => _fields[key];
-
+  
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
 
@@ -77,34 +22,67 @@ abstract class DataViewMixin implements DataView {
 
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
-
+  
+  
+  /**
+   * Stream populated with [ChangeSet] events whenever the data gets changed.
+   */
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
+  /**
+   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
+   * synchronously at the moment when the data get changed.
+   */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
+  /**
+   * Returns true if there is no {key, value} pair in the data object.
+   */
   bool get isEmpty {
     return _fields.isEmpty;
   }
 
+  /**
+   * Returns true if there is at least one {key, value} pair in the data object.
+   */
   bool get isNotEmpty {
     return _fields.isNotEmpty;
   }
-
+  
+  /**
+   * The keys of data object.
+   */
   Iterable get keys {
     return _fields.keys;
   }
-
+  /**
+   * The values of [Data].
+   */
   Iterable get values {
     return _fields.values;
   }
 
+  /**
+   * The number of {key, value} pairs in the [Data].
+   */
   int get length {
     return _fields.length;
   }
 
+  /**
+   * Returns whether this data object contains the given [key].
+   */
   bool containsKey(String key) {
     return _fields.containsKey(key);
   }
+  
+  bool containsValue(Object value) {
+    return _fields.containsValue(value);
+  }
+  /**
+   * Converts to Map.
+   */
+  Map toJson() => new Map.from(_fields);
 
   /**
    * Streams all new changes marked in [changeSet].
@@ -156,7 +134,9 @@ abstract class DataViewMixin implements DataView {
 /**
  * A representation for a single unit of structured data.
  */
-class Data extends Object with DataViewMixin implements DataView {
+
+class Data extends Object with DataView implements Map {
+
 
   /**
    * Creates an empty data object.
@@ -166,7 +146,7 @@ class Data extends Object with DataViewMixin implements DataView {
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory Data.fromMap(dynamic data) {
+  factory Data.from(dynamic data) {
     var dataObj = new Data();
     for (var key in data.keys) {
       dataObj[key] = data[key];
@@ -225,4 +205,20 @@ class Data extends Object with DataViewMixin implements DataView {
     _notify(author: author);
   }
 
+
+  void clear({author: null}) {
+    removeAll(keys.toList(), author: author);
+  }
+
+
+
+  void forEach(void f(key, value)) {
+    _fields.forEach(f);
+  }
+
+  putIfAbsent(key, ifAbsent()) {
+    if (!containsKey(key)) {
+      add(key, ifAbsent());
+    }
+  }
 }
