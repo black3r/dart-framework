@@ -255,7 +255,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    * Stream all new changes marked in [ChangeSet].
    */
   void _onBeforeNotification(){}
-  
+
   void _notify({author: null}) {
     _changeSetSync.prettify();
     if(!_changeSet.isEmpty) {
@@ -266,7 +266,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _onBeforeNotification();
-        
+
         _changeSet.prettify();
 
         if(!_changeSet.isEmpty) {
@@ -308,22 +308,24 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
 
 abstract class DataChangeListenersMixin {
-  
+
   void _markChanged(DataView dataObj, changeEvent);
   void _notify({author});
-  
+  /**
+   * Internal Set of data objects removed from Collection that still have DataListener listening.
+   */
   Set<DataView>_removedObjects = new Set<DataView>();
   /**
    * Internal set of listeners for change events on individual data objects.
    */
   final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
-  
+
   void _onBeforeNotification() {
-    _removeAllOnDataChangeListener();
+    _removeAllOnDataChangeListeners();
     _removedObjects.clear();
   }
-  
+
   void _addOnDataChangeListener(DataView dataObj) {
     if (_dataListeners.containsKey(dataObj)) return;
 
@@ -332,8 +334,8 @@ abstract class DataChangeListenersMixin {
       _notify(author: changeEvent['author']);
     });
   }
-  
-  void _removeAllOnDataChangeListener() {
+
+  void _removeAllOnDataChangeListeners() {
     for(DataView dataObj in _removedObjects.toList()) {
       _removeOnDataChangeListener(dataObj);
     }
@@ -404,9 +406,9 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin{
 
     Iterable<DataView> toBeRemoved = _index[property][value];
     toBeRemoved.forEach((DataView d) {
-      _removedObjects.add(d); 
-      _markRemoved(d)
-    ;});
+      _removedObjects.add(d);
+      _markRemoved(d);
+    });
     _data.removeAll(toBeRemoved);
     _notify();
   }
