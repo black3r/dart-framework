@@ -71,7 +71,7 @@ class MappedDataView extends DataView {
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
-class MappedCollectionView extends TransformedDataCollection{
+class MappedCollectionView extends TransformedDataCollection {
 
   final _mapping;
 

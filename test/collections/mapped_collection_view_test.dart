@@ -171,7 +171,7 @@ void main() {
        monthsHours.dispose();
 
        months.remove(january);
-       january['days'] = 10;
+       february['days'] = 1;
      });
   });
 }
