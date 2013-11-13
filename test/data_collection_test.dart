@@ -469,9 +469,7 @@ void main() {
      ..removeWhere((month) => month['days'] <= 30);
 
      // then
-     longMonths.forEach((month){
-       expect(month['days'], greaterThan(30));
-     });
+     expect(longMonths, unorderedEquals([january, march, may, july, august, october, december]));
    });
 
    test('removeAll spec. (T30)', () {
