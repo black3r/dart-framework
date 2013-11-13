@@ -36,7 +36,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    */
   final Map<String, HashIndex> _index = new Map<String, HashIndex>();
   StreamSubscription _indexListenerSubscription;
-  
+
   /**
    * Adds indices on chosen properties. Indexed properties can be
    * used to retrieve data by their value with the [findBy] method,
@@ -329,10 +329,10 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     _changeSet.markChanged(dataObj, changeSet);
     _changeSetSync.markChanged(dataObj, changeSet);
   }
-  
+
   void dispose() {
     _dataListeners.forEach((data, subscription) => subscription.cancel());
-    if(_indexListenerSubscription != null) {
+    if (_indexListenerSubscription != null) {
       _indexListenerSubscription.cancel();
     }
   }
@@ -409,5 +409,5 @@ class DataCollection extends DataCollectionView {
     _data.clear();
     _notify();
   }
-  
+
 }

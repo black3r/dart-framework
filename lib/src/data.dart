@@ -129,16 +129,14 @@ abstract class DataView {
     _changeSetSync.markChanged(key, change);
   }
 
-  void dispose() {
-    return;
-  }
+  void dispose();
 }
 
 /**
  * A representation for a single unit of structured data.
  */
 
-class Data extends Object with DataView implements Map {
+class Data extends DataView implements Map {
 
 
   /**
@@ -222,5 +220,9 @@ class Data extends Object with DataView implements Map {
     if (!containsKey(key)) {
       add(key, ifAbsent());
     }
+  }
+
+  void dispose() {
+
   }
 }

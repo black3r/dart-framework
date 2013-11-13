@@ -7,7 +7,7 @@ part of clean_data;
 /**
  * DataView
  */
-class MappedDataView extends Object with DataView{
+class MappedDataView extends DataView {
 
   /**
    * Source [DataView] object this object is derived from.
@@ -62,10 +62,9 @@ class MappedDataView extends Object with DataView{
     // broadcast the changes if needed. Anyway, clear them before leaving.
     _notify();
   }
-  
+
   void dispose() {
     _sourceSubscription.cancel();
-    super.dispose();
   }
 }
 
@@ -111,5 +110,5 @@ class MappedCollectionView extends TransformedDataCollection{
     _data.remove(mappedDataObj);
     _removeOnDataChangeListener(mappedDataObj);
   }
-  
+
 }
