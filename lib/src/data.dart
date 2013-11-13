@@ -105,7 +105,10 @@ abstract class DataViewMixin implements DataView {
   bool containsKey(String key) {
     return _fields.containsKey(key);
   }
-
+  
+  bool containsValue(Object value) {
+    return _fields.containsValue(value);
+  }
   /**
    * Streams all new changes marked in [changeSet].
    */
@@ -230,9 +233,7 @@ class Data extends Object with DataViewMixin implements DataView, Map {
     removeAll(keys.toList(), author: author);
   }
 
-  bool containsValue(Object value) {
-    return _fields.containsValue(value);
-  }
+
 
   void forEach(void f(key, value)) {
     _fields.forEach(f);
