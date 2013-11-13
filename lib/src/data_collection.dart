@@ -35,6 +35,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    * The index on columns that speeds up retrievals and removals by property value.
    */
   final Map<String, HashIndex> _index = new Map<String, HashIndex>();
+  StreamSubscription _indexListenerSubscription;
 
   /**
    * Adds indices on chosen properties. Indexed properties can be
@@ -77,7 +78,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    */
   void _initIndexListener() {
 
-    this.onChangeSync.listen((Map changes) {
+    _indexListenerSubscription = this.onChangeSync.listen((Map changes) {
       ChangeSet cs = changes['change'];
 
       // scan for each indexed property and reindex changed items
@@ -329,6 +330,12 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     _changeSetSync.markChanged(dataObj, changeSet);
   }
 
+  void dispose() {
+    _dataListeners.forEach((data, subscription) => subscription.cancel());
+    if (_indexListenerSubscription != null) {
+      _indexListenerSubscription.cancel();
+    }
+  }
 }
 
 /**
@@ -339,7 +346,7 @@ class DataCollection extends DataCollectionView {
   /**
    * Creates an empty collection.
    */
-  DataCollection(){
+  DataCollection() {
   }
 
   /**

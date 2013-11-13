@@ -7,13 +7,13 @@ part of clean_data;
 /**
  * DataView
  */
-class MappedDataView extends Object with DataView{
+class MappedDataView extends DataView {
 
   /**
    * Source [DataView] object this object is derived from.
    */
   final DataView source;
-
+  StreamSubscription _sourceSubscription;
   /**
    * Mapping function that maps a [DataView] to another [DataView]
    */
@@ -24,7 +24,7 @@ class MappedDataView extends Object with DataView{
     for (var key in mappedObj.keys) {
       _fields[key] = mappedObj[key];
     }
-    source.onChange.listen((c) =>_remap());
+    _sourceSubscription = source.onChange.listen((c) =>_remap());
   }
 
   /**
@@ -62,12 +62,16 @@ class MappedDataView extends Object with DataView{
     // broadcast the changes if needed. Anyway, clear them before leaving.
     _notify();
   }
+
+  void dispose() {
+    _sourceSubscription.cancel();
+  }
 }
 
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
-class MappedCollectionView extends TransformedDataCollection{
+class MappedCollectionView extends TransformedDataCollection {
 
   final _mapping;
 
@@ -106,4 +110,5 @@ class MappedCollectionView extends TransformedDataCollection{
     _data.remove(mappedDataObj);
     _removeOnDataChangeListener(mappedDataObj);
   }
+
 }

@@ -459,32 +459,32 @@ void main() {
        Change change = changes.changedItems['days'];
        expect(change.oldValue, equals(28));
        expect(change.newValue, equals(29));
-     }));
-   });
+      }));
+    });
 
-   test('removeWhere spec. (T29)', () {
+    test('removeWhere spec. (T29)', () {
 
-     // given & when
-     DataCollection longMonths = new DataCollection.from(months)
-     ..removeWhere((month) => month['days'] <= 30);
+      // given & when
+      DataCollection longMonths = new DataCollection.from(months)
+      ..removeWhere((month) => month['days'] <= 30);
 
-     // then
-     expect(longMonths, unorderedEquals([january, march, may, july, august, october, december]));
-   });
+      // then
+      expect(longMonths, unorderedEquals([january, march, may, july, august, october, december]));
+    });
 
-   test('removeAll spec. (T30)', () {
+    test('removeAll spec. (T30)', () {
 
-     // given
-     DataCollection year = new DataCollection.from(months);
+      // given
+      DataCollection year = new DataCollection.from(months);
 
-     //when
-     year.removeAll(evenMonths);
+      //when
+      year.removeAll(evenMonths);
 
-     // then
-     expect(year, unorderedEquals(oddMonths));
-   });
+      // then
+      expect(year, unorderedEquals(oddMonths));
+    });
 
-    test('onBeforeAdd on add is fired before object is added. (T33)', () {
+    test('onBeforeAdd on add is fired before object is added. (T31)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                      february]);
@@ -504,7 +504,7 @@ void main() {
       mock.log.verify(happenedOnce);
     });
 
-    test('onBeforeRemove on remove is fired before object is removed. (T30)', () {
+    test('onBeforeRemove on remove is fired before object is removed. (T32)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                      february]);
@@ -524,7 +524,7 @@ void main() {
       mock.log.verify(happenedOnce);
     });
 
-    test('onBeforeRemove on removeAll is fired before object is removed. (T31)', () {
+    test('onBeforeRemove on removeAll is fired before object is removed. (T33)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                      february]);
@@ -545,7 +545,7 @@ void main() {
       mock.log.verify(happenedExactly(3));
     });
 
-    test('onBeforeRemove on removeBy is fired before object is removed. (T32)', () {
+    test('onBeforeRemove on removeBy is fired before object is removed. (T34)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                      february]);
@@ -565,6 +565,20 @@ void main() {
 
       // then
       mock.log.verify(happenedOnce);
+    });
+
+
+    test('dispose method (T35)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+      february]);
+      //then
+      winterCollection.onChangeSync.listen((changeSet) => guardAsync(() => expect(true, isFalse, reason: 'Should not be reached')));
+
+      // when
+      winterCollection.dispose();
+      february['days'] = 29;
+
     });
   });
 }

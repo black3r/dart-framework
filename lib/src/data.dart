@@ -13,7 +13,7 @@ abstract class DataView {
    * distinguish between an absent key and a null value.
    */
   dynamic operator[](key) => _fields[key];
-  
+
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
 
@@ -22,8 +22,8 @@ abstract class DataView {
 
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
-  
-  
+
+
   /**
    * Stream populated with [ChangeSet] events whenever the data gets changed.
    */
@@ -48,7 +48,7 @@ abstract class DataView {
   bool get isNotEmpty {
     return _fields.isNotEmpty;
   }
-  
+
   /**
    * The keys of data object.
    */
@@ -75,7 +75,7 @@ abstract class DataView {
   bool containsKey(String key) {
     return _fields.containsKey(key);
   }
-  
+
   bool containsValue(Object value) {
     return _fields.containsValue(value);
   }
@@ -129,13 +129,14 @@ abstract class DataView {
     _changeSetSync.markChanged(key, change);
   }
 
+  void dispose();
 }
 
 /**
  * A representation for a single unit of structured data.
  */
 
-class Data extends Object with DataView implements Map {
+class Data extends DataView implements Map {
 
 
   /**
@@ -205,7 +206,6 @@ class Data extends Object with DataView implements Map {
     _notify(author: author);
   }
 
-
   void clear({author: null}) {
     removeAll(keys.toList(), author: author);
   }
@@ -220,5 +220,9 @@ class Data extends Object with DataView implements Map {
     if (!containsKey(key)) {
       add(key, ifAbsent());
     }
+  }
+
+  void dispose() {
+
   }
 }

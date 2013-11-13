@@ -126,6 +126,7 @@ void main() {
       }));
     });
 
+
     test('onBeforeAdd is fired before object is added.', () {
       // given
       var monthsHours = months.map(hoursInMonth);
@@ -155,5 +156,22 @@ void main() {
         expect(monthsHours.contains(mdv), isTrue);
       }));
     });
+
+
+    test('dispose method.', () {
+       // given
+       var monthsHours = months.map(hoursInMonth);
+
+       //then
+       monthsHours.onChangeSync.listen((changeSet) => guardAsync(() {
+         expect(true, isFalse, reason: 'Should not be called.');
+       }));
+
+       // when
+       monthsHours.dispose();
+
+       months.remove(january);
+       february['days'] = 1;
+     });
   });
 }
