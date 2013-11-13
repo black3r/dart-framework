@@ -9,6 +9,7 @@ import 'hash_index_test.dart' as hash_index_test;
 import 'id_generator_test.dart' as id_generator_test;
 import 'change_set_test.dart' as change_set_test;
 
+import 'collections/transformed_collection_view_test.dart' as transformed_test;
 import 'collections/filtered_collection_view_test.dart' as filtered_test;
 import 'collections/mapped_collection_view_test.dart' as mapped_test;
 import 'collections/unioned_collection_view_test.dart' as unioned_test;
@@ -23,6 +24,7 @@ main() {
   change_set_test.main();
 
   // collection views test
+  transformed_test.main();
   filtered_test.main();
   mapped_test.main();
   unioned_test.main();
