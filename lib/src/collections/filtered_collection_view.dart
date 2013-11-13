@@ -36,13 +36,13 @@ abstract class FilteredCollectionBase extends TransformedDataCollection {
       }
 
       if (!shouldBeContained) {
-        _data.remove(dataObj);
         _markRemoved(dataObj);
+        _data.remove(dataObj);
       }
 
     } else if(shouldBeContained) {
-        _data.add(dataObj);
         _markAdded(dataObj);
+        _data.add(dataObj);
     }
   }
 }
@@ -76,9 +76,9 @@ class ExceptedCollectionView extends FilteredCollectionBase {
   ExceptedCollectionView(DataCollectionView source1,
       DataCollectionView source2): super([source1, source2]);
 
-  bool _shouldContain(DataView dataObj) {
-    return sources[0].contains(dataObj) && !sources[1].contains(dataObj);
-  }
+  bool _shouldContain(DataView dataObj) =>
+    sources[0].contains(dataObj) && !sources[1].contains(dataObj);
+
 
 }
 

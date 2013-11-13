@@ -408,7 +408,7 @@ void main() {
           throwsA(new isInstanceOf<NoIndexException>("NoIndexException")));
     });
 
-   test('Index updated synchronously after deletion. (T26)', () {
+    test('Index updated synchronously after deletion. (T26)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                       february]);
@@ -459,25 +459,109 @@ void main() {
        Change change = changes.changedItems['days'];
        expect(change.oldValue, equals(28));
        expect(change.newValue, equals(29));
-     }));
-   });
-   
-   test('dispose method. (T29)', () {
 
-     // given
-     var winterCollection = new DataCollection.from([december, january,
+      }));
+    });
+
+    test('onBeforeAdd on add is fired before object is added. (T29)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
                                                      february]);
 
-     // when
-     winterCollection.onChangeSync.listen((changeSet) => guardAsync(() {
-       expect(true, isFalse, reason: 'Should not be called.');
-     }));
-     
-     winterCollection.dispose();
-     february['days'] = 29;
+      Mock mock = new Mock();
 
-     // then
-     
-   });
+      winterCollection.onBeforeAdded.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(march), isFalse);
+          expect(d, equals(march));
+      });
+
+      // when
+      winterCollection.add(march);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
+
+    test('onBeforeRemove on remove is fired before object is removed. (T30)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(december), isTrue);
+          expect(d, equals(december));
+      });
+
+      // when
+      winterCollection.remove(december);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
+
+    test('onBeforeRemove on removeAll is fired before object is removed. (T31)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(december), isTrue);
+          expect(winterCollection.contains(january), isTrue);
+          expect(winterCollection.contains(february), isTrue);
+      });
+
+      // when
+      winterCollection.clear();
+
+      // then
+      mock.log.verify(happenedExactly(3));
+    });
+
+    test('onBeforeRemove on removeBy is fired before object is removed. (T32)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                     february]);
+
+      winterCollection.addIndex(['number']);
+
+      Mock mock = new Mock();
+
+      winterCollection.onBeforeRemoved.listen((d) {
+          mock.handler(d);
+          expect(winterCollection.contains(february), isTrue);
+          expect(d, equals(february));
+      });
+
+      // when
+      winterCollection.removeBy('number', 2);
+
+      // then
+      mock.log.verify(happenedOnce);
+    });
+
+    test('dispose method. (T33)', () {
+
+      // given
+      var winterCollection = new DataCollection.from([december, january,
+                                                      february]);
+
+      // when
+      winterCollection.onChangeSync.listen((changeSet) => guardAsync(() {
+        expect(true, isFalse, reason: 'Should not be called.');
+      }));
+
+      winterCollection.dispose();
+      february['days'] = 29;
+
+      // then
+
+    });
   });
 }
