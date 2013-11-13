@@ -37,7 +37,7 @@ void main() {
 
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -105,7 +105,7 @@ void main() {
     test('adding and removing an object does not raise an event. (T06)', () {
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -137,7 +137,7 @@ void main() {
 
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when

@@ -12,18 +12,18 @@ october, november, december;
 DataCollection months, evenMonths, oddMonths;
 
 setUpMonths() {
-  january = new Data.fromMap({'name': 'January', 'days': 31, 'number': 1});
-  february = new Data.fromMap({'name': 'February', 'days': 28, 'number': 2});
-  march = new Data.fromMap({'name': 'March', 'days': 31, 'number': 3});
-  april = new Data.fromMap({'name': 'April', 'days': 30, 'number': 4});
-  may = new Data.fromMap({'name': 'May', 'days': 31, 'number': 5});
-  june = new Data.fromMap({'name': 'June', 'days': 30, 'number': 6});
-  july = new Data.fromMap({'name': 'July', 'days': 31, 'number': 7});
-  august = new Data.fromMap({'name': 'August', 'days': 31, 'number': 8});
-  september = new Data.fromMap({'name': 'September', 'days': 30, 'number': 9});
-  october = new Data.fromMap({'name': 'October', 'days': 31, 'number': 10});
-  november = new Data.fromMap({'name': 'November', 'days': 30, 'number': 11});
-  december = new Data.fromMap({'name': 'December', 'days': 31, 'number': 12});
+  january = new Data.from({'name': 'January', 'days': 31, 'number': 1});
+  february = new Data.from({'name': 'February', 'days': 28, 'number': 2});
+  march = new Data.from({'name': 'March', 'days': 31, 'number': 3});
+  april = new Data.from({'name': 'April', 'days': 30, 'number': 4});
+  may = new Data.from({'name': 'May', 'days': 31, 'number': 5});
+  june = new Data.from({'name': 'June', 'days': 30, 'number': 6});
+  july = new Data.from({'name': 'July', 'days': 31, 'number': 7});
+  august = new Data.from({'name': 'August', 'days': 31, 'number': 8});
+  september = new Data.from({'name': 'September', 'days': 30, 'number': 9});
+  october = new Data.from({'name': 'October', 'days': 31, 'number': 10});
+  november = new Data.from({'name': 'November', 'days': 30, 'number': 11});
+  december = new Data.from({'name': 'December', 'days': 31, 'number': 12});
 
   months = new DataCollection.from([january, february, march, april, may, june,
     july, august, september, october, november, december]);

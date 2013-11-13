@@ -35,6 +35,5 @@ void main() {
       // then
       expect(evenLongMonths, unorderedEquals([august, october, december]));
     });
-
   });
 }
