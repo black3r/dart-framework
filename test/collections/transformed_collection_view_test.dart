@@ -177,5 +177,20 @@ void main() {
 
     });
 
+    test('dispose method (T11)', () {
+      // given
+      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+
+      //then
+      evenMonths.onChangeSync.listen((changeSet) => guardAsync(() => expect(true, isFalse, reason: 'Should not be reached')));
+
+      // when
+      evenMonths.dispose();
+      february['number'] = 13;
+
+
+    });
+
+
   });
 }

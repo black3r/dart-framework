@@ -546,21 +546,17 @@ void main() {
       mock.log.verify(happenedOnce);
     });
 
-    test('dispose method. (T33)', () {
 
+    test('dispose method (T33)', () {
       // given
       var winterCollection = new DataCollection.from([december, january,
-                                                      february]);
+      february]);
+      //then
+      winterCollection.onChangeSync.listen((changeSet) => guardAsync(() => expect(true, isFalse, reason: 'Should not be reached')));
 
       // when
-      winterCollection.onChangeSync.listen((changeSet) => guardAsync(() {
-        expect(true, isFalse, reason: 'Should not be called.');
-      }));
-
       winterCollection.dispose();
       february['days'] = 29;
-
-      // then
 
     });
   });

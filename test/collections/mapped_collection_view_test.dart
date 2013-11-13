@@ -127,23 +127,6 @@ void main() {
     });
 
 
-    test('dispose method.', () {
-      // given
-      var monthsHours = months.map(hoursInMonth);
-      monthsHours.onChangeSync.listen((changeSet) => guardAsync(() {
-        expect(true, isFalse, reason: 'Should not be called.');
-      }));
-
-      // when
-      monthsHours.dispose();
-
-      months.remove(january);
-      january['days'] = 10;
-
-      // then
-    });
-
-
     test('onBeforeAdd is fired before object is added.', () {
       // given
       var monthsHours = months.map(hoursInMonth);
