@@ -356,11 +356,7 @@ abstract class DataChangeListenersMixin {
 /**
  * Collection of [DataView]s.
  */
-//<<<<<<< Updated upstream
 class DataCollection extends DataCollectionView with DataChangeListenersMixin{
-//=======
-//class DataCollection extends Object with IterableMixin<DataView>,DataCollectionView, DataChangeListenersMixin {
-//>>>>>>> Stashed changes
 
   /**
    * Creates an empty collection.
@@ -386,12 +382,11 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin{
    * Data objects should have unique IDs.
    */
   void add(DataView dataObj, {author: null}) {
+    _removedObjects.remove(dataObj);
     _markAdded(dataObj);
     _data.add(dataObj);
     _addOnDataChangeListener(dataObj);
 
-    _removedObjects.remove(dataObj);
-    _markAdded(dataObj);
     _notify(author: author);
   }
 
