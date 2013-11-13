@@ -359,8 +359,10 @@ void main() {
       var dataObj = new Data.fromMap(data);
       var mock = new Mock();
       dataObj.onChangeSync.listen((event) => mock.handler(event));
+      
       // when
       dataObj.clear(author: 'John Doe');
+      
       // then
       mock.getLogs().verify(happenedOnce);
       var event = mock.getLogs().first.args[0];
@@ -375,8 +377,10 @@ void main() {
     test('Data implements map.containsValue(). (T21)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
+      
       // when
       var dataObj = new Data.fromMap(data);
+      
       // then
       expect(dataObj.containsValue('value1'), isTrue);
       expect(dataObj.containsValue('notInValues'), isFalse);  
@@ -392,6 +396,7 @@ void main() {
       dataObj.forEach((key, value) {
         dataCopy[key] = value;
       });
+      
       // then
       expect(dataCopy, equals(data));
     });
@@ -404,6 +409,7 @@ void main() {
       // when
         dataObj.putIfAbsent('key1', () => '');
         dataObj.putIfAbsent('key2', () => '');
+       
       // then
       expect(dataObj['key1'], equals('value1'));
       expect(dataObj['key2'], equals(''));
