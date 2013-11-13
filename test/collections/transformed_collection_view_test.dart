@@ -7,6 +7,7 @@ library transformed_collection_view_test;
 import 'package:unittest/unittest.dart';
 import '../months.dart';
 import 'package:clean_data/clean_data.dart';
+import 'package:unittest/mock.dart';
 
 void main() {
 
@@ -37,7 +38,7 @@ void main() {
 
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -105,7 +106,7 @@ void main() {
     test('adding and removing an object does not raise an event. (T06)', () {
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -137,7 +138,7 @@ void main() {
 
       // given
       var excepted = months.except(evenMonths);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when
@@ -162,6 +163,18 @@ void main() {
           expect(d, equals(january));
           expect(excepted.contains(january), isTrue);
       }));
+    });
+
+    test('onChangeSync on derived collections  (T10)', () {
+      // given
+      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      evenMonths.onChangeSync.listen(expectAsync1((changeSet) {}));
+
+      // when
+      february['number'] = 13;
+
+      // then
+
     });
 
   });

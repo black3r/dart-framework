@@ -214,7 +214,7 @@ void main() {
       // given
       var winterCollection = new DataCollection.from([december, january,
                                                       february]);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when

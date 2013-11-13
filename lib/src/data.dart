@@ -13,7 +13,7 @@ abstract class DataView {
    * distinguish between an absent key and a null value.
    */
   dynamic operator[](key) => _fields[key];
-  
+
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
 
@@ -22,8 +22,8 @@ abstract class DataView {
 
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
-  
-  
+
+
   /**
    * Stream populated with [ChangeSet] events whenever the data gets changed.
    */
@@ -48,7 +48,7 @@ abstract class DataView {
   bool get isNotEmpty {
     return _fields.isNotEmpty;
   }
-  
+
   /**
    * The keys of data object.
    */
@@ -76,6 +76,9 @@ abstract class DataView {
     return _fields.containsKey(key);
   }
 
+  bool containsValue(Object value) {
+    return _fields.containsValue(value);
+  }
   /**
    * Converts to Map.
    */
@@ -125,7 +128,7 @@ abstract class DataView {
     _changeSet.markChanged(key, change);
     _changeSetSync.markChanged(key, change);
   }
-  
+
   void dispose() {
     return;
   }
@@ -134,7 +137,9 @@ abstract class DataView {
 /**
  * A representation for a single unit of structured data.
  */
-class Data extends Object with DataView{
+
+class Data extends Object with DataView implements Map {
+
 
   /**
    * Creates an empty data object.
@@ -144,7 +149,7 @@ class Data extends Object with DataView{
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory Data.fromMap(dynamic data) {
+  factory Data.from(dynamic data) {
     var dataObj = new Data();
     for (var key in data.keys) {
       dataObj[key] = data[key];
@@ -202,5 +207,20 @@ class Data extends Object with DataView{
     }
     _notify(author: author);
   }
-  
+
+  void clear({author: null}) {
+    removeAll(keys.toList(), author: author);
+  }
+
+
+
+  void forEach(void f(key, value)) {
+    _fields.forEach(f);
+  }
+
+  putIfAbsent(key, ifAbsent()) {
+    if (!containsKey(key)) {
+      add(key, ifAbsent());
+    }
+  }
 }

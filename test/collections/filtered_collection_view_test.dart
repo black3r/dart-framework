@@ -36,7 +36,6 @@ void main() {
       expect(evenLongMonths, unorderedEquals([august, october, december]));
     });
 
-
     test('dispose method (T03)', () {
       // given
       var evenMonths = months.where((month) => month['number'] % 2 == 0);
@@ -52,6 +51,5 @@ void main() {
 
 
     });
-
   });
 }
