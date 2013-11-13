@@ -70,7 +70,7 @@ void main() {
     test('value is added to the source collection.', () {
       // given
       var monthsHours = months.map(hoursInMonth);
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
       // when

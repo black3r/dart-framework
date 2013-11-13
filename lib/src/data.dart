@@ -146,7 +146,7 @@ class Data extends Object with DataView implements Map {
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory Data.fromMap(dynamic data) {
+  factory Data.from(dynamic data) {
     var dataObj = new Data();
     for (var key in data.keys) {
       dataObj[key] = data[key];
@@ -217,7 +217,7 @@ class Data extends Object with DataView implements Map {
   }
 
   putIfAbsent(key, ifAbsent()) {
-    if(!containsKey(key)){
+    if (!containsKey(key)) {
       add(key, ifAbsent());
     }
   }

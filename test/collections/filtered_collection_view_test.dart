@@ -38,7 +38,7 @@ void main() {
 
     test('changing the source collection. (T03)', () {
       // given
-      var fantasyMonth = new Data.fromMap(
+      var fantasyMonth = new Data.from(
           {'name': 'FantasyMonth', 'days': 13, 'number': 13});
       var oddMonths = months.where((month) => month['number'] % 2 == 1);
 
