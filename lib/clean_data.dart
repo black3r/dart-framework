@@ -11,8 +11,13 @@ import "dart:core";
 import "dart:async";
 import "dart:collection";
 
-part 'src/model.dart';
-part 'src/collection.dart';
-part 'src/childcollection.dart';
-part 'src/filteredcollection.dart';
-part 'src/sortedcollection.dart';
+part 'src/data.dart';
+part 'src/data_collection.dart';
+part 'src/id_generator.dart';
+part 'src/change_set.dart';
+
+part 'src/collections/transformed_collection_view.dart';
+part 'src/collections/filtered_collection_view.dart';
+part 'src/collections/mapped_collection_view.dart';
+
+part 'src/hash_index.dart';
