@@ -24,6 +24,8 @@ abstract class DataCollectionView extends Object
    */
   final Set<DataView> _data = new Set<DataView>();
 
+  int get length => _data.length;
+
 // ============================ index ======================
 
   /**
@@ -115,29 +117,29 @@ abstract class DataCollectionView extends Object
    * Stream populated with [DataView] events before any
    * data object is added.
    */
-   Stream<DataView> get onBeforeAdded => _onBeforeAddedController.stream;
+  Stream<DataView> get onBeforeAdded => _onBeforeAddedController.stream;
 
   /**
    * Stream populated with [DataView] events before any
    * data object is removed.
    */
-   Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
+  Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
 
-   /**
-    * Used to propagate change events to the outside world.
-    */
+  /**
+   * Used to propagate change events to the outside world.
+   */
 
-   final StreamController<DataView> _onBeforeAddedController =
-       new StreamController.broadcast(sync: true);
-   final StreamController<DataView> _onBeforeRemovedController =
-       new StreamController.broadcast(sync: true);
+  final StreamController<DataView> _onBeforeAddedController =
+      new StreamController.broadcast(sync: true);
+  final StreamController<DataView> _onBeforeRemovedController =
+      new StreamController.broadcast(sync: true);
 
   /**
    * Returns true iff this collection contains the given [dataObj].
    *
    * @param dataObj Data object to be searched for.
    */
-   bool contains(DataView dataObj) => _data.contains(dataObj);
+  bool contains(DataView dataObj) => _data.contains(dataObj);
 
   /**
    * Filters the data collection w.r.t. the given filter function [test].
@@ -145,55 +147,54 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-   DataCollectionView where(DataTestFunction test) {
-    return new FilteredCollectionView(this, test);
-   }
+  DataCollectionView where(DataTestFunction test) {
+   return new FilteredCollectionView(this, test);
+  }
 
-   /**
-    * Maps the data collection to a new collection w.r.t. the given [mapping].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView map(DataTransformFunction mapping) {
-     return new MappedCollectionView(this, mapping);
-   }
+  /**
+   * Maps the data collection to a new collection w.r.t. the given [mapping].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView map(DataTransformFunction mapping) {
+    return new MappedCollectionView(this, mapping);
+  }
 
-   /**
-    * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView union(DataCollectionView other) {
-     return other == this
-         ? this
-             : new UnionedCollectionView(this, other);
-   }
+  /**
+   * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView union(DataCollectionView other) {
+    return other == this
+        ? this
+            : new UnionedCollectionView(this, other);
+  }
 
-   /**
-    * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView intersection(DataCollectionView other) {
-     return other == this
-         ? this
-             : new IntersectedCollectionView(this, other);
-   }
-   /**
-    * Minuses the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    *
-    */
-   DataCollectionView except(DataCollectionView other) {
-     return new ExceptedCollectionView(this, other);
-   }
+  /**
+   * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView intersection(DataCollectionView other) {
+    return other == this
+        ? this
+            : new IntersectedCollectionView(this, other);
+  }
+  /**
+   * Minuses the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   *
+   */
+  DataCollectionView except(DataCollectionView other) {
+    return new ExceptedCollectionView(this, other);
+  }
 
-  int get length => _data.length;
 
   void unattachListeners() {
     _onChangeController.close();
