@@ -13,7 +13,9 @@ typedef dynamic DataTransformFunction(DataView d);
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
-abstract class DataCollectionView extends Object with IterableMixin<DataView> implements Iterable<DataView> {
+abstract class DataCollectionView extends Object
+               with IterableMixin<DataView>, ChangeNotificationsMixin
+               implements Iterable<DataView> {
 
   Iterator<DataView> get iterator => _data.iterator;
 
@@ -21,9 +23,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    * Holds data view objects for the collection.
    */
   final Set<DataView> _data = new Set<DataView>();
-
-
-
 
 // ============================ index ======================
 
@@ -55,7 +54,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
       }
     }
   }
-
 
   /**
    * (Re)indexes all existing data objects into [prop] index.
@@ -113,14 +111,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
   // ============================ /index ======================
 
-
-
-  /**
-   * Stream populated with [ChangeSet] events whenever the collection or any
-   * of data object contained gets changed.
-   */
-   Stream<ChangeSet> get onChange => _onChangeController.stream;
-
   /**
    * Stream populated with [DataView] events before any
    * data object is added.
@@ -133,12 +123,14 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    */
    Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
 
-  /**
-   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
-   * synchronously at the moment when the collection or any data object contained
-   * gets changed.
-   */
-   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
+   /**
+    * Used to propagate change events to the outside world.
+    */
+
+   final StreamController<DataView> _onBeforeAddedController =
+       new StreamController.broadcast(sync: true);
+   final StreamController<DataView> _onBeforeRemovedController =
+       new StreamController.broadcast(sync: true);
 
   /**
    * Returns true iff this collection contains the given [dataObj].
@@ -201,64 +193,38 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
      return new ExceptedCollectionView(this, other);
    }
 
-//}
-
-/**
- * A minimal implementation of [DataCollectionView].
- */
-//abstract class DataCollectionViewMixin implements DataCollectionView {
-
-
-
-  /**
-   * Used to propagate change events to the outside world.
-   */
-
-
-
-  final StreamController<ChangeSet> _onChangeController =
-      new StreamController.broadcast();
-  final StreamController<Map> _onChangeSyncController =
-      new StreamController.broadcast(sync: true);
-
-  final StreamController<DataView> _onBeforeAddedController =
-      new StreamController.broadcast(sync: true);
-  final StreamController<DataView> _onBeforeRemovedController =
-      new StreamController.broadcast(sync: true);
-
-  /**
-   * Current state of the collection expressed by a [ChangeSet].
-   */
-  ChangeSet _changeSet = new ChangeSet();
-  ChangeSet _changeSetSync = new ChangeSet();
-
-//  Set<DataView>_removedObjects = new Set<DataView>();
-
   int get length => _data.length;
-
 
   void unattachListeners() {
     _onChangeController.close();
   }
 
   /**
-   * Reset the change log of the collection.
-   */
-  void _clearChanges() {
-    _changeSet = new ChangeSet();
-  }
-
-  void _clearChangesSync() {
-    _changeSetSync = new ChangeSet();
-  }
-
-  /**
    * Stream all new changes marked in [ChangeSet].
    */
+  void _markAdded(DataView dataObj) {
+    _onBeforeAddedController.add(dataObj);
+
+    // mark the addition of [dataObj]
+    _changeSet.markAdded(dataObj);
+    _changeSetSync.markAdded(dataObj);
+  }
+
+  void _markRemoved(DataView dataObj) {
+    _onBeforeRemovedController.add(dataObj);
+
+    // mark the removal of [dataObj]
+    _changeSet.markRemoved(dataObj);
+    _changeSetSync.markRemoved(dataObj);
+  }
+
+  //for the mixin
   void _updateRemovedObjects() {}
 
   void _notify({author: null}) {
     _changeSetSync.prettify();
+
+    //TODO shouldn't be _changeSetSync.isEmpty? But both are working :P
     if(!_changeSet.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
       _clearChangesSync();
@@ -276,27 +242,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
         }
       }
     });
-  }
-
-  void _markAdded(DataView dataObj) {
-    _onBeforeAddedController.add(dataObj);
-
-    // mark the addition of [dataObj]
-    _changeSet.markAdded(dataObj);
-    _changeSetSync.markAdded(dataObj);
-  }
-
-  void _markRemoved(DataView dataObj) {
-    _onBeforeRemovedController.add(dataObj);
-
-    // mark the removal of [dataObj]
-    _changeSet.markRemoved(dataObj);
-    _changeSetSync.markRemoved(dataObj);
-  }
-
-  void _markChanged(DataView dataObj, ChangeSet changeSet) {
-    _changeSet.markChanged(dataObj, changeSet);
-    _changeSetSync.markChanged(dataObj, changeSet);
   }
 
   void dispose() {

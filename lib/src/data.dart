@@ -4,7 +4,8 @@
 
 part of clean_data;
 
-abstract class ChangeNotificationMixin {
+//TODO consider moving mixin to separate file
+abstract class ChangeNotificationsMixin {
   /**
    * Holds pending changes.
    */
@@ -12,7 +13,7 @@ abstract class ChangeNotificationMixin {
   ChangeSet _changeSetSync = new ChangeSet();
 
   /**
-   * Controlls notification streams.
+   * Controlls notification streams. Used to propagate change events to the outside world.
    */
   final StreamController<ChangeSet> _onChangeController =
       new StreamController.broadcast();
@@ -21,17 +22,19 @@ abstract class ChangeNotificationMixin {
       new StreamController.broadcast(sync: true);
 
   /**
-   * Stream populated with [ChangeSet] events whenever the data gets changed.
+   * Stream populated with [ChangeSet] events whenever the collection or any
+   * of data object contained gets changed.
    */
   Stream<ChangeSet> get onChange => _onChangeController.stream;
 
   /**
    * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
-   * synchronously at the moment when the data get changed.
+   * synchronously at the moment when the collection or any data object contained
+   * gets changed.
    */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
-  //======= Change set manipulators =======
+  //======= changeSet manipulators =======
 
   _clearChanges() {
     _changeSet = new ChangeSet();
@@ -41,28 +44,27 @@ abstract class ChangeNotificationMixin {
     _changeSetSync = new ChangeSet();
   }
 
-  _markAdded(String key) {
+  _markAdded(dynamic key) {
     _changeSetSync.markAdded(key);
     _changeSet.markAdded(key);
   }
 
-  _markRemoved(String key) {
+  _markRemoved(dynamic key) {
     _changeSet.markRemoved(key);
     _changeSetSync.markRemoved(key);
   }
 
-  _markChanged(String key, Change change) {
+  _markChanged(dynamic key, dynamic change) {
     _changeSet.markChanged(key, change);
     _changeSetSync.markChanged(key, change);
   }
 
-  //======= /Change set manipulators =======
+  //======= /changeSet manipulators =======
 
   /**
    * Streams all new changes marked in [changeSet].
    */
   void _notify({author: null}) {
-
     if (!_changeSetSync.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
       _clearChangesSync();
@@ -81,7 +83,7 @@ abstract class ChangeNotificationMixin {
   }
 }
 
-abstract class DataView extends Object with ChangeNotificationMixin {
+abstract class DataView extends Object with ChangeNotificationsMixin {
 
   final Map _fields = new Map();
   /**
