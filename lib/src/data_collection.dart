@@ -255,7 +255,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   /**
    * Stream all new changes marked in [ChangeSet].
    */
-  void _onBeforeNotification(){}
+  void _updateRemovedObjectsSubscriptions(){}
 
   void _notify({author: null}) {
     _changeSetSync.prettify();
@@ -266,7 +266,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
     Timer.run(() {
       if(!_changeSet.isEmpty) {
-        _onBeforeNotification();
+        _updateRemovedObjectsSubscriptions();
 
         _changeSet.prettify();
 
@@ -312,27 +312,36 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   }
 }
 
-
+/**
+ * Mixin which manages listeners for [Data] objects contained in the collection.
+ * It also listens to [Data] changes and propagates them from collection.
+ */
 abstract class DataChangeListenersMixin {
 
+  /**
+   * Called when [dataObj] is changed.
+   */
   void _markChanged(DataView dataObj, changeEvent);
+
+  /**
+   * Called when changes should be processed.
+   */
   void _notify({author});
 
   /**
    * Internal Set of data objects removed from Collection that still have DataListener listening.
    */
   Set<DataView>_removedObjects = new Set<DataView>();
+
   /**
    * Internal set of listeners for change events on individual data objects.
    */
   final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
 
-  void _onBeforeNotification() {
-    _removeAllOnDataChangeListeners();
-    _removedObjects.clear();
-  }
-
+  /**
+   * Listens to changes on [dataObj] and propagates them to the collection.
+   */
   void _addOnDataChangeListener(DataView dataObj) {
     if (_dataListeners.containsKey(dataObj)) return;
 
@@ -342,17 +351,24 @@ abstract class DataChangeListenersMixin {
     });
   }
 
-  void _removeAllOnDataChangeListeners() {
-    for(DataView dataObj in _removedObjects.toList()) {
-      _removeOnDataChangeListener(dataObj);
-    }
-  }
-
+  /**
+   * Stops listening to changes on [dataObj].
+   */
   void _removeOnDataChangeListener(DataView dataObj) {
     if (_dataListeners.containsKey(dataObj)) {
       _dataListeners[dataObj].cancel();
       _dataListeners.remove(dataObj);
     }
+  }
+
+  /**
+   * Removes subscriptions to [Data] objects which are needed no more.
+   */
+  void _updateRemovedObjectsSubscriptions() {
+    for(DataView dataObj in _removedObjects.toList()) {
+      _removeOnDataChangeListener(dataObj);
+    }
+    _removedObjects.clear();
   }
 }
 /**
@@ -416,7 +432,6 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin{
     _markRemoved(dataObj);
     _data.remove(dataObj);
     _notify(author: author);
-    //TODO: Why aren't we removing onChangeListeners?
   }
 
   /**
