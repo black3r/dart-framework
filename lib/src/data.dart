@@ -4,25 +4,21 @@
 
 part of clean_data;
 
-abstract class DataView {
-
-  final Map _fields = new Map();
+abstract class ChangeNotificationMixin {
   /**
-   * Returns the value for the given key or null if key is not in the data object.
-   * Because null values are supported, one should use containsKey to
-   * distinguish between an absent key and a null value.
+   * Holds pending changes.
    */
-  dynamic operator[](key) => _fields[key];
-
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
 
+  /**
+   * Controlls notification streams.
+   */
   final StreamController<ChangeSet> _onChangeController =
       new StreamController.broadcast();
 
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
-
 
   /**
    * Stream populated with [ChangeSet] events whenever the data gets changed.
@@ -34,6 +30,66 @@ abstract class DataView {
    * synchronously at the moment when the data get changed.
    */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
+
+  //======= Change set manipulators =======
+
+  _clearChanges() {
+    _changeSet = new ChangeSet();
+  }
+
+  _clearChangesSync() {
+    _changeSetSync = new ChangeSet();
+  }
+
+  _markAdded(String key) {
+    _changeSetSync.markAdded(key);
+    _changeSet.markAdded(key);
+  }
+
+  _markRemoved(String key) {
+    _changeSet.markRemoved(key);
+    _changeSetSync.markRemoved(key);
+  }
+
+  _markChanged(String key, Change change) {
+    _changeSet.markChanged(key, change);
+    _changeSetSync.markChanged(key, change);
+  }
+
+  //======= /Change set manipulators =======
+
+  /**
+   * Streams all new changes marked in [changeSet].
+   */
+  void _notify({author: null}) {
+
+    if (!_changeSetSync.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+      _clearChangesSync();
+    }
+
+    Timer.run(() {
+      if(!_changeSet.isEmpty) {
+        _changeSet.prettify();
+
+        if(!_changeSet.isEmpty) {
+          _onChangeController.add(_changeSet);
+          _clearChanges();
+        }
+      }
+    });
+  }
+}
+
+abstract class DataView extends Object with ChangeNotificationMixin {
+
+  final Map _fields = new Map();
+  /**
+   * Returns the value for the given key or null if key is not in the data object.
+   * Because null values are supported, one should use containsKey to
+   * distinguish between an absent key and a null value.
+   */
+  dynamic operator[](key) => _fields[key];
 
   /**
    * Returns true if there is no {key, value} pair in the data object.
@@ -85,59 +141,15 @@ abstract class DataView {
   Map toJson() => new Map.from(_fields);
 
   /**
-   * Streams all new changes marked in [changeSet].
+   * Should release all allocated (referenced) resources as subscribtions.
    */
-  void _notify({author: null}) {
-
-    if (!_changeSetSync.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-      _clearChangesSync();
-    }
-
-    Timer.run(() {
-      if(!_changeSet.isEmpty) {
-        _changeSet.prettify();
-
-        if(!_changeSet.isEmpty) {
-          _onChangeController.add(_changeSet);
-          _clearChanges();
-        }
-      }
-    });
-  }
-
-  _clearChanges() {
-    _changeSet = new ChangeSet();
-  }
-
-  _clearChangesSync() {
-    _changeSetSync = new ChangeSet();
-  }
-
-  _markAdded(String key) {
-    _changeSetSync.markAdded(key);
-    _changeSet.markAdded(key);
-  }
-
-  _markRemoved(String key) {
-    _changeSet.markRemoved(key);
-    _changeSetSync.markRemoved(key);
-  }
-
-  _markChanged(String key, Change change) {
-    _changeSet.markChanged(key, change);
-    _changeSetSync.markChanged(key, change);
-  }
-
   void dispose();
 }
 
 /**
  * A representation for a single unit of structured data.
  */
-
 class Data extends DataView implements Map {
-
 
   /**
    * Creates an empty data object.
@@ -209,8 +221,6 @@ class Data extends DataView implements Map {
   void clear({author: null}) {
     removeAll(keys.toList(), author: author);
   }
-
-
 
   void forEach(void f(key, value)) {
     _fields.forEach(f);
