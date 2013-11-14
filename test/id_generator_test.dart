@@ -5,7 +5,6 @@
 library id_generator_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
