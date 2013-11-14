@@ -310,7 +310,9 @@ abstract class DataChangeListenersMixin {
 
   void _markChanged(DataView dataObj, changeEvent);
   void _notify({author});
-
+  /**
+   * Internal Set of data objects removed from Collection that still have DataListener listening.
+   */
   Set<DataView>_removedObjects = new Set<DataView>();
   /**
    * Internal set of listeners for change events on individual data objects.
@@ -346,6 +348,12 @@ abstract class DataChangeListenersMixin {
    * Stops listening to changes on [dataObj]
    * Second possibility is to add to [_removedObjects] and call [_updateRemovedObjects]
    */
+  void _removeAllOnDataChangeListeners() {
+    for(DataView dataObj in _removedObjects.toList()) {
+      _removeOnDataChangeListener(dataObj);
+    }
+  }
+
   void _removeOnDataChangeListener(DataView dataObj) {
     if (_dataListeners.containsKey(dataObj)) {
       _dataListeners[dataObj].cancel();
@@ -382,6 +390,7 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin {
    * Data objects should have unique IDs.
    */
   void add(DataView dataObj, {author: null}) {
+    _removedObjects.remove(dataObj);
     _markAdded(dataObj);
     _removedObjects.remove(dataObj);
 
