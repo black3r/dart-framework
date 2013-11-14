@@ -4,6 +4,7 @@
 
 library mapped_collection_view_test;
 
+import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 import '../months.dart';
@@ -108,6 +109,8 @@ void main() {
       monthsHours.onChange.listen(expectAsync1((ChangeSet event) {
         verifyHoursMatch(months, monthsHours);
         expect(event.changedItems.length, equals(1));
+        expect(event.changedItems.keys.first, new isInstanceOf<MappedDataView>());
+        expect(event.changedItems.keys.first.source['days'], equals(10));
       }));
     });
 
@@ -157,7 +160,6 @@ void main() {
       }));
     });
 
-
     test('dispose method.', () {
        // given
        var monthsHours = months.map(hoursInMonth);
@@ -173,5 +175,24 @@ void main() {
        months.remove(january);
        february['days'] = 1;
      });
+
+    test('after removing, collection does not listen to changes on object anymore.', () {
+      // given
+      var monthsHours = months.map(hoursInMonth);
+      var mappedView = monthsHours.first;
+      var month = mappedView.source;
+
+      // when
+      months.remove(month);
+      Timer.run(() {
+        month['days'] = 10;
+        mappedView.onChange.listen((c) => expect(true, isFalse));
+      });
+
+      // then
+      monthsHours.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.removedItems.length, equals(1));
+      }));
+    });
   });
 }

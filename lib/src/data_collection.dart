@@ -267,7 +267,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     Timer.run(() {
       if(!_changeSet.isEmpty) {
         _updateRemovedObjectsSubscriptions();
-
         _changeSet.prettify();
 
         if(!_changeSet.isEmpty) {
@@ -431,6 +430,7 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin{
     _removedObjects.add(dataObj);
     _markRemoved(dataObj);
     _data.remove(dataObj);
+
     _notify(author: author);
   }
 

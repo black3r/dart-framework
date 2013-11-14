@@ -24,6 +24,7 @@ class MappedDataView extends DataView {
     for (var key in mappedObj.keys) {
       _fields[key] = mappedObj[key];
     }
+    //TODO shouldn't this go through the collection?
     _sourceSubscription = source.onChange.listen((c) =>_remap());
   }
 
@@ -71,6 +72,7 @@ class MappedDataView extends DataView {
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
+//TODO MappedCollectionView just don't need removeDataChangeListener
 class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin{
 
   final _mapping;
@@ -90,25 +92,26 @@ class MappedCollectionView extends TransformedDataCollection with DataChangeList
    */
   void _addMapped(DataView dataObj) {
     MappedDataView mappedObj = new MappedDataView(dataObj, _mapping);
+
+    //_removedObjects.remove(mappedObj);
     _markAdded(mappedObj);
-
     _data.add(mappedObj);
-
     _addOnDataChangeListener(mappedObj);
+
+    //_notify called in TDC._mergeIn
   }
 
   void _treatAddedItem(DataView d, int sourceNumber) => _addMapped(d);
 
   void _treatRemovedItem(DataView dataObj, int sourceNumber) {
-
     // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
 
+    //_removedObjects.add(mappedDataObj);
     _markRemoved(mappedDataObj);
-
-    // remove the mapped object and its stream subscription as well
     _data.remove(mappedDataObj);
-    _removeOnDataChangeListener(mappedDataObj);
+
+    //_notify called in TDC._mergeIn
   }
 
 }
