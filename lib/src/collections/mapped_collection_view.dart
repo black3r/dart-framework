@@ -6,6 +6,8 @@ part of clean_data;
 
 /**
  * DataView
+ * Listens to changes on [source] and transforms ([_remap]) itself correspondingly.
+ * Clients could listen to its changes.
  */
 class MappedDataView extends DataView {
 
@@ -14,6 +16,7 @@ class MappedDataView extends DataView {
    */
   final DataView source;
   StreamSubscription _sourceSubscription;
+
   /**
    * Mapping function that maps a [DataView] to another [DataView]
    */
@@ -24,13 +27,11 @@ class MappedDataView extends DataView {
     for (var key in mappedObj.keys) {
       _fields[key] = mappedObj[key];
     }
-    //TODO shouldn't this go through the collection?
     _sourceSubscription = source.onChange.listen((c) =>_remap());
   }
 
   /**
-   * Re-applies the mapping transformation on this data object. If [silent],
-   * no changes will be broadcasted.
+   * Re-applies the mapping transformation on this data object.
    * TODO: Rewrite to work with synced.
    */
   void _remap() {
@@ -72,8 +73,12 @@ class MappedDataView extends DataView {
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
-//TODO MappedCollectionView just don't need removeDataChangeListener
-class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin{
+//It took me a lot time to figure out so:
+//DevNote: [add, remove] goes source -> This -> MappedDataView & others
+//DevNote: [change] goes source_data_object -> MappedDataView -> This -> others
+//DevNote: MappedCollection doesn't need DCLMixin.removedObjects
+//  (as it has full power over them and recreates them when they are readed)
+class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin {
 
   final _mapping;
 
@@ -92,13 +97,11 @@ class MappedCollectionView extends TransformedDataCollection with DataChangeList
    */
   void _addMapped(DataView dataObj) {
     MappedDataView mappedObj = new MappedDataView(dataObj, _mapping);
-
-    //_removedObjects.remove(mappedObj);
     _markAdded(mappedObj);
-    _data.add(mappedObj);
-    _addOnDataChangeListener(mappedObj);
 
-    //_notify called in TDC._mergeIn
+    _data.add(mappedObj);
+
+    _addOnDataChangeListener(mappedObj);
   }
 
   void _treatAddedItem(DataView d, int sourceNumber) => _addMapped(d);
@@ -107,11 +110,19 @@ class MappedCollectionView extends TransformedDataCollection with DataChangeList
     // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
 
-    //_removedObjects.add(mappedDataObj);
     _markRemoved(mappedDataObj);
+
+    // remove the mapped object and its stream subscription as well
     _data.remove(mappedDataObj);
 
-    //_notify called in TDC._mergeIn
+    // remove listeners mappedDataObj -> source and this -> mappedDataObj
+    mappedDataObj.dispose();
+    _removeOnDataChangeListener(mappedDataObj);
   }
 
+  void dispose(){
+    super.dispose();
+    _dataListeners.forEach((data, subscription) => subscription.cancel());
+    _data.forEach((mdw) => mdw.dispose());
+  }
 }
