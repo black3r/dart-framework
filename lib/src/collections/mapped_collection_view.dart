@@ -6,6 +6,8 @@ part of clean_data;
 
 /**
  * DataView
+ * Listens to changes on [source] and transforms ([_remap]) itself correspondingly.
+ * Clients could listen to its changes.
  */
 class MappedDataView extends DataView {
 
@@ -14,6 +16,7 @@ class MappedDataView extends DataView {
    */
   final DataView source;
   StreamSubscription _sourceSubscription;
+
   /**
    * Mapping function that maps a [DataView] to another [DataView]
    */
@@ -28,8 +31,7 @@ class MappedDataView extends DataView {
   }
 
   /**
-   * Re-applies the mapping transformation on this data object. If [silent],
-   * no changes will be broadcasted.
+   * Re-applies the mapping transformation on this data object.
    * TODO: Rewrite to work with synced.
    */
   void _remap() {
@@ -71,7 +73,12 @@ class MappedDataView extends DataView {
 /**
  * Represents a read-only data collection that is a result of a mapping operation on another collection.
  */
-class MappedCollectionView extends TransformedDataCollection {
+//It took me a lot time to figure out so:
+//DevNote: [add, remove] goes source -> This -> MappedDataView & others
+//DevNote: [change] goes source_data_object -> MappedDataView -> This -> others
+//DevNote: MappedCollection doesn't need DCLMixin.removedObjects
+//  (as it has full power over them and recreates them when they are readed)
+class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin {
 
   final _mapping;
 
@@ -100,7 +107,6 @@ class MappedCollectionView extends TransformedDataCollection {
   void _treatAddedItem(DataView d, int sourceNumber) => _addMapped(d);
 
   void _treatRemovedItem(DataView dataObj, int sourceNumber) {
-
     // find the mapped object and mark it as removed
     DataView mappedDataObj = _data.toList().where((d) => d.source == dataObj).first;
 
@@ -108,7 +114,15 @@ class MappedCollectionView extends TransformedDataCollection {
 
     // remove the mapped object and its stream subscription as well
     _data.remove(mappedDataObj);
+
+    // remove listeners mappedDataObj -> source and this -> mappedDataObj
+    mappedDataObj.dispose();
     _removeOnDataChangeListener(mappedDataObj);
   }
 
+  void dispose(){
+    super.dispose();
+    _dataListeners.forEach((data, subscription) => subscription.cancel());
+    _data.forEach((mdw) => mdw.dispose());
+  }
 }
