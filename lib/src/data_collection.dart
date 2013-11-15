@@ -47,8 +47,8 @@ abstract class DataCollectionView extends Object
          _initIndexListener();
       }
 
-      for(String prop in indexedProps) {
-        if(!_index.containsKey(prop)) {
+      for (String prop in indexedProps) {
+        if (!_index.containsKey(prop)) {
           // create and initialize the index
           _index[prop] = new HashIndex();
           _rebuildIndex(prop);
@@ -61,7 +61,7 @@ abstract class DataCollectionView extends Object
    * (Re)indexes all existing data objects into [prop] index.
    */
   void _rebuildIndex(String prop) {
-    for(DataView d in this) {
+    for (DataView d in this) {
       if (d.containsKey(prop)) {
         _index[prop].add(d[prop], d);
       }
@@ -203,49 +203,6 @@ abstract class DataCollectionView extends Object
   /**
    * Stream all new changes marked in [ChangeSet].
    */
-  void _markAdded(DataView dataObj) {
-    _onBeforeAddedController.add(dataObj);
-
-    // mark the addition of [dataObj]
-    _changeSet.markAdded(dataObj);
-    _changeSetSync.markAdded(dataObj);
-  }
-
-  void _markRemoved(DataView dataObj) {
-    _onBeforeRemovedController.add(dataObj);
-
-    // mark the removal of [dataObj]
-    _changeSet.markRemoved(dataObj);
-    _changeSetSync.markRemoved(dataObj);
-  }
-
-  /**
-   * Stream all new changes marked in [ChangeSet].
-   */
-  void _onBeforeNotify() {}
-
-  void _notify({author: null}) {
-    _changeSetSync.prettify();
-
-    //TODO shouldn't be _changeSetSync.isEmpty? But both are working :P
-    if(!_changeSet.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-      _clearChangesSync();
-    }
-
-    Timer.run(() {
-      if(!_changeSet.isEmpty) {
-        _onBeforeNotify();
-
-        _changeSet.prettify();
-
-        if(!_changeSet.isEmpty) {
-          _onChangeController.add(_changeSet);
-          _clearChanges();
-        }
-      }
-    });
-  }
 
   void dispose() {
     if (_indexListenerSubscription != null) {

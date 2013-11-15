@@ -34,6 +34,28 @@ abstract class ChangeNotificationsMixin {
    */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
+
+  /**
+   * Used to propagate change events to the outside world.
+   */
+
+  final StreamController<dynamic> _onBeforeAddedController =
+      new StreamController.broadcast(sync: true);
+  final StreamController<dynamic> _onBeforeRemovedController =
+      new StreamController.broadcast(sync: true);
+
+  /**
+   * Stream populated with [DataView] events before any
+   * data object is added.
+   */
+   Stream<dynamic> get onBeforeAdd => _onBeforeAddedController.stream;
+
+  /**
+   * Stream populated with [DataView] events before any
+   * data object is removed.
+   */
+   Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
+
   //======= changeSet manipulators =======
 
   _clearChanges() {
@@ -45,11 +67,15 @@ abstract class ChangeNotificationsMixin {
   }
 
   _markAdded(dynamic key) {
+    _onBeforeAddedController.add(key);
+
     _changeSetSync.markAdded(key);
     _changeSet.markAdded(key);
   }
 
   _markRemoved(dynamic key) {
+    _onBeforeRemovedController.add(key);
+
     _changeSet.markRemoved(key);
     _changeSetSync.markRemoved(key);
   }
@@ -64,6 +90,8 @@ abstract class ChangeNotificationsMixin {
   /**
    * Streams all new changes marked in [changeSet].
    */
+  void _onBeforeNotify() {}
+
   void _notify({author: null}) {
     if (!_changeSetSync.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
@@ -71,10 +99,11 @@ abstract class ChangeNotificationsMixin {
     }
 
     Timer.run(() {
-      if(!_changeSet.isEmpty) {
+      if (!_changeSet.isEmpty) {
         _changeSet.prettify();
+        _onBeforeNotify();
 
-        if(!_changeSet.isEmpty) {
+        if (!_changeSet.isEmpty) {
           _onChangeController.add(_changeSet);
           _clearChanges();
         }
