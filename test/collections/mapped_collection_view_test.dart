@@ -182,10 +182,10 @@ void main() {
 
       // when
       months.remove(month);
-      Timer.run(() {
+      Timer.run(expectAsync0(() {
         month['temperature'] = -10;
         mappedView.onChange.listen((c) => expect(true, isFalse));
-      });
+      }));
 
       // then
       monthsHours.onChange.listen(expectAsync1((ChangeSet event) {
@@ -201,12 +201,12 @@ void main() {
 
       // when
       months.remove(month);
-      Timer.run(() {
+      Timer.run(expectAsync0(() {
         month['temperature'] = -10;
         monthsHours.onChange.listen(
             (event) => expect(event.changedItems.length, equals(0))
         );
-      });
+      }));
 
       // then
       monthsHours.onChange.listen(expectAsync1((ChangeSet event) {
