@@ -6,12 +6,14 @@ library hop_runner;
 
 import 'package:hop/hop.dart';
 import 'package:hop/hop_tasks.dart';
+import '../test/test_all.dart' as test_all;
 
 void main (List<String> args) {
   var paths = ['lib/clean_data.dart'];
 
   addTask('docs', createDartDocTask(paths, linkApi: true));
-  addTask('analyze_libs', createAnalyzerTask(paths));
+  addTask('analyze', createAnalyzerTask(paths));
+  addTask('test', createUnitTestTask(test_all.run));
 
   runHop(args);
 }
