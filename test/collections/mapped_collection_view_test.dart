@@ -138,7 +138,7 @@ void main() {
       months.add(fantasyMonth);
 
       // then
-      monthsHours.onBeforeAdded.listen(expectAsync1((MappedDataView mdv) {
+      monthsHours.onBeforeAdd.listen(expectAsync1((MappedDataView mdv) {
         expect(mdv.source, equals(fantasyMonth));
         expect(monthsHours.contains(fantasyMonth), isFalse);
       }));
@@ -152,7 +152,7 @@ void main() {
       months.remove(january);
 
       // then
-      monthsHours.onBeforeRemoved.listen(expectAsync1((MappedDataView mdv) {
+      monthsHours.onBeforeRemove.listen(expectAsync1((MappedDataView mdv) {
         expect(mdv.source, equals(january));
         expect(monthsHours.contains(mdv), isTrue);
       }));
@@ -182,10 +182,10 @@ void main() {
 
       // when
       months.remove(month);
-      Timer.run(() {
+      Timer.run(expectAsync0(() {
         month['temperature'] = -10;
         mappedView.onChange.listen((c) => expect(true, isFalse));
-      });
+      }));
 
       // then
       monthsHours.onChange.listen(expectAsync1((ChangeSet event) {
@@ -201,12 +201,12 @@ void main() {
 
       // when
       months.remove(month);
-      Timer.run(() {
+      Timer.run(expectAsync0(() {
         month['temperature'] = -10;
         monthsHours.onChange.listen(
             (event) => expect(event.changedItems.length, equals(0))
         );
-      });
+      }));
 
       // then
       monthsHours.onChange.listen(expectAsync1((ChangeSet event) {

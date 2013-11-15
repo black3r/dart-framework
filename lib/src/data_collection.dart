@@ -117,13 +117,13 @@ abstract class DataCollectionView extends Object
    * Stream populated with [DataView] events before any
    * data object is added.
    */
-  Stream<DataView> get onBeforeAdded => _onBeforeAddedController.stream;
+   Stream<DataView> get onBeforeAdd => _onBeforeAddedController.stream;
 
   /**
    * Stream populated with [DataView] events before any
    * data object is removed.
    */
-  Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
+   Stream<DataView> get onBeforeRemove => _onBeforeRemovedController.stream;
 
   /**
    * Used to propagate change events to the outside world.
@@ -219,8 +219,10 @@ abstract class DataCollectionView extends Object
     _changeSetSync.markRemoved(dataObj);
   }
 
-  //for the mixin
-  void _updateRemovedObjects() {}
+  /**
+   * Stream all new changes marked in [ChangeSet].
+   */
+  void _onBeforeNotify() {}
 
   void _notify({author: null}) {
     _changeSetSync.prettify();
@@ -233,7 +235,7 @@ abstract class DataCollectionView extends Object
 
     Timer.run(() {
       if(!_changeSet.isEmpty) {
-        _updateRemovedObjects();
+        _onBeforeNotify();
 
         _changeSet.prettify();
 
@@ -269,7 +271,7 @@ abstract class DataChangeListenersMixin {
   /**
    * Removes listeners to all objects which have been removed and stacked in [_removedObjects]
    */
-  void _updateRemovedObjects() {
+  void _onBeforeNotify() {
     // if this object was removed and then re-added in this event loop, don't
     // destroy onChange listener to it.
     for(DataView dataObj in _removedObjects.toList()) {
@@ -292,7 +294,7 @@ abstract class DataChangeListenersMixin {
 
   /**
    * Stops listening to changes on [dataObj]
-   * Second possibility is to add to [_removedObjects] and call [_updateRemovedObjects]
+   * Second possibility is to add to [_removedObjects] and call [_onBeforeNotify]
    */
   void _removeAllOnDataChangeListeners() {
     for(DataView dataObj in _removedObjects.toList()) {

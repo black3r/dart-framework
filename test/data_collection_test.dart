@@ -491,7 +491,7 @@ void main() {
 
       Mock mock = new Mock();
 
-      winterCollection.onBeforeAdded.listen((d) {
+      winterCollection.onBeforeAdd.listen((d) {
           mock.handler(d);
           expect(winterCollection.contains(march), isFalse);
           expect(d, equals(march));
@@ -511,7 +511,7 @@ void main() {
 
       Mock mock = new Mock();
 
-      winterCollection.onBeforeRemoved.listen((d) {
+      winterCollection.onBeforeRemove.listen((d) {
           mock.handler(d);
           expect(winterCollection.contains(december), isTrue);
           expect(d, equals(december));
@@ -531,7 +531,7 @@ void main() {
 
       Mock mock = new Mock();
 
-      winterCollection.onBeforeRemoved.listen((d) {
+      winterCollection.onBeforeRemove.listen((d) {
           mock.handler(d);
           expect(winterCollection.contains(december), isTrue);
           expect(winterCollection.contains(january), isTrue);
@@ -554,7 +554,7 @@ void main() {
 
       Mock mock = new Mock();
 
-      winterCollection.onBeforeRemoved.listen((d) {
+      winterCollection.onBeforeRemove.listen((d) {
           mock.handler(d);
           expect(winterCollection.contains(february), isTrue);
           expect(d, equals(february));
