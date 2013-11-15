@@ -22,11 +22,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    */
   final Set<DataView> _data = new Set<DataView>();
 
-  /**
-   * Internal set of listeners for change events on individual data objects.
-   */
-  final Map<dynamic, StreamSubscription> _dataListeners =
-      new Map<dynamic, StreamSubscription>();
+
 
 
 // ============================ index ======================
@@ -65,7 +61,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    * (Re)indexes all existing data objects into [prop] index.
    */
   void _rebuildIndex(String prop) {
-    for(DataView d in this){
+    for(DataView d in this) {
       if (d.containsKey(prop)) {
         _index[prop].add(d[prop], d);
       }
@@ -83,7 +79,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
       // scan for each indexed property and reindex changed items
       for (String indexProp in _index.keys) {
-        cs.addedItems.forEach((DataView d){
+        cs.addedItems.forEach((DataView d) {
           if (d.containsKey(indexProp)) {
             _index[indexProp].add(d[indexProp], d);
           }
@@ -236,7 +232,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
 
-  Set<DataView>_removedObjects = new Set<DataView>();
+//  Set<DataView>_removedObjects = new Set<DataView>();
 
   int get length => _data.length;
 
@@ -259,6 +255,8 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   /**
    * Stream all new changes marked in [ChangeSet].
    */
+  void _onBeforeNotify() {}
+
   void _notify({author: null}) {
     _changeSetSync.prettify();
     if(!_changeSet.isEmpty) {
@@ -268,11 +266,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
     Timer.run(() {
       if(!_changeSet.isEmpty) {
-
-        for(DataView dataObj in _removedObjects.toList()) {
-          _removeOnDataChangeListener(dataObj);
-        }
-        _removedObjects.clear();
+        _onBeforeNotify();
 
         _changeSet.prettify();
 
@@ -284,29 +278,8 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     });
   }
 
-  void _addOnDataChangeListener(DataView dataObj) {
-    if (_dataListeners.containsKey(dataObj)) return;
-
-    _dataListeners[dataObj] = dataObj.onChangeSync.listen((changeEvent) {
-      _markChanged(dataObj, changeEvent['change']);
-      _notify(author: changeEvent['author']);
-    });
-  }
-
-  void _removeOnDataChangeListener(DataView dataObj) {
-    if (_dataListeners.containsKey(dataObj)) {
-      _dataListeners[dataObj].cancel();
-      _dataListeners.remove(dataObj);
-    }
-  }
-
-
   void _markAdded(DataView dataObj) {
     _onBeforeAddedController.add(dataObj);
-
-    // if this object was removed and then re-added in this event loop, don't
-    // destroy onChange listener to it.
-    _removedObjects.remove(dataObj);
 
     // mark the addition of [dataObj]
     _changeSet.markAdded(dataObj);
@@ -315,10 +288,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
   void _markRemoved(DataView dataObj) {
     _onBeforeRemovedController.add(dataObj);
-
-    // collection will stop listening to this object's changes after this
-    // event loop.
-    _removedObjects.add(dataObj);
 
     // mark the removal of [dataObj]
     _changeSet.markRemoved(dataObj);
@@ -331,17 +300,71 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   }
 
   void dispose() {
-    _dataListeners.forEach((data, subscription) => subscription.cancel());
     if (_indexListenerSubscription != null) {
       _indexListenerSubscription.cancel();
     }
   }
 }
 
+abstract class DataChangeListenersMixin {
+
+  void _markChanged(DataView dataObj, changeEvent);
+  void _notify({author});
+  /**
+   * Internal Set of data objects removed from Collection that still have DataListener listening.
+   */
+  Set<DataView>_removedObjects = new Set<DataView>();
+  /**
+   * Internal set of listeners for change events on individual data objects.
+   */
+  final Map<dynamic, StreamSubscription> _dataListeners =
+      new Map<dynamic, StreamSubscription>();
+
+  /**
+   * Removes listeners to all objects which have been removed and stacked in [_removedObjects]
+   */
+  void _onBeforeNotify() {
+    // if this object was removed and then re-added in this event loop, don't
+    // destroy onChange listener to it.
+    for(DataView dataObj in _removedObjects.toList()) {
+      _removeOnDataChangeListener(dataObj);
+    }
+    _removedObjects.clear();
+  }
+
+  /**
+   * Starts listening to changes on [dataObj].
+   */
+  void _addOnDataChangeListener(DataView dataObj) {
+    if (_dataListeners.containsKey(dataObj)) return;
+
+    _dataListeners[dataObj] = dataObj.onChangeSync.listen((changeEvent) {
+      _markChanged(dataObj, changeEvent['change']);
+      _notify(author: changeEvent['author']);
+    });
+  }
+
+  /**
+   * Stops listening to changes on [dataObj]
+   * Second possibility is to add to [_removedObjects] and call [_onBeforeNotify]
+   */
+  void _removeAllOnDataChangeListeners() {
+    for(DataView dataObj in _removedObjects.toList()) {
+      _removeOnDataChangeListener(dataObj);
+    }
+  }
+
+  void _removeOnDataChangeListener(DataView dataObj) {
+    if (_dataListeners.containsKey(dataObj)) {
+      _dataListeners[dataObj].cancel();
+      _dataListeners.remove(dataObj);
+    }
+  }
+}
 /**
  * Collection of [DataView]s.
  */
-class DataCollection extends DataCollectionView {
+class DataCollection extends DataCollectionView with DataChangeListenersMixin {
 
   /**
    * Creates an empty collection.
@@ -367,17 +390,23 @@ class DataCollection extends DataCollectionView {
    * Data objects should have unique IDs.
    */
   void add(DataView dataObj, {author: null}) {
+    _removedObjects.remove(dataObj);
     _markAdded(dataObj);
-    _data.add(dataObj);
-    _addOnDataChangeListener(dataObj);
+    _removedObjects.remove(dataObj);
 
+    _data.add(dataObj);
+
+    _addOnDataChangeListener(dataObj);
     _notify(author: author);
   }
 
 
-  void _removeAll(Iterable<DataView> toBeRemoved, {author: null}){
+  void _removeAll(Iterable<DataView> toBeRemoved, {author: null}) {
     //the following causes onChangeListeners removal in the next event loop
-    toBeRemoved.forEach((DataView d) => _markRemoved(d));
+    toBeRemoved.forEach((DataView d) {
+      _removedObjects.add(d);
+      _markRemoved(d);
+    });
     _data.removeAll(toBeRemoved);
     _notify(author: author);
   }
@@ -385,7 +414,7 @@ class DataCollection extends DataCollectionView {
   /**
    * Removes multiple data objects from the collection.
    */
-  void removeAll(Iterable<DataView> toBeRemoved, {author: null}){
+  void removeAll(Iterable<DataView> toBeRemoved, {author: null}) {
     this._removeAll(toBeRemoved, author: author);
   }
 
@@ -412,16 +441,15 @@ class DataCollection extends DataCollectionView {
   /**
    * Removes all objects satisfying filter [test]
    */
-  void removeWhere(DataTestFunction test, {author: null}){
+  void removeWhere(DataTestFunction test, {author: null}) {
     List toBeRemoved = [];
     for (var dataObj in _data) {
-      if(test(dataObj)){
+      if(test(dataObj)) {
         toBeRemoved.add(dataObj);
       }
     }
     this._removeAll(toBeRemoved, author: author);
   }
-
 
   /**
    * Removes all data objects from the collection.
@@ -432,4 +460,8 @@ class DataCollection extends DataCollectionView {
     this._removeAll(new List.from(this._data), author:author);
   }
 
+  void dispose() {
+    super.dispose();
+    _dataListeners.forEach((data, subscription) => subscription.cancel());
+  }
 }
