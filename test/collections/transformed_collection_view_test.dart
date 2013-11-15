@@ -145,7 +145,7 @@ void main() {
       months.add(fantasyMonth);
 
       // then
-      excepted.onBeforeAdded.listen(expectAsync1((DataView d) {
+      excepted.onBeforeAdd.listen(expectAsync1((DataView d) {
           expect(d, equals(fantasyMonth));
           expect(excepted.contains(fantasyMonth), isFalse);
       }));
@@ -159,7 +159,7 @@ void main() {
       months.remove(january);
 
       // then
-      excepted.onBeforeRemoved.listen(expectAsync1((DataView d) {
+      excepted.onBeforeRemove.listen(expectAsync1((DataView d) {
           expect(d, equals(january));
           expect(excepted.contains(january), isTrue);
       }));

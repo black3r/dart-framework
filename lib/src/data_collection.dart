@@ -129,13 +129,13 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    * Stream populated with [DataView] events before any
    * data object is added.
    */
-   Stream<DataView> get onBeforeAdded => _onBeforeAddedController.stream;
+   Stream<DataView> get onBeforeAdd => _onBeforeAddedController.stream;
 
   /**
    * Stream populated with [DataView] events before any
    * data object is removed.
    */
-   Stream<DataView> get onBeforeRemoved => _onBeforeRemovedController.stream;
+   Stream<DataView> get onBeforeRemove => _onBeforeRemovedController.stream;
 
   /**
    * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events

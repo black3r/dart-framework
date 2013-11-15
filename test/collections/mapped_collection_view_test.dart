@@ -137,7 +137,7 @@ void main() {
       months.add(fantasyMonth);
 
       // then
-      monthsHours.onBeforeAdded.listen(expectAsync1((MappedDataView mdv) {
+      monthsHours.onBeforeAdd.listen(expectAsync1((MappedDataView mdv) {
         expect(mdv.source, equals(fantasyMonth));
         expect(monthsHours.contains(fantasyMonth), isFalse);
       }));
@@ -151,7 +151,7 @@ void main() {
       months.remove(january);
 
       // then
-      monthsHours.onBeforeRemoved.listen(expectAsync1((MappedDataView mdv) {
+      monthsHours.onBeforeRemove.listen(expectAsync1((MappedDataView mdv) {
         expect(mdv.source, equals(january));
         expect(monthsHours.contains(mdv), isTrue);
       }));
