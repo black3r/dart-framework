@@ -6,7 +6,6 @@
 import 'data_test.dart' as data_test;
 import 'data_collection_test.dart' as data_collection_test;
 import 'hash_index_test.dart' as hash_index_test;
-import 'id_generator_test.dart' as id_generator_test;
 import 'change_set_test.dart' as change_set_test;
 
 import 'collections/transformed_collection_view_test.dart' as transformed_test;
@@ -20,7 +19,6 @@ main() {
 
   data_test.main();
   data_collection_test.main();
-  id_generator_test.main();
   change_set_test.main();
 
   // collection views test
