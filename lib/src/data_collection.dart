@@ -13,7 +13,9 @@ typedef dynamic DataTransformFunction(DataView d);
  * By observable we mean that changes to the contents of the collection (data addition / change / removal)
  * are propagated to registered listeners.
  */
-abstract class DataCollectionView extends Object with IterableMixin<DataView> implements Iterable<DataView> {
+abstract class DataCollectionView extends Object
+               with IterableMixin<DataView>, ChangeNotificationsMixin
+               implements Iterable<DataView> {
 
   Iterator<DataView> get iterator => _data.iterator;
 
@@ -22,8 +24,7 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    */
   final Set<DataView> _data = new Set<DataView>();
 
-
-
+  int get length => _data.length;
 
 // ============================ index ======================
 
@@ -46,8 +47,8 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
          _initIndexListener();
       }
 
-      for(String prop in indexedProps) {
-        if(!_index.containsKey(prop)) {
+      for (String prop in indexedProps) {
+        if (!_index.containsKey(prop)) {
           // create and initialize the index
           _index[prop] = new HashIndex();
           _rebuildIndex(prop);
@@ -56,12 +57,11 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
     }
   }
 
-
   /**
    * (Re)indexes all existing data objects into [prop] index.
    */
   void _rebuildIndex(String prop) {
-    for(DataView d in this) {
+    for (DataView d in this) {
       if (d.containsKey(prop)) {
         _index[prop].add(d[prop], d);
       }
@@ -113,14 +113,6 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
 
   // ============================ /index ======================
 
-
-
-  /**
-   * Stream populated with [ChangeSet] events whenever the collection or any
-   * of data object contained gets changed.
-   */
-   Stream<ChangeSet> get onChange => _onChangeController.stream;
-
   /**
    * Stream populated with [DataView] events before any
    * data object is added.
@@ -134,92 +126,8 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
    Stream<DataView> get onBeforeRemove => _onBeforeRemovedController.stream;
 
   /**
-   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
-   * synchronously at the moment when the collection or any data object contained
-   * gets changed.
-   */
-   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
-
-  /**
-   * Returns true iff this collection contains the given [dataObj].
-   *
-   * @param dataObj Data object to be searched for.
-   */
-   bool contains(DataView dataObj) => _data.contains(dataObj);
-
-  /**
-   * Filters the data collection w.r.t. the given filter function [test].
-   *
-   * The collection remains up-to-date w.r.t. to the source collection via
-   * background synchronization.
-   */
-   DataCollectionView where(DataTestFunction test) {
-    return new FilteredCollectionView(this, test);
-   }
-
-   /**
-    * Maps the data collection to a new collection w.r.t. the given [mapping].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView map(DataTransformFunction mapping) {
-     return new MappedCollectionView(this, mapping);
-   }
-
-   /**
-    * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView union(DataCollectionView other) {
-     return other == this
-         ? this
-             : new UnionedCollectionView(this, other);
-   }
-
-   /**
-    * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    */
-   DataCollectionView intersection(DataCollectionView other) {
-     return other == this
-         ? this
-             : new IntersectedCollectionView(this, other);
-   }
-   /**
-    * Minuses the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
-    *
-    * The collection remains up-to-date w.r.t. to the source collection via
-    * background synchronization.
-    *
-    */
-   DataCollectionView except(DataCollectionView other) {
-     return new ExceptedCollectionView(this, other);
-   }
-
-//}
-
-/**
- * A minimal implementation of [DataCollectionView].
- */
-//abstract class DataCollectionViewMixin implements DataCollectionView {
-
-
-
-  /**
    * Used to propagate change events to the outside world.
    */
-
-
-
-  final StreamController<ChangeSet> _onChangeController =
-      new StreamController.broadcast();
-  final StreamController<Map> _onChangeSyncController =
-      new StreamController.broadcast(sync: true);
 
   final StreamController<DataView> _onBeforeAddedController =
       new StreamController.broadcast(sync: true);
@@ -227,14 +135,65 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
       new StreamController.broadcast(sync: true);
 
   /**
-   * Current state of the collection expressed by a [ChangeSet].
+   * Returns true iff this collection contains the given [dataObj].
+   *
+   * @param dataObj Data object to be searched for.
    */
-  ChangeSet _changeSet = new ChangeSet();
-  ChangeSet _changeSetSync = new ChangeSet();
+  bool contains(DataView dataObj) => _data.contains(dataObj);
 
-//  Set<DataView>_removedObjects = new Set<DataView>();
+  /**
+   * Filters the data collection w.r.t. the given filter function [test].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView where(DataTestFunction test) {
+   return new FilteredCollectionView(this, test);
+  }
 
-  int get length => _data.length;
+  /**
+   * Maps the data collection to a new collection w.r.t. the given [mapping].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView map(DataTransformFunction mapping) {
+    return new MappedCollectionView(this, mapping);
+  }
+
+  /**
+   * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView union(DataCollectionView other) {
+    return other == this
+        ? this
+            : new UnionedCollectionView(this, other);
+  }
+
+  /**
+   * Intersects the data collection with another [DataCollectionView] to form a new, [IntersectedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   */
+  DataCollectionView intersection(DataCollectionView other) {
+    return other == this
+        ? this
+            : new IntersectedCollectionView(this, other);
+  }
+  /**
+   * Minuses the data collection with another [DataCollectionView] to form a new, [ExceptedCollectionView].
+   *
+   * The collection remains up-to-date w.r.t. to the source collection via
+   * background synchronization.
+   *
+   */
+  DataCollectionView except(DataCollectionView other) {
+    return new ExceptedCollectionView(this, other);
+  }
 
 
   void unattachListeners() {
@@ -242,62 +201,8 @@ abstract class DataCollectionView extends Object with IterableMixin<DataView> im
   }
 
   /**
-   * Reset the change log of the collection.
-   */
-  void _clearChanges() {
-    _changeSet = new ChangeSet();
-  }
-
-  void _clearChangesSync() {
-    _changeSetSync = new ChangeSet();
-  }
-
-  /**
    * Stream all new changes marked in [ChangeSet].
    */
-  void _onBeforeNotify() {}
-
-  void _notify({author: null}) {
-    _changeSetSync.prettify();
-    if(!_changeSet.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-      _clearChangesSync();
-    }
-
-    Timer.run(() {
-      if(!_changeSet.isEmpty) {
-        _onBeforeNotify();
-
-        _changeSet.prettify();
-
-        if(!_changeSet.isEmpty) {
-          _onChangeController.add(_changeSet);
-          _clearChanges();
-        }
-      }
-    });
-  }
-
-  void _markAdded(DataView dataObj) {
-    _onBeforeAddedController.add(dataObj);
-
-    // mark the addition of [dataObj]
-    _changeSet.markAdded(dataObj);
-    _changeSetSync.markAdded(dataObj);
-  }
-
-  void _markRemoved(DataView dataObj) {
-    _onBeforeRemovedController.add(dataObj);
-
-    // mark the removal of [dataObj]
-    _changeSet.markRemoved(dataObj);
-    _changeSetSync.markRemoved(dataObj);
-  }
-
-  void _markChanged(DataView dataObj, ChangeSet changeSet) {
-    _changeSet.markChanged(dataObj, changeSet);
-    _changeSetSync.markChanged(dataObj, changeSet);
-  }
 
   void dispose() {
     if (_indexListenerSubscription != null) {
