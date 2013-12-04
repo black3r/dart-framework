@@ -180,7 +180,8 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
 /**
  * A representation for a single unit of structured data.
  */
-class Data extends DataView implements Map {
+
+class Data extends DataView with DataChangeListenersMixin<String> implements Map {
 
   /**
    * Creates an empty data object.
@@ -213,6 +214,9 @@ class Data extends DataView implements Map {
     other.forEach((key, value) {
       if (_fields.containsKey(key)) {
         _markChanged(key, new Change(_fields[key], value));
+      } else if (value is DataView) {
+        _markAdded(key);
+        _addOnDataChangeListener(key, value);
       } else {
         _markChanged(key, new Change(null, value));
         _markAdded(key);
@@ -242,7 +246,11 @@ class Data extends DataView implements Map {
    */
   void removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      _markChanged(key, new Change(_fields[key], null));
+      if (_fields[key] is! DataView) {
+        _markChanged(key, new Change(_fields[key], null));
+      } else {
+        _removedObjects.add(key);
+      }
       _markRemoved(key);
       _fields.remove(key);
     }

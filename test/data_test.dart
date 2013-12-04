@@ -7,6 +7,7 @@ library data_test;
 import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 import 'package:unittest/mock.dart';
+import 'dart:async';
 
 
 void main() {
@@ -416,6 +417,52 @@ void main() {
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems,unorderedEquals(['key2']));
       }));
+    });
+
+    group('nested', () {
+      test('listens to changes of its children.', () {
+        // given
+        var dataObj = new Data.from({'child': new Data()});
+
+        // when
+        dataObj['child']['name'] = 'John Doe';
+
+        // then
+        dataObj.onChange.listen(expectAsync1((ChangeSet event) {
+          expect(event.changedItems['child'].addedItems, equals(['name']));
+        }));
+      });
+      test('remove children.', () {
+        // given
+        var dataObj = new Data.from({'child': new Data()});
+
+        // then
+        dataObj.onChangeSync.listen(expectAsync1((event) {
+          expect(event['change'].changedItems.keys, isEmpty);
+        }));
+
+        // when
+        dataObj.remove('child');
+
+      });
+      test('do not listen to removed children changes.', () {
+        // given
+        var child = new Data();
+        var dataObj = new Data.from({'child': child});
+        var onChange = new Mock();
+
+        // when
+        dataObj.remove('child');
+        var future = new Future.delayed(new Duration(milliseconds: 20), () {
+          dataObj.onChangeSync.listen((e) => onChange(e));
+          child['name'] = 'John Doe';
+        });
+
+        // then
+        return future.then((_) {
+          onChange.getLogs().verify(neverHappened);
+        });
+      });
     });
  });
 }

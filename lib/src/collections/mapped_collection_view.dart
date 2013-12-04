@@ -78,7 +78,7 @@ class MappedDataView extends DataView {
 //DevNote: [change] goes source_data_object -> MappedDataView -> This -> others
 //DevNote: MappedCollection doesn't need DCLMixin.removedObjects
 //  (as it has full power over them and recreates them when they are readed)
-class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin {
+class MappedCollectionView extends TransformedDataCollection with DataChangeListenersMixin<DataView> {
 
   final _mapping;
 
@@ -101,7 +101,7 @@ class MappedCollectionView extends TransformedDataCollection with DataChangeList
 
     _data.add(mappedObj);
 
-    _addOnDataChangeListener(mappedObj);
+    _addOnDataChangeListener(mappedObj, mappedObj);
   }
 
   void _treatAddedItem(DataView d, int sourceNumber) => _addMapped(d);
