@@ -209,6 +209,8 @@ abstract class DataCollectionView extends Object
       _indexListenerSubscription.cancel();
     }
   }
+
+  String toString() => toList().toString();
 }
 
 abstract class DataChangeListenersMixin<T> {
