@@ -172,6 +172,11 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
   Map toJson() => new Map.from(_fields);
 
   /**
+   * Returns Json representation of the object.
+   */
+  String toString() => toJson().toString();
+
+  /**
    * Should release all allocated (referenced) resources as subscribtions.
    */
   void dispose();
@@ -182,7 +187,6 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
  */
 
 class Data extends DataView with DataChangeListenersMixin<String> implements Map {
-
   /**
    * Creates an empty data object.
    */
