@@ -18,7 +18,7 @@ void main() {
          ' event. (T01)', () {
 
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
 
       // when
       january['temperature'] = -10;
@@ -36,7 +36,7 @@ void main() {
          ' (T02)', () {
 
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
@@ -55,7 +55,7 @@ void main() {
          ' (T03)', () {
 
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
 
       // when
       evenMonths.add(january);
@@ -104,7 +104,7 @@ void main() {
 
     test('adding and removing an object does not raise an event. (T06)', () {
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
@@ -118,7 +118,7 @@ void main() {
 
     test('removal, change and add is broadcasted as change (T07)', () {
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
 
       // when
       months.remove(january);
@@ -136,7 +136,7 @@ void main() {
     test('onBeforeAdd is fired before object is added. (T08)', () {
 
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
@@ -152,7 +152,7 @@ void main() {
 
     test('onBeforeRemove is fired before object is removed. (T09)', () {
       // given
-      var excepted = months.liveExcept(evenMonths);
+      var excepted = months.liveDifference(evenMonths);
 
       // when
       months.remove(january);
