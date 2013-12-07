@@ -64,6 +64,7 @@ void main() {
       expect(winterCollection.length, equals(3));
     });
 
+
     test('remove dataObject. (T05)', () {
       // given
       var year = new DataCollection.from([december, january, february]);
@@ -580,7 +581,7 @@ void main() {
       february['days'] = 29;
 
     });
-    
+
     test('addAll method (T36)', () {
       // given
       var winterCollection = new DataCollection();
@@ -590,31 +591,72 @@ void main() {
       winterCollection.addAll(winter);
 
       // then
-      expect(winterCollection.contains(january), isTrue);
       expect(winterCollection, unorderedEquals(winter));
-      expect(winterCollection.length, equals(3));
     });
-    
-    test('retainWhere method (T36)', () {
+
+    test('retainWhere method (T37)', () {
       // given
       var collection = new DataCollection.from(months);
 
       // when
-      collection.retainWhere((E) => E['number'] % 2 == 1);
-      
+      collection.retainWhere((month) => month['number'] % 2 == 1);
+
       // then
       expect(collection, unorderedEquals(oddMonths));
     });
-    
-    test('retainAll method (T36)', () {
+
+    test('retainAll method (T38)', () {
       // given
       var collection = new DataCollection.from(evenMonths);
       var winter = [december, january, february];
       // when
       collection.retainAll(winter);
-      
+
       // then
       expect(collection, unorderedEquals([december, february]));
     });
+
+    test('add data object return value. (T39)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january, february]);
+
+      // then
+      expect(winterCollection.add(january), isFalse);
+      expect(winterCollection.add(march), isTrue);
+    });
+
+    test('remove data object return value. (T40)', () {
+      // given
+      var winterCollection = new DataCollection.from([december, january, february]);
+
+      // then
+      expect(winterCollection.remove(january), isTrue);
+      expect(winterCollection.remove(march), isFalse);
+    });
+
+    test('addAll onChangeSync stream fires just one event on bulk add (T41)', () {
+      // given
+      var count=0;
+      evenMonths.onChangeSync.listen((_) => count++);
+
+      // when
+      evenMonths.addAll(oddMonths);
+
+      // then
+      expect(count, 1);
+    });
+
+    test('removeAll onChangeSync stream fires just one event on bulk add (T42)', () {
+      // given
+      var count=0;
+      evenMonths.onChangeSync.listen((_) => count++);
+
+      // when
+      evenMonths.removeAll([january, february, march, april, may, june]);
+
+      // then
+      expect(count, 1);
+    });
+
   });
 }
