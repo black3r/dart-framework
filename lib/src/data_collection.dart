@@ -220,7 +220,7 @@ abstract class DataChangeListenersMixin<T> {
   /**
    * Internal Set of data objects removed from Collection that still have DataListener listening.
    */
-  Set<T>_removedObjects = new Set<T>();
+  Set _removedObjects = new Set();
   /**
    * Internal set of listeners for change events on individual data objects.
    */
