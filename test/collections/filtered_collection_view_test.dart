@@ -18,7 +18,7 @@ void main() {
       // given
 
       // when
-      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      var evenMonths = months.liveWhere((month) => month['number'] % 2 == 0);
 
       // then
       expect(evenMonths, unorderedEquals([february, april, june, august,
@@ -27,10 +27,10 @@ void main() {
 
     test('multiple filtering. (T02)', () {
       // given
-      var evenMonths = months.where((month) => month['number'] % 2 == 0);
+      var evenMonths = months.liveWhere((month) => month['number'] % 2 == 0);
 
       // when
-      var evenLongMonths = evenMonths.where((month) => month['days'] > 30);
+      var evenLongMonths = evenMonths.liveWhere((month) => month['days'] > 30);
 
       // then
       expect(evenLongMonths, unorderedEquals([august, october, december]));

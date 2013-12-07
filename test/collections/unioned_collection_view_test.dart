@@ -18,7 +18,7 @@ void main() {
       // given
 
       // when
-      var allMonths = oddMonths.union(evenMonths);
+      var allMonths = oddMonths.liveUnion(evenMonths);
 
       // then
       expect(allMonths, unorderedEquals(months));
@@ -30,7 +30,7 @@ void main() {
       var lastThree = new DataCollection.from([february, march, april]);
 
       // when
-      var allFour = firstThree.union(lastThree);
+      var allFour = firstThree.liveUnion(lastThree);
 
       // then
       expect(allFour, unorderedEquals([january, february, march, april]));
@@ -40,7 +40,7 @@ void main() {
       // given
 
       // when
-      var allMonths = months.union(months);
+      var allMonths = months.liveUnion(months);
 
       // then
       expect(allMonths, unorderedEquals(months));

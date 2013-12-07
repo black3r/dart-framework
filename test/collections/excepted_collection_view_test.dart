@@ -18,7 +18,7 @@ void main() {
       // given
 
       // when
-      DataCollectionView excepted = months.except(evenMonths);
+      DataCollectionView excepted = months.liveExcept(evenMonths);
 
       // then
       expect(excepted, unorderedEquals(oddMonths));

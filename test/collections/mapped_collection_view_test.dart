@@ -61,7 +61,7 @@ void main() {
       // given
 
       //when
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       // then
       verifyHoursMatch(months, monthsHours);
@@ -70,7 +70,7 @@ void main() {
 
     test('value is added to the source collection.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
@@ -86,7 +86,7 @@ void main() {
 
     test('value is removed from the source collection.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       // when
       months.remove(january);
@@ -100,7 +100,7 @@ void main() {
 
     test('value is changed in the source collection.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       // when
       january['days'] = 10;
@@ -114,7 +114,7 @@ void main() {
 
     test('remove an object and change it.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       // when
       months.remove(january);
@@ -130,7 +130,7 @@ void main() {
 
     test('onBeforeAdd is fired before object is added.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
@@ -146,7 +146,7 @@ void main() {
 
     test('onBeforeRemove is fired before object is removed.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       // when
       months.remove(january);
@@ -160,7 +160,7 @@ void main() {
 
     test('dispose method.', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
 
       //then
       monthsHours.onChangeSync.listen((changeSet) => guardAsync(() {
@@ -176,7 +176,7 @@ void main() {
 
     test('after removing, MappedDataView does not listen to changes on source object anymore. ', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
       var mappedView = monthsHours.first;
       var month = mappedView.source;
 
@@ -195,7 +195,7 @@ void main() {
 
     test('after removing, MappedCollection does not listen to changes on MappedDataView object anymore. ', () {
       // given
-      var monthsHours = months.map(hoursInMonth);
+      var monthsHours = months.liveMap(hoursInMonth);
       var mappedView = monthsHours.first;
       var month = mappedView.source;
 

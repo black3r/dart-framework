@@ -147,7 +147,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView where(DataTestFunction test) {
+  DataCollectionView liveWhere(DataTestFunction test) {
    return new FilteredCollectionView(this, test);
   }
 
@@ -157,7 +157,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView map(DataTransformFunction mapping) {
+  DataCollectionView liveMap(DataTransformFunction mapping) {
     return new MappedCollectionView(this, mapping);
   }
 
@@ -167,7 +167,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView union(DataCollectionView other) {
+  DataCollectionView liveUnion(DataCollectionView other) {
     return other == this
         ? this
             : new UnionedCollectionView(this, other);
@@ -179,7 +179,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView intersection(DataCollectionView other) {
+  DataCollectionView liveIntersection(DataCollectionView other) {
     return other == this
         ? this
             : new IntersectedCollectionView(this, other);
@@ -191,7 +191,7 @@ abstract class DataCollectionView extends Object
    * background synchronization.
    *
    */
-  DataCollectionView except(DataCollectionView other) {
+  DataCollectionView liveExcept(DataCollectionView other) {
     return new ExceptedCollectionView(this, other);
   }
 
