@@ -377,19 +377,23 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   bool containsAll(Iterable<DataView> other) => _data.containsAll(other);
   
   void retainWhere(bool test(DataView element), {author: null}) {
+    var toRemove = [];
     for(DataView dataView in _data){
       if(!test(dataView)){
-        this.remove(dataView, author: author);
+        toRemove.add(dataView);
       }
     }
+    this.removeAll(toRemove, author: author);
   }
   
   void retainAll(Iterable<Object> elements, {author: null}) {
+    var toRemove = [];
     for(DataView dataView in _data) {
       if(!elements.contains(dataView)) {
-        this.remove(dataView, author: author);
+        toRemove.add(dataView);
       }
     }
+    this.removeAll(toRemove, author: author);
   }
   
   Set<DataView> difference(Set<DataView> other) => _data.difference(other);  

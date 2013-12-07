@@ -580,5 +580,41 @@ void main() {
       february['days'] = 29;
 
     });
+    
+    test('addAll method (T36)', () {
+      // given
+      var winterCollection = new DataCollection();
+      var winter = [december, january, february];
+
+      // when
+      winterCollection.addAll(winter);
+
+      // then
+      expect(winterCollection.contains(january), isTrue);
+      expect(winterCollection, unorderedEquals(winter));
+      expect(winterCollection.length, equals(3));
+    });
+    
+    test('retainWhere method (T36)', () {
+      // given
+      var collection = new DataCollection.from(months);
+
+      // when
+      collection.retainWhere((E) => E['number'] % 2 == 1);
+      
+      // then
+      expect(collection, unorderedEquals(oddMonths));
+    });
+    
+    test('retainAll method (T36)', () {
+      // given
+      var collection = new DataCollection.from(evenMonths);
+      var winter = [december, january, february];
+      // when
+      collection.retainAll(winter);
+      
+      // then
+      expect(collection, unorderedEquals([december, february]));
+    });
   });
 }
