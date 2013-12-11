@@ -291,8 +291,6 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
     return collection;
   }
 
-  factory DataCollection.identity() => new DataCollection();
-
   void _addAll(Iterable<DataView> elements, {author: null}){
     _removedObjects.removeAll(elements);
     elements.forEach((DataView d) {
@@ -306,9 +304,9 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   }
 
   /**
-   * Appends the [dataObj] to the collection.
-   *
-   * Data objects should have unique IDs.
+   * Appends the [dataObj] to the collection. If the element
+   * was already in the collection, [false] is returned and
+   * nothing happens.
    */
 
   bool add(DataView dataObj, {author: null}) {
@@ -320,9 +318,8 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
 
   /**
    * Appends all [elements] to the collection.
-   *
-   * Data object should have unique IDs.
    */
+
   void addAll(Iterable<DataView> elements, {author: null}) {
     this._addAll(elements, author: author);
   }
@@ -346,7 +343,8 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
 
 
   /**
-   * Removes a data object from the collection.
+   * Removes a data object from the collection.  If the object was not in
+   * the collection, returns [false] and nothing happens.
    */
   bool remove(DataView dataObj, {author: null}) {
     var res = _data.contains(dataObj);
