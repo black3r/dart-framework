@@ -147,7 +147,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView where(DataTestFunction test) {
+  DataCollectionView liveWhere(DataTestFunction test) {
    return new FilteredCollectionView(this, test);
   }
 
@@ -157,7 +157,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView map(DataTransformFunction mapping) {
+  DataCollectionView liveMap(DataTransformFunction mapping) {
     return new MappedCollectionView(this, mapping);
   }
 
@@ -167,7 +167,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView union(DataCollectionView other) {
+  DataCollectionView liveUnion(DataCollectionView other) {
     return other == this
         ? this
             : new UnionedCollectionView(this, other);
@@ -179,7 +179,7 @@ abstract class DataCollectionView extends Object
    * The collection remains up-to-date w.r.t. to the source collection via
    * background synchronization.
    */
-  DataCollectionView intersection(DataCollectionView other) {
+  DataCollectionView liveIntersection(DataCollectionView other) {
     return other == this
         ? this
             : new IntersectedCollectionView(this, other);
@@ -191,7 +191,7 @@ abstract class DataCollectionView extends Object
    * background synchronization.
    *
    */
-  DataCollectionView except(DataCollectionView other) {
+  DataCollectionView liveDifference(DataCollectionView other) {
     return new ExceptedCollectionView(this, other);
   }
 
@@ -271,7 +271,7 @@ abstract class DataChangeListenersMixin<T> {
 /**
  * Collection of [DataView]s.
  */
-class DataCollection extends DataCollectionView with DataChangeListenersMixin<DataView> {
+class DataCollection extends DataCollectionView with DataChangeListenersMixin<DataView> implements Set {
 
   /**
    * Creates an empty collection.
@@ -291,28 +291,46 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
     return collection;
   }
 
-  /**
-   * Appends the [dataObj] to the collection.
-   *
-   * Data objects should have unique IDs.
-   */
-  void add(DataView dataObj, {author: null}) {
-    _removedObjects.remove(dataObj);
-    _markAdded(dataObj);
-    _removedObjects.remove(dataObj);
-
-    _data.add(dataObj);
-
-    _addOnDataChangeListener(dataObj, dataObj);
+  void _addAll(Iterable<DataView> elements, {author: null}){
+    elements.forEach((DataView d) {
+       if(!_data.contains(d)){
+         _markAdded(d);
+         _removedObjects.remove(d);
+         _addOnDataChangeListener(d, d);
+       }
+    });
+    _data.addAll(elements);
     _notify(author: author);
   }
 
+  /**
+   * Appends the [dataObj] to the collection. If the element
+   * was already in the collection, [false] is returned and
+   * nothing happens.
+   */
+
+  bool add(DataView dataObj, {author: null}) {
+    var res = !_data.contains(dataObj);
+    this._addAll([dataObj], author: author);
+    return res;
+  }
+
+
+  /**
+   * Appends all [elements] to the collection.
+   */
+
+  void addAll(Iterable<DataView> elements, {author: null}) {
+    this._addAll(elements, author: author);
+  }
 
   void _removeAll(Iterable<DataView> toBeRemoved, {author: null}) {
     //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((DataView d) {
-      _removedObjects.add(d);
-      _markRemoved(d);
+      if(_data.contains(d)){
+        _removedObjects.add(d);
+        _markRemoved(d);
+      }
     });
     _data.removeAll(toBeRemoved);
     _notify(author: author);
@@ -327,10 +345,13 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
 
 
   /**
-   * Removes a data object from the collection.
+   * Removes a data object from the collection.  If the object was not in
+   * the collection, returns [false] and nothing happens.
    */
-  void remove(DataView dataObj, {author: null}) {
+  bool remove(DataView dataObj, {author: null}) {
+    var res = _data.contains(dataObj);
     this._removeAll([dataObj], author: author);
+    return res;
   }
 
   /**
@@ -348,7 +369,7 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   /**
    * Removes all objects satisfying filter [test]
    */
-  void removeWhere(DataTestFunction test, {author: null}) {
+  void _removeWhere(DataTestFunction test, {author: null}) {
     List toBeRemoved = [];
     for (var dataObj in _data) {
       if(test(dataObj)) {
@@ -357,6 +378,28 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
     }
     this._removeAll(toBeRemoved, author: author);
   }
+
+  void removeWhere(DataTestFunction test, {author: null}) {
+    _removeWhere(test, author:author);
+  }
+
+
+  DataView lookup(Object object) => _data.lookup(object);
+
+  bool containsAll(Iterable<DataView> other) => _data.containsAll(other);
+
+  void retainWhere(bool test(DataView element), {author: null}) {
+    this._removeWhere((data) => !test(data), author: author);
+  }
+
+  void retainAll(Iterable<Object> elements, {author: null}) {
+    var toKeep = new Set.from(elements);
+    this._removeWhere((data) => !toKeep.contains(data), author:author);
+  }
+
+  Set<DataView> difference(Set<DataView> other) => _data.difference(other);
+  Set<DataView> intersection(Set<DataView> other) => _data.intersection(other);
+  Set<DataView> union(Set<DataView> other) => _data.union(other);
 
   /**
    * Removes all data objects from the collection.

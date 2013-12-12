@@ -16,10 +16,10 @@ void main() {
 
     test('data is properly intersected (single intersection). (T01)', () {
       // given
-      var longMonths = months.where((month) => month['days'] >= 31);
+      var longMonths = months.liveWhere((month) => month['days'] >= 31);
 
       // when
-      var intersected = longMonths.intersection(evenMonths);
+      var intersected = longMonths.liveIntersection(evenMonths);
 
       // then
       expect(intersected, equals([august, october, december]));

@@ -7,6 +7,7 @@ import 'data_test.dart' as data_test;
 import 'data_collection_test.dart' as data_collection_test;
 import 'hash_index_test.dart' as hash_index_test;
 import 'change_set_test.dart' as change_set_test;
+import 'change_streams_test.dart' as change_streams_test;
 
 import 'collections/transformed_collection_view_test.dart' as transformed_test;
 import 'collections/filtered_collection_view_test.dart' as filtered_test;
@@ -26,6 +27,7 @@ run(configuration) {
 
   data_test.main();
   data_collection_test.main();
+  change_streams_test.main();
   change_set_test.main();
 
   // collection views test
