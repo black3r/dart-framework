@@ -292,14 +292,14 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   }
 
   void _addAll(Iterable<DataView> elements, {author: null}){
-    _removedObjects.removeAll(elements);
     elements.forEach((DataView d) {
-      _markAdded(d);
+       if(!_data.contains(d)){
+         _markAdded(d);
+         _removedObjects.remove(d);
+         _addOnDataChangeListener(d, d);
+       }
     });
     _data.addAll(elements);
-    elements.forEach((DataView d) {
-      _addOnDataChangeListener(d, d);
-    });
     _notify(author: author);
   }
 
@@ -327,8 +327,10 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   void _removeAll(Iterable<DataView> toBeRemoved, {author: null}) {
     //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((DataView d) {
-      _removedObjects.add(d);
-      _markRemoved(d);
+      if(_data.contains(d)){
+        _removedObjects.add(d);
+        _markRemoved(d);
+      }
     });
     _data.removeAll(toBeRemoved);
     _notify(author: author);

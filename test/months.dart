@@ -9,7 +9,7 @@ import "package:clean_data/clean_data.dart";
 Data january, february, march, april, may, june, july, august, september,
 october, november, december;
 
-DataCollection months, evenMonths, oddMonths;
+DataCollection months, evenMonths, oddMonths, spring, summer, autumn, winter;
 
 setUpMonths() {
   january = new Data.from({'name': 'January', 'days': 31, 'number': 1});
@@ -30,4 +30,9 @@ setUpMonths() {
 
   evenMonths = new DataCollection.from(months.where((month) => month['number'] % 2 == 0));
   oddMonths = new DataCollection.from(months.where((month) => month['number'] % 2 == 1));
+  spring = new DataCollection.from([march, april, may]);
+  summer = new DataCollection.from([june, july, august]);
+  autumn = new DataCollection.from([september, october, november]);
+  winter = new DataCollection.from([december, january, february]);
+
 }
