@@ -271,7 +271,7 @@ abstract class DataChangeListenersMixin<T> {
 /**
  * Collection of [DataView]s.
  */
-class DataCollection extends DataCollectionView with DataChangeListenersMixin<DataView> implements Set {
+class DataCollection extends DataCollectionView with DataChangeListenersMixin<DataView> implements Set<DataView> {
 
   /**
    * Creates an empty collection.
