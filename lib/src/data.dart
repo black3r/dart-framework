@@ -187,10 +187,14 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
  */
 
 class Data extends DataView with DataChangeListenersMixin<String> implements Map {
+  //Track subscriptions and remove
+
   /**
    * Creates an empty data object.
    */
   Data();
+
+
 
   /**
    * Creates a new data object from key-value pairs [data].
@@ -218,13 +222,18 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
     other.forEach((key, value) {
       if (_fields.containsKey(key)) {
         _markChanged(key, new Change(_fields[key], value));
-      } else if (value is DataView) {
-        _markAdded(key);
-        _addOnDataChangeListener(key, value);
+        if(_fields[key] is DataView){
+          _removeOnDataChangeListener(key);
+        }
       } else {
         _markChanged(key, new Change(null, value));
         _markAdded(key);
       }
+
+      if(value is DataView){
+        _addOnDataChangeListener(key, value);
+      }
+
       _fields[key] = value;
     });
     _notify(author: author);
@@ -250,12 +259,13 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
    */
   void removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      if (_fields[key] is! DataView) {
-        _markChanged(key, new Change(_fields[key], null));
-      } else {
-        _removedObjects.add(key);
-      }
+      _markChanged(key, new Change(_fields[key], null));
       _markRemoved(key);
+
+      if(_fields[key] is DataView){
+        _removeOnDataChangeListener(key);
+      }
+
       _fields.remove(key);
     }
     _notify(author: author);
