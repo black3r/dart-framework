@@ -31,7 +31,8 @@ class Change {
     return new Change(oldValue, newValue);
   }
 
-  String toString() => "$oldValue->$newValue";
+  String toString() => "Change($oldValue->$newValue)";
+
 }
 
 /**
@@ -98,11 +99,11 @@ class ChangeSet {
    * Marks all the changes in [ChangeSet] or [Change] for a
    * given [dataObj].
    */
-  void markChanged(dynamic dataObj, changeSet) {
-    if(changedItems.containsKey(dataObj)) {
-      changedItems[dataObj].mergeIn(changeSet);
+  void markChanged(dynamic key, changeSet) {
+    if(changedItems.containsKey(key)) {
+      changedItems[key].mergeIn(changeSet);
     } else {
-      changedItems[dataObj] = changeSet.clone();
+      changedItems[key] = changeSet.clone();
     }
   }
 
@@ -150,6 +151,6 @@ class ChangeSet {
   }
 
   String toString() {
-    return "Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString();
+    return "ChangeSet(Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString()+ ')';
   }
 }
