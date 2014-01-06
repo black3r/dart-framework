@@ -40,8 +40,8 @@ class Change {
  */
 class ChangeSet {
 
-  Set addedItems = new Set();
-  Set removedItems = new Set();
+  Map addedItems = new Map();
+  Map removedItems = new Map();
 
   /**
    * Contains mapping between the changed children and respective changes.
@@ -59,8 +59,8 @@ class ChangeSet {
    * Creates [ChangeSet] from [other]
    */
   ChangeSet.from(ChangeSet changeSet) {
-    addedItems = new Set.from(changeSet.addedItems);
-    removedItems = new Set.from(changeSet.removedItems);
+    addedItems = new Map.from(changeSet.addedItems);
+    removedItems = new Map.from(changeSet.removedItems);
     changeSet.changedItems.forEach((key, change) {
       changedItems[key] = change.clone();
     });
@@ -74,24 +74,23 @@ class ChangeSet {
   }
 
   /**
-   * Marks [dataObj] as added.
+   * Marks [key] as added with value [value].
    */
-  void markAdded(dynamic dataObj) {
-    if(this.removedItems.contains(dataObj)) {
-      this.removedItems.remove(dataObj);
+  void markAdded(dynamic key, dynamic value) {
+    if(this.removedItems.containsKey(key)) {
+      var oldVal = this.removedItems.remove(key);
+      this.markChanged(key, new Change(oldVal, value));
     } else {
-      this.addedItems.add(dataObj);
+      this.addedItems[key] = value;
     }
   }
 
-  /**
-   * Marks [dataObj] as removed.
-   */
-  void markRemoved(dynamic dataObj) {
-    if(addedItems.contains(dataObj)) {
-      this.addedItems.remove(dataObj);
+  void markRemoved(dynamic key, dynamic value) {
+    if(addedItems.containsKey(key)) {
+      var oldVal = this.addedItems.remove(key);
+      this.markChanged(key, new Change(oldVal, value));
     } else {
-      this.removedItems.add(dataObj);
+      this.removedItems[key] = value;
     }
   }
 
@@ -100,25 +99,27 @@ class ChangeSet {
    * given [dataObj].
    */
   void markChanged(dynamic key, changeSet) {
-    if(changedItems.containsKey(key)) {
-      changedItems[key].mergeIn(changeSet);
-    } else {
-      changedItems[key] = changeSet.clone();
+    for (Map map in [addedItems, removedItems, changedItems]){
+      if (map.containsKey(key)){
+        map[key].mergeIn(changeSet);
+        return;
+      }
     }
+    changedItems[key] = changeSet.clone();
   }
 
   /**
    * Merges two [ChangeSet]s together.
    */
   void mergeIn(ChangeSet changeSet) {
-    for(var child in changeSet.addedItems ){
-      markAdded(child);
-    }
-    for(var dataObj in changeSet.removedItems) {
-      markRemoved(dataObj);
-    }
-    changeSet.changedItems.forEach((child, changeSet) {
-      markChanged(child, changeSet);
+    changeSet.addedItems.forEach((key, value){
+      markAdded(key, value);
+    });
+    changeSet.removedItems.forEach((key, value){
+      markRemoved(key, value);
+    });
+    changeSet.changedItems.forEach((key, changeSet) {
+      markChanged(key, changeSet);
     });
   }
 
@@ -136,8 +137,8 @@ class ChangeSet {
    * Strips redundant changedItems from the [ChangeSet].
    */
   void prettify() {
-    addedItems.forEach((key) => changedItems.remove(key));
-    removedItems.forEach((key) => changedItems.remove(key));
+    addedItems.forEach((key, value) => changedItems.remove(key));
+    removedItems.forEach((key, value) => changedItems.remove(key));
 
     var equalityChanges = new Set();
     changedItems.forEach((d,cs){
@@ -151,6 +152,6 @@ class ChangeSet {
   }
 
   String toString() {
-    return "ChangeSet(Added:" + addedItems.toString() + " Changed:" + changedItems.toString() + " Removed:" + removedItems.toString()+ ')';
+    return "ChangeSet(added:" + addedItems.toString() + " changed:" + changedItems.toString() + " removed:" + removedItems.toString()+ ')';
   }
 }

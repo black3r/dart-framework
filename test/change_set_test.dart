@@ -76,8 +76,8 @@ void main() {
       change.when(callsTo('clone')).alwaysReturn(change);
 
       var changeSet = new ChangeSet();
-      changeSet.markAdded('january');
-      changeSet.markRemoved('february');
+      changeSet.markAdded('january', null);
+      changeSet.markRemoved('february', null);
       changeSet.markChanged('march', change);
 
       // when
@@ -93,42 +93,46 @@ void main() {
     test('add children.', () {
       // when
       for (var child in children) {
-        changeSet.markAdded(child);
+        changeSet.markAdded(child, null);
       }
 
       //  then
       expect(changeSet.isEmpty, isFalse);
       expect(changeSet.removedItems.isEmpty, isTrue);
       expect(changeSet.changedItems.isEmpty, isTrue);
-      expect(changeSet.addedItems, unorderedEquals(children));
+      expect(changeSet.addedItems.keys, unorderedEquals(children));
     });
 
     test('remove children.', () {
       // when
       for (var child in children) {
-        changeSet.markRemoved(child);
+        changeSet.markRemoved(child, null);
       }
 
       // then
       expect(changeSet.isEmpty, isFalse);
       expect(changeSet.addedItems.isEmpty, isTrue);
       expect(changeSet.changedItems.isEmpty, isTrue);
-      expect(changeSet.removedItems, unorderedEquals(children));
+      expect(changeSet.removedItems.keys, unorderedEquals(children));
     });
 
-    test('add previously removed children.', () {
+    solo_test('add previously removed children.', () {
       // given
       for (var child in children) {
-        changeSet.markRemoved(child);
+        changeSet.markRemoved(child, child);
       }
 
       // when
       for (var child in children) {
-        changeSet.markAdded(child);
+        changeSet.markAdded(child, child);
       }
 
       // then
-      expect(changeSet.isEmpty, isTrue);
+      expect(changeSet.addedItems.isEmpty, isTrue);
+      expect(changeSet.removedItems.isEmpty, isTrue);
+      changeSet.changedItems.forEach((k, Change v){
+        v.is
+      })
     });
 
     test('remove previosly added children.', () {
