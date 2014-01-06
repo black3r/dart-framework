@@ -11,7 +11,6 @@ import 'change_streams_test.dart' as change_streams_test;
 
 import 'collections/transformed_collection_view_test.dart' as transformed_test;
 import 'collections/filtered_collection_view_test.dart' as filtered_test;
-import 'collections/mapped_collection_view_test.dart' as mapped_test;
 import 'collections/unioned_collection_view_test.dart' as unioned_test;
 import 'collections/intersected_collection_view_test.dart' as intersected_test;
 import 'collections/excepted_collection_view_test.dart' as excepted_test;
@@ -33,7 +32,6 @@ run(configuration) {
   // collection views test
   transformed_test.main();
   filtered_test.main();
-  mapped_test.main();
   unioned_test.main();
   intersected_test.main();
   excepted_test.main();
