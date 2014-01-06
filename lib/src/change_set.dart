@@ -4,6 +4,22 @@
 
 part of clean_data;
 
+mapEq(Map m1, Map m2){
+  if (m1 == null && m2 == null) return true;
+  if (m1 == null || m2 == null) return false;
+  return m1.keys.length == m2.keys.length && m1.keys.every((k) => m1[k]==m2[k]);
+}
+
+
+class _Undefined {
+
+  String toString(){
+    return 'undefined';
+  }
+}
+
+var undefined = new _Undefined();
+
 /**
  * A representation of a single change in a scalar value.
  */
@@ -16,6 +32,25 @@ class Change {
    * [oldValue] and after the change [newValue].
    */
   Change(this.oldValue, this.newValue);
+
+  get isEqualityChange => oldValue == newValue;
+
+//  /**
+//   * Creates new [Change] from information about the value before change
+//   * [oldValue] and after the change [newValue].
+//   */
+//  Change(this.oldValue, this.newValue) {
+//    if(this.oldValue is DataReference) this.oldValue = this.oldValue.value;
+//    if(this.newValue is DataReference) this.newValue = this.newValue.value;
+//  }
+
+  operator ==(dynamic other){
+    if (other is Change){
+      return this.oldValue == other.oldValue && this.newValue == other.newValue;
+    } else {
+      return false;
+    }
+  }
 
   /**
    * Applies another [change] to get representation of whole change.
@@ -40,9 +75,6 @@ class Change {
  */
 class ChangeSet {
 
-  Map addedItems = new Map();
-  Map removedItems = new Map();
-
   /**
    * Contains mapping between the changed children and respective changes.
    *
@@ -53,18 +85,27 @@ class ChangeSet {
   /**
    * Creates an empty [ChangeSet].
    */
-  ChangeSet();
+  ChangeSet([Map changedItems = const {}]){
+    this.changedItems = new Map.from(changedItems);
+  }
 
   /**
    * Creates [ChangeSet] from [other]
    */
   ChangeSet.from(ChangeSet changeSet) {
-    addedItems = new Map.from(changeSet.addedItems);
-    removedItems = new Map.from(changeSet.removedItems);
     changeSet.changedItems.forEach((key, change) {
       changedItems[key] = change.clone();
     });
   }
+
+  operator ==(dynamic other){
+    if (other is ChangeSet){
+      return mapEq(this.changedItems, other.changedItems);
+    } else {
+      return false;
+    }
+  }
+
 
   /**
    * Clone changeSet.
@@ -77,21 +118,31 @@ class ChangeSet {
    * Marks [key] as added with value [value].
    */
   void markAdded(dynamic key, dynamic value) {
-    if(this.removedItems.containsKey(key)) {
-      var oldVal = this.removedItems.remove(key);
-      this.markChanged(key, new Change(oldVal, value));
-    } else {
-      this.addedItems[key] = value;
-    }
+    markChanged(key, new Change(undefined, value));
   }
 
   void markRemoved(dynamic key, dynamic value) {
-    if(addedItems.containsKey(key)) {
-      var oldVal = this.addedItems.remove(key);
-      this.markChanged(key, new Change(oldVal, value));
-    } else {
-      this.removedItems[key] = value;
-    }
+    markChanged(key, new Change(value, undefined));
+  }
+
+  get addedItems {
+    var res = [];
+    changedItems.forEach((key, dynamic change){
+      if(change is Change && change.oldValue == undefined){
+        res.add(key);
+      }
+    });
+    return res;
+  }
+
+  get removedItems {
+    var res = [];
+    changedItems.forEach((key, dynamic change){
+      if(change is Change && change.newValue == undefined){
+        res.add(key);
+      }
+    });
+    return res;
   }
 
   /**
@@ -99,25 +150,17 @@ class ChangeSet {
    * given [dataObj].
    */
   void markChanged(dynamic key, changeSet) {
-    for (Map map in [addedItems, removedItems, changedItems]){
-      if (map.containsKey(key)){
-        map[key].mergeIn(changeSet);
-        return;
-      }
+    if (changedItems.containsKey(key)){
+      changedItems[key].mergeIn(changeSet);
+    } else {
+      changedItems[key] = changeSet.clone();
     }
-    changedItems[key] = changeSet.clone();
   }
 
   /**
    * Merges two [ChangeSet]s together.
    */
   void mergeIn(ChangeSet changeSet) {
-    changeSet.addedItems.forEach((key, value){
-      markAdded(key, value);
-    });
-    changeSet.removedItems.forEach((key, value){
-      markRemoved(key, value);
-    });
     changeSet.changedItems.forEach((key, changeSet) {
       markChanged(key, changeSet);
     });
@@ -128,8 +171,6 @@ class ChangeSet {
    * Returns true if there are no changes in the [ChangeSet].
    */
   bool get isEmpty =>
-    this.addedItems.isEmpty &&
-    this.removedItems.isEmpty &&
     this.changedItems.isEmpty;
 
 
@@ -137,8 +178,6 @@ class ChangeSet {
    * Strips redundant changedItems from the [ChangeSet].
    */
   void prettify() {
-    addedItems.forEach((key, value) => changedItems.remove(key));
-    removedItems.forEach((key, value) => changedItems.remove(key));
 
     var equalityChanges = new Set();
     changedItems.forEach((d,cs){
@@ -152,6 +191,6 @@ class ChangeSet {
   }
 
   String toString() {
-    return "ChangeSet(added:" + addedItems.toString() + " changed:" + changedItems.toString() + " removed:" + removedItems.toString()+ ')';
+    return 'ChangeSet(${changedItems.toString()})';
   }
 }

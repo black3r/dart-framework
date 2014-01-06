@@ -61,18 +61,18 @@ abstract class ChangeNotificationsMixin {
     _changeSetSync = new ChangeSet();
   }
 
-  _markAdded(dynamic key) {
+  _markAdded(dynamic key, dynamic value) {
     _onBeforeAddedController.add(key);
 
-    _changeSetSync.markAdded(key);
-    _changeSet.markAdded(key);
+    _changeSetSync.markAdded(key, value);
+    _changeSet.markAdded(key, value);
   }
 
-  _markRemoved(dynamic key) {
+  _markRemoved(dynamic key, dynamic value) {
     _onBeforeRemovedController.add(key);
 
-    _changeSet.markRemoved(key);
-    _changeSetSync.markRemoved(key);
+    _changeSet.markRemoved(key, value);
+    _changeSetSync.markRemoved(key, value);
   }
 
   _markChanged(dynamic key, dynamic change) {

@@ -109,7 +109,6 @@ void main() {
       dataObj.onChange.listen(expectAsync1((changeSet) {
         expect(changeSet.removedItems, unorderedEquals(keysToRemove));
         expect(changeSet.addedItems.isEmpty, isTrue);
-        expect(changeSet.changedItems.isEmpty, isTrue);
       }));
     });
 
@@ -139,7 +138,6 @@ void main() {
       dataObj.onChange.listen(expectAsync1((changeSet) {
         expect(changeSet.addedItems, unorderedEquals(data.keys));
         expect(changeSet.removedItems.isEmpty, isTrue);
-        expect(changeSet.changedItems.isEmpty, isTrue);
       }));
     });
 
@@ -152,7 +150,6 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.addedItems, equals(['key']));
       }));
@@ -204,7 +201,6 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems, unorderedEquals(['key']));
       }));
@@ -261,7 +257,7 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys, unorderedEquals(['key1']));
+        expect(event.changedItems.keys, unorderedEquals(['key1', 'key2', 'key3']));
         expect(event.removedItems, unorderedEquals(['key2']));
         expect(event.addedItems, unorderedEquals(['key3']));
       }));
@@ -278,7 +274,6 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.addedItems, unorderedEquals(['key3']));
         expect(event.removedItems, unorderedEquals([]));
       }));
@@ -318,7 +313,6 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys, unorderedEquals([]));
         expect(event.removedItems, unorderedEquals(['key1']));
       }));
     });
@@ -494,7 +488,6 @@ void main() {
         dataObj.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet.addedItems, unorderedEquals(data.keys));
           expect(changeSet.removedItems.isEmpty, isTrue);
-          expect(changeSet.changedItems.isEmpty, isTrue);
         }));
       });
 
@@ -519,7 +512,6 @@ void main() {
         dataObj.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet.removedItems, unorderedEquals(keysToRemove));
           expect(changeSet.addedItems.isEmpty, isTrue);
-          expect(changeSet.changedItems.isEmpty, isTrue);
         }));
       });
 

@@ -120,8 +120,7 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
           _removeOnDataChangeListener(key);
         }
       } else {
-        _markChanged(key, new Change(null, value));
-        _markAdded(key);
+        _markAdded(key, value);
       }
 
       if(value is DataView){
@@ -153,8 +152,7 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
    */
   void removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      _markChanged(key, new Change(_fields[key], null));
-      _markRemoved(key);
+      _markRemoved(key, _fields[key]);
 
       if(_fields[key] is DataView){
         _removeOnDataChangeListener(key);

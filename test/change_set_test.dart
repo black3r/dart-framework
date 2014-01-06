@@ -99,8 +99,8 @@ void main() {
       //  then
       expect(changeSet.isEmpty, isFalse);
       expect(changeSet.removedItems.isEmpty, isTrue);
-      expect(changeSet.changedItems.isEmpty, isTrue);
-      expect(changeSet.addedItems.keys, unorderedEquals(children));
+      expect(changeSet.changedItems.isEmpty, isFalse);
+      expect(changeSet.addedItems, unorderedEquals(children));
     });
 
     test('remove children.', () {
@@ -112,11 +112,11 @@ void main() {
       // then
       expect(changeSet.isEmpty, isFalse);
       expect(changeSet.addedItems.isEmpty, isTrue);
-      expect(changeSet.changedItems.isEmpty, isTrue);
-      expect(changeSet.removedItems.keys, unorderedEquals(children));
+      expect(changeSet.changedItems.isEmpty, isFalse);
+      expect(changeSet.removedItems, unorderedEquals(children));
     });
 
-    solo_test('add previously removed children.', () {
+    test('add previously removed children.', () {
       // given
       for (var child in children) {
         changeSet.markRemoved(child, child);
@@ -128,26 +128,26 @@ void main() {
       }
 
       // then
-      expect(changeSet.addedItems.isEmpty, isTrue);
-      expect(changeSet.removedItems.isEmpty, isTrue);
       changeSet.changedItems.forEach((k, Change v){
-        v.is
-      })
+        expect(v.isEqualityChange, isTrue);
+      });
     });
 
     test('remove previosly added children.', () {
       // given
       for (var child in children) {
-        changeSet.markAdded(child);
+        changeSet.markAdded(child, child);
       }
 
       // when
       for (var child in children) {
-        changeSet.markRemoved(child);
+        changeSet.markRemoved(child, child);
       }
 
       // then
-      expect(changeSet.isEmpty, isTrue);
+      changeSet.changedItems.forEach((k, Change v){
+        expect(v.isEqualityChange, isTrue);
+      });
     });
 
     test('change children.', () {
@@ -194,54 +194,43 @@ void main() {
     });
 
     test('change child that was added before.',() {
-      // given
-      var change = new Mock();
-      var changeClone = new Mock();
-      change.when(callsTo('clone')).alwaysReturn(changeClone);
 
       for (var child in children) {
-        changeSet.markAdded(child);
+        changeSet.markAdded(child, child);
       }
 
       // when
       for (var child in children) {
-        changeSet.markChanged(child, change);
+        changeSet.markChanged(child, new Change(child, child+'_'));
       }
 
       // then
       expect(changeSet.addedItems, unorderedEquals(children));
-      expect(changeSet.removedItems.isEmpty, isTrue);
-      for (var child in children) {
-        expect(changeSet.changedItems[child], equals(changeClone));
-      }
+      changeSet.changedItems.forEach((key, Change value){
+        expect(value, equals(new Change(undefined, '${key}_')));
+
+      });
     });
 
 
     test('apply another ChangeSet.', () {
       // given
-      var change = new Mock();
-      change.when(callsTo('clone')).alwaysReturn(change);
+      var change1 = new Change('v1', 'v2');
+      var change2 = new Change('va', 'vb');
 
-      changeSet.markAdded('added');
-      changeSet.markRemoved('removed');
-      changeSet.markChanged('changed', change);
+      changeSet.markChanged('key1', change1);
 
       var anotherChangeSet = new ChangeSet();
-      var anotherChange = new Mock();
-      anotherChange.when(callsTo('clone')).alwaysReturn(anotherChange);
-      anotherChangeSet.markAdded('anotherAdded');
-      anotherChangeSet.markRemoved('anotherRemoved');
-      anotherChangeSet.markChanged('anotherChanged', anotherChange);
+      anotherChangeSet.markChanged('key2', change2);
 
       // when
       changeSet.mergeIn(anotherChangeSet);
 
       // then
-      expect(changeSet.addedItems, unorderedEquals(['added', 'anotherAdded']));
-      expect(changeSet.removedItems, unorderedEquals(['removed', 'anotherRemoved']));
-      expect(changeSet.changedItems.length, equals(2));
-      expect(changeSet.changedItems['changed'], equals(change));
-      expect(changeSet.changedItems['anotherChanged'], equals(anotherChange));
+      expect(changeSet, equals(new ChangeSet({
+        'key1': new Change('v1', 'v2'),
+        'key2': new Change('va', 'vb')}
+      )));
     });
   });
 }
