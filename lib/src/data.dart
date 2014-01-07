@@ -166,6 +166,10 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
     _fields.forEach((K, V) => f(K, V.value));
   }
 
+  DataReference ref(String key) {
+    return _fields[key];
+  }
+  
   putIfAbsent(key, ifAbsent()) {
     if (!containsKey(key)) {
       add(key, ifAbsent());
