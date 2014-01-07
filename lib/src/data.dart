@@ -110,13 +110,17 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
    * Assigns the [value] to the [key] field.
    */
   void add(String key, value, {author: null}) {
-    addAll({key: value}, author: author);
+    _addAll({key: value}, author: author);
   }
 
   /**
    * Adds all key-value pairs of [other] to this data.
    */
   void addAll(Map other, {author: null}) {
+    _addAll(other, author:author);
+  }
+
+  void _addAll(Map other, {author: null}) {
     other.forEach((key, value) {
       if (_fields.containsKey(key)) {
         _fields[key].changeValue(value, author: author);
@@ -134,32 +138,34 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
    * Assigns the [value] to the [key] field.
    */
   void operator[]=(String key, value) {
-    add(key, value);
+    _addAll({key: value});
   }
 
   /**
    * Removes [key] from the data object.
    */
   void remove(String key, {author: null}) {
-    removeAll([key], author: author);
+    _removeAll([key], author: author);
   }
 
   /**
    * Remove all [keys] from the data object.
    */
   void removeAll(List<String> keys, {author: null}) {
+    _removeAll(keys, author:author);
+  }
+
+  void _removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
       _markRemoved(key, _fields[key]);
-      
       _removeOnDataChangeListener(key);
-
       _fields.remove(key);
     }
     _notify(author: author);
   }
 
   void clear({author: null}) {
-    removeAll(keys.toList(), author: author);
+    _removeAll(keys.toList(), author: author);
   }
 
   void forEach(void f(key, value)) {
@@ -172,7 +178,7 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
   
   putIfAbsent(key, ifAbsent()) {
     if (!containsKey(key)) {
-      add(key, ifAbsent());
+      _addAll({key: ifAbsent()});
     }
   }
 

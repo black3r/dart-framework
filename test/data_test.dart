@@ -574,6 +574,17 @@ void main() {
         onChange.getLogs().verify(happenedOnce);
       });
     });
+    
+    test('data can be replaced by another data.', () {
+      // given
+      var dataObj = new Data.from({'child': new Data()});
+
+      // when
+      dataObj['child']['name'] = 'John Doe';
+      dataObj['child'] = new Data();
+
+      // then no Error is thrown
+    });
   });
   
   group('(DataReference)', () {

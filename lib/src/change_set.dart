@@ -149,11 +149,24 @@ class ChangeSet {
    * Marks all the changes in [ChangeSet] or [Change] for a
    * given [dataObj].
    */
-  void markChanged(dynamic key, changeSet) {
-    if (changedItems.containsKey(key)){
-      changedItems[key].mergeIn(changeSet);
+  void markChanged(dynamic key, change) {
+    if(changedItems.containsKey(key)) {
+      if(change is Change) {
+        if(changedItems[key] is Change) {
+          changedItems[key].mergeIn(change);
+        }
+        else { 
+          changedItems[key] = change;
+        }
+      }
+      else {
+        if(changedItems[key] is Change) {}
+        else {
+          changedItems[key].mergeIn(change);
+        }
+      }
     } else {
-      changedItems[key] = changeSet.clone();
+      changedItems[key] = change.clone();
     }
   }
 
