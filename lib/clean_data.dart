@@ -93,6 +93,7 @@ import "dart:collection";
 
 part 'src/data.dart';
 part 'src/data_collection.dart';
+part 'src/data_reference.dart';
 part 'src/change_set.dart';
 
 part 'src/collections/transformed_collection_view.dart';
