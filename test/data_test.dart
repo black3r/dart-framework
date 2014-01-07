@@ -575,4 +575,91 @@ void main() {
       });
     });
   });
+  
+  group('(DataReference)', () {
+    test('is assigned to elements key. (T1)', () { 
+      //given
+      var data1 = new Data();
+      var data2 = new Data();
+      
+      //when
+      data1['key'] = data2;
+      data1['key2'] = 'value';
+      
+      //then
+      expect(data1.ref('key').value, equals(data2));
+      expect(data1.ref('key2').value, equals('value'));
+    });
+    
+    test('does not change, when changing value. (T2)', () { 
+      //given
+      var data = new Data();
+      var data1 = new Data();
+      var data2 = new Data();
+      
+      //when
+      data['key'] = data1;
+      DataReference ref1 = data.ref('key');
+      data['key'] = data2;
+      DataReference ref2 = data.ref('key');
+      
+      //then
+      expect(ref1, equals(ref2));
+    });
+    
+    test('is unique for key. (T3)', () { 
+      //given
+      var data = new Data();
+      var data1 = new Data();
+      
+      //when
+      data['key1'] = data1;
+      DataReference ref1 = data.ref('key1');
+      data['key2'] = data1;
+      DataReference ref2 = data.ref('key2');
+      
+      //then
+      expect(ref1, isNot(equals(ref2)));
+    });
+    
+    test('changes when element is removed and re-added. (T4)', () { 
+      //given
+      var data = new Data();
+      var data1 = new Data();
+      
+      //when
+      data['key'] = data1;
+      DataReference ref1 = data.ref('key');
+      data.remove('key');
+      
+      data['key'] = data1;
+      DataReference ref2 = data.ref('key');
+      
+      //then
+      expect(ref1, isNot(equals(ref2)));
+    });
+    
+    test('are passed in Change / ChangeSet. (T5)', () {
+      // given
+      var childOld = new Data();
+      var childNew = new Data();
+      var dataObj = new Data.from({'child': childOld});
+      var onChange = new Mock();
+
+      // when
+      DataReference refOld = dataObj.ref('child');
+      dataObj.remove('child');
+      dataObj.add('child', childNew);
+      DataReference refNew = dataObj.ref('child');
+      
+      // then
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.changedItems.keys, unorderedEquals(['child']));
+
+        Change change = event.changedItems['child'];
+        expect(change.oldValue, equals(refOld));
+        expect(change.newValue, equals(refNew));
+      }));
+    });
+  });
 }
