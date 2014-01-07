@@ -13,7 +13,7 @@ abstract class ChangeNotificationsMixin {
   final StreamController<dynamic> _onChangeController =
       new StreamController.broadcast();
 
-  final StreamController<dynamic> _onChangeSyncController =
+  final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
   /**

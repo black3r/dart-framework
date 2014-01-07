@@ -29,11 +29,12 @@ class DataReference extends Object with ChangeNotificationsMixin{
   }
 
   changeValue(newValue, {author: null}) {
-    _value = newValue;
-    
     Change change = new Change(_value, newValue);
+    
+    _value = newValue;
+
     _onChangeController.add(change);
-    _onChangeSyncController.add(change);
+    _onChangeSyncController.add({'author': author, 'change': change});
    
     _clearChangesSync();
     _clearChanges();
@@ -55,7 +56,7 @@ class DataReference extends Object with ChangeNotificationsMixin{
       _onBeforeRemovedListener = null;
     }
     
-    if(value is ChangeNotificationsMixin) {
+    if(newValue is ChangeNotificationsMixin) {
       _onDataChangeSyncListener = newValue.onChangeSync.listen((changeEvent) {
         _onChangeSyncController.add(changeEvent);
       });
