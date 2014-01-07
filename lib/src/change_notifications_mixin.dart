@@ -10,10 +10,10 @@ abstract class ChangeNotificationsMixin {
   /**
    * Controlls notification streams. Used to propagate change events to the outside world.
    */
-  final StreamController<ChangeSet> _onChangeController =
+  final StreamController<dynamic> _onChangeController =
       new StreamController.broadcast();
 
-  final StreamController<Map> _onChangeSyncController =
+  final StreamController<dynamic> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
   /**

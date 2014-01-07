@@ -8,13 +8,14 @@ part of clean_data;
  * Observable object, which represents single primitive in Data.
  *
  */
-class DataReference extends Object with ChangeNotificationsMixin {
+class DataReference extends Object with ChangeNotificationsMixin{
 
   /**
    * Encapsulated value
    */
   dynamic _value;
-
+  StreamSubscription _onDataChangeListener, _onDataChangeSyncListener, _onBeforeAddedListener, _onBeforeRemovedListener;
+  
   /**
    * Return value of a primitive type.
    */
@@ -28,15 +29,54 @@ class DataReference extends Object with ChangeNotificationsMixin {
   }
 
   changeValue(newValue, {author: null}) {
-    _markChanged('value', new Change(_value, newValue));
     _value = newValue;
-    _notify(single: 'value', author: author);
+    
+    Change change = new Change(_value, newValue);
+    _onChangeController.add(change);
+    _onChangeSyncController.add(change);
+   
+    _clearChangesSync();
+    _clearChanges();
+    
+    if(_onDataChangeListener != null) {
+      _onDataChangeListener.cancel();
+      _onDataChangeListener = null;
+    }
+    if(_onDataChangeSyncListener != null) {
+      _onDataChangeSyncListener.cancel();
+      _onDataChangeSyncListener = null;
+    }
+    if(_onBeforeAddedListener != null) {
+      _onBeforeAddedListener.cancel();
+      _onBeforeAddedListener = null;
+    }
+    if(_onBeforeRemovedListener != null) {
+      _onBeforeRemovedListener.cancel();
+      _onBeforeRemovedListener = null;
+    }
+    
+    if(value is ChangeNotificationsMixin) {
+      _onDataChangeSyncListener = newValue.onChangeSync.listen((changeEvent) {
+        _onChangeSyncController.add(changeEvent);
+      });
+      _onDataChangeListener = newValue.onChange.listen((changeEvent) {
+        _onChangeController.add(changeEvent);
+      });
+      _onBeforeAddedListener = newValue.onBeforeAdd.listen((changeEvent) {
+        _onBeforeAddedController.add(changeEvent);
+      });
+      _onBeforeRemovedListener = newValue.onBeforeRemove.listen((changeEvent) {
+        _onBeforeRemovedController.add(changeEvent);
+      });
+    }
   }
 
   /**
-   * Creates new DataReference with [_value]
+   * Creates new DataReference with [value]
    */
-  DataReference(this._value);
+  DataReference(value) { 
+    changeValue(value);
+  }
 
   String toString() => _value.toString();
 }
