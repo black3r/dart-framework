@@ -9,7 +9,10 @@ import '../months.dart';
 import 'package:clean_data/clean_data.dart';
 
 void main() {
-
+  var conf = unittestConfiguration;
+  conf.timeout = new Duration(seconds: 2);
+  unittestConfiguration = conf;
+  
   group('(TransformedDataCollection)', () {
 
     setUp(() => setUpMonths());
@@ -22,7 +25,7 @@ void main() {
 
       // when
       january['temperature'] = -10;
-
+      
       //then
       excepted.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
@@ -45,7 +48,7 @@ void main() {
 
       // then
       excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(event.addedItems, equals([fantasyMonth]));
       }));
@@ -62,7 +65,7 @@ void main() {
 
       //then
       excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems, equals([january]));
       }));
@@ -78,7 +81,7 @@ void main() {
       // then
       evenMonths.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems, unorderedEquals([january]));
-        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
         expect(evenMonths, unorderedEquals([january, february, april, june,
                                             august, october, december]));
@@ -95,7 +98,7 @@ void main() {
       // then
       evenMonths.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.removedItems, unorderedEquals([february]));
-        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
         expect(event.addedItems.isEmpty, isTrue);
         expect(evenMonths, unorderedEquals([april, june, august, october,
                                             december]));
@@ -116,7 +119,7 @@ void main() {
       excepted.onChange.listen((c) => expect(true, isFalse));
     });
 
-    test('removal, change and add is broadcasted as change (T07)', () {
+    test('removal, change and add is broadcasted (T07)', () {
       // given
       var excepted = months.liveDifference(evenMonths);
 
@@ -140,28 +143,28 @@ void main() {
       var fantasyMonth = new Data.from(
           {"name": "FantasyMonth", "days": 13, "number": 13});
 
-      // when
-      months.add(fantasyMonth);
-
       // then
       excepted.onBeforeAdd.listen(expectAsync1((DataView d) {
           expect(d, equals(fantasyMonth));
           expect(excepted.contains(fantasyMonth), isFalse);
       }));
+      
+      // when
+      months.add(fantasyMonth);
     });
 
     test('onBeforeRemove is fired before object is removed. (T09)', () {
       // given
       var excepted = months.liveDifference(evenMonths);
 
-      // when
-      months.remove(january);
-
       // then
       excepted.onBeforeRemove.listen(expectAsync1((DataView d) {
           expect(d, equals(january));
           expect(excepted.contains(january), isTrue);
       }));
+      
+      // when
+      months.remove(january);
     });
 
     test('onChangeSync on derived collections  (T10)', () {

@@ -91,10 +91,10 @@ abstract class DataCollectionView extends Object
           }
         });
 
-        cs.changedItems.forEach((DataView d, ChangeSet cs) {
-          if (d.containsKey(indexProp) && cs.changedItems.containsKey(indexProp)) {
-            _index[indexProp].remove(cs.changedItems[indexProp].oldValue, d);
-            _index[indexProp].add(cs.changedItems[indexProp].newValue,d);
+        cs.strictlyChanged.forEach((DataView d, css) {
+          if (d.containsKey(indexProp) && css.changedItems.containsKey(indexProp)) {
+            _index[indexProp].remove(css.changedItems[indexProp].oldValue, d);
+            _index[indexProp].add(css.changedItems[indexProp].newValue,d);
           }
         });
       }
@@ -230,8 +230,7 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
   void _addAll(Iterable<DataView> elements, {author: null}){
     elements.forEach((DataView d) {
        if(!_data.contains(d)){
-         _markAdded(d);
-         _removedObjects.remove(d);
+         _markAdded(d, new DataReference(d));
          _addOnDataChangeListener(d, d);
        }
     });
@@ -264,8 +263,8 @@ class DataCollection extends DataCollectionView with DataChangeListenersMixin<Da
     //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((DataView d) {
       if(_data.contains(d)){
-        _removedObjects.add(d);
-        _markRemoved(d);
+        _markRemoved(d, new DataReference(d));
+        _removeOnDataChangeListener(d);
       }
     });
     _data.removeAll(toBeRemoved);

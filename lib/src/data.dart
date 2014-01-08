@@ -77,7 +77,12 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
   /**
    * Should release all allocated (referenced) resources as subscribtions.
    */
-  void dispose();
+  void dispose() {
+    _onChangeController.close();
+    _onChangeSyncController.close();
+    _onBeforeRemovedController.close();
+    _onBeforeAddedController.close();
+  }
 }
 
 /**
@@ -183,6 +188,6 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
   }
 
   void dispose() {
-
+    _dataListeners.forEach((K, V) => V.cancel());
   }
 }

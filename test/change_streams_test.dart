@@ -12,13 +12,13 @@ import 'months.dart';
 
 addedEquals(ChangeSet changeSet, Iterable added){
   expect(changeSet.addedItems, unorderedEquals(added));
-  expect(changeSet.changedItems, isEmpty);
+  expect(changeSet.strictlyChanged, isEmpty);
   expect(changeSet.removedItems, isEmpty);
 }
 
 removedEquals(ChangeSet changeSet, Iterable removed){
   expect(changeSet.addedItems, isEmpty);
-  expect(changeSet.changedItems, isEmpty);
+  expect(changeSet.strictlyChanged, isEmpty);
   expect(changeSet.removedItems, unorderedEquals(removed));
 }
 
@@ -76,7 +76,7 @@ void main() {
 
       // then
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
       }));
     });
 
@@ -97,7 +97,7 @@ void main() {
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems, unorderedEquals([fantasyMonth]));
         expect(event.removedItems, unorderedEquals([january]));
-        expect(event.changedItems.keys,
+        expect(event.strictlyChanged.keys,
             unorderedEquals([february, december]));
       }));
     });
@@ -113,7 +113,7 @@ void main() {
 
       // then
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.changedItems.keys,
+        expect(event.strictlyChanged.keys,
             unorderedEquals([january, february]));
       }));
 
@@ -133,7 +133,11 @@ void main() {
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
+        expect(event.strictlyChanged.isEmpty, isTrue);
         expect(event.changedItems.keys, unorderedEquals([january]));
+        expect(event.changedItems[january], new isInstanceOf<Change>());
+        expect(event.changedItems[january].newValue.value, january);
+        expect(event.changedItems[january].oldValue.value, january);
       }));
     });
 
@@ -169,7 +173,7 @@ void main() {
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
         expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.keys, unorderedEquals([february]));
+        expect(event.strictlyChanged.keys, unorderedEquals([february]));
 
         // verify the data object changeset is valid
         ChangeSet changes = event.changedItems[february];
@@ -178,8 +182,8 @@ void main() {
         expect(changes.changedItems.length, equals(1));
 
         Change change = changes.changedItems['days'];
-        expect(change.oldValue, equals(28));
-        expect(change.newValue, equals(29));
+        expect(change.oldValue.value, equals(28));
+        expect(change.newValue.value, equals(29));
       }));
     });
 

@@ -20,7 +20,7 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
 
     for (var i = 0; i < sources.length; i++) {
       this._sourcesSubscription[i] =
-          this.sources[i].onChange.listen((ChangeSet changes) => _mergeIn(changes, i));
+          this.sources[i].onChangeSync.listen((change) => _mergeIn(change['change'], i));
     }
   }
 
@@ -30,10 +30,10 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
   void _mergeIn(ChangeSet changes, int sourceNumber) {
     changes.addedItems.forEach((dataObj) => _treatAddedItem(dataObj, sourceNumber));
     changes.removedItems.forEach((dataObj) => _treatRemovedItem(dataObj, sourceNumber));
-    changes.changedItems.forEach((dataObj,changes) => _treatChangedItem(dataObj, changes, sourceNumber));
+    changes.strictlyChanged.forEach((dataObj,changes) => _treatChangedItem(dataObj, changes, sourceNumber));
     var items = changes.addedItems.union(changes.removedItems).union(new Set.from(changes.changedItems.keys));
     for (var item in items) {
-      _treatItem(item, changes.changedItems[item]);
+      _treatItem(item, changes.strictlyChanged[item]);
     }
     _notify();
   }

@@ -125,8 +125,8 @@ class ChangeSet {
     markChanged(key, new Change(value, undefined));
   }
 
-  get addedItems {
-    var res = [];
+  Set get addedItems {
+    var res = new Set();
     changedItems.forEach((key, dynamic change){
       if(change is Change && change.oldValue == undefined){
         res.add(key);
@@ -135,12 +135,21 @@ class ChangeSet {
     return res;
   }
 
-  get removedItems {
-    var res = [];
+  Set get removedItems {
+    var res = new Set();
     changedItems.forEach((key, dynamic change){
       if(change is Change && change.newValue == undefined){
         res.add(key);
       }
+    });
+    return res;
+  }
+  
+  get strictlyChanged {
+    var res = {};
+    changedItems.forEach((key, dynamic change) {
+      if(change is ChangeSet)
+        res[key] = change; 
     });
     return res;
   }
