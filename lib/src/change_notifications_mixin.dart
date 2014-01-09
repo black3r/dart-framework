@@ -51,6 +51,31 @@ abstract class ChangeNotificationsMixin {
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
 
+   /**
+    * Internal set of listeners for change events on individual data objects.
+    */
+   final Map<dynamic, StreamSubscription> _dataListeners =
+       new Map<dynamic, StreamSubscription>();
+
+   /**
+    * Starts listening to changes on [dataObj].
+    */
+   void _addOnDataChangeListener(key, dataObj) {
+     if (_dataListeners.containsKey(dataObj)) return;
+
+     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
+       _markChanged(key, changeEvent['change']);
+       _notify(author: changeEvent['author']);
+     });
+   }
+
+   void _removeOnDataChangeListener(key) {
+     if (_dataListeners.containsKey(key)) {
+       _dataListeners[key].cancel();
+       _dataListeners.remove(key);
+     }
+   }
+   
   //======= changeSet manipulators =======
 
   _clearChanges() {

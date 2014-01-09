@@ -89,7 +89,7 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
  * A representation for a single unit of structured data.
  */
 
-class Data extends DataView with DataChangeListenersMixin<String> implements Map {
+class Data extends DataView implements Map {
   //Track subscriptions and remove
 
   /**

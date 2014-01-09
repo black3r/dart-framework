@@ -208,7 +208,6 @@ abstract class DataCollectionView extends Object
  * Collection of [ChangeNotificationsMixin]s.
  */
 class DataCollection  extends DataCollectionView 
-                      with DataChangeListenersMixin<ChangeNotificationsMixin> 
                       implements Set<ChangeNotificationsMixin> {
 
   /**
