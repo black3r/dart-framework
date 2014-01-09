@@ -4,8 +4,8 @@
 
 part of clean_data;
 
-typedef bool DataTestFunction(DataView d);
-typedef dynamic DataTransformFunction(DataView d);
+typedef bool DataTestFunction(d);
+typedef dynamic DataTransformFunction(d);
 
 /**
  * Observable collection of data objects that allows for read-only operations.
