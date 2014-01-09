@@ -9,7 +9,7 @@ part of clean_data;
  */
 abstract class TransformedDataCollection 
                 extends DataCollectionView 
-                with IterableMixin<ChangeNotificationsMixin> {
+                with IterableMixin {
 
   /**
    * The source [DataCollectionView](s) this collection is derived from.
@@ -41,9 +41,9 @@ abstract class TransformedDataCollection
   }
 
   // Overridable methods follow
-  void _treatAddedItem(ChangeNotificationsMixin dataObj, int sourceNumber) {}
-  void _treatRemovedItem(ChangeNotificationsMixin dataObj, int sourceNumber) {}
-  void _treatChangedItem(ChangeNotificationsMixin dataObj, ChangeSet c, int sourceNumber) {}
+  void _treatAddedItem(dataObj, int sourceNumber) {}
+  void _treatRemovedItem(dataObj, int sourceNumber) {}
+  void _treatChangedItem(dataObj, ChangeSet c, int sourceNumber) {}
   void _treatItem(dataObj, changeSet) {}
 
   void dispose() {

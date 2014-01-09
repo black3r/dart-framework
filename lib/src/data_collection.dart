@@ -14,15 +14,15 @@ typedef dynamic DataTransformFunction(DataView d);
  * are propagated to registered listeners.
  */
 abstract class DataCollectionView extends Object
-               with IterableMixin<ChangeNotificationsMixin>, ChangeNotificationsMixin
-               implements Iterable<ChangeNotificationsMixin> {
+               with IterableMixin, ChangeNotificationsMixin
+               implements Iterable {
 
-  Iterator<ChangeNotificationsMixin> get iterator => _data.iterator;
+  Iterator get iterator => _data.iterator;
 
   /**
    * Holds data view objects for the collection.
    */
-  final Set<ChangeNotificationsMixin> _data = new Set<ChangeNotificationsMixin>();
+  final Set _data = new Set();
 
   int get length => _data.length;
 
@@ -61,7 +61,7 @@ abstract class DataCollectionView extends Object
    * (Re)indexes all existing data objects into [prop] index.
    */
   void _rebuildIndex(String prop) {
-    for (ChangeNotificationsMixin d in this) {
+    for (dynamic d in this) {
       if (d is DataView && d.containsKey(prop)) {
         _index[prop].add(d[prop], d);
       }
@@ -139,7 +139,7 @@ abstract class DataCollectionView extends Object
    *
    * @param dataObj Data object to be searched for.
    */
-  bool contains(ChangeNotificationsMixin dataObj) => _data.contains(dataObj);
+  bool contains(dataObj) => _data.contains(dataObj);
 
   /**
    * Filters the data collection w.r.t. the given filter function [test].
@@ -205,10 +205,10 @@ abstract class DataCollectionView extends Object
 }
 
 /**
- * Collection of [ChangeNotificationsMixin]s.
+ * Collection
  */
 class DataCollection  extends DataCollectionView 
-                      implements Set<ChangeNotificationsMixin> {
+                      implements Set {
 
   /**
    * Creates an empty collection.
@@ -219,7 +219,7 @@ class DataCollection  extends DataCollectionView
   /**
    * Generates Collection from [Iterable] of [data].
    */
-  factory DataCollection.from(Iterable<ChangeNotificationsMixin> data) {
+  factory DataCollection.from(Iterable data) {
     var collection = new DataCollection();
     for (var dataObj in data) {
       collection.add(dataObj);
@@ -228,11 +228,12 @@ class DataCollection  extends DataCollectionView
     return collection;
   }
 
-  void _addAll(Iterable<ChangeNotificationsMixin> elements, {author: null}){
-    elements.forEach((ChangeNotificationsMixin d) {
-       if(!_data.contains(d)){
-         _markAdded(d, new DataReference(d));
-         _addOnDataChangeListener(d, d);
+  void _addAll(Iterable elements, {author: null}){
+    elements.forEach((data) {
+       if(!_data.contains(data)){
+         _markAdded(data, new DataReference(data));
+         if(data is ChangeNotificationsMixin) 
+           _addOnDataChangeListener(data, data);
        }
     });
     _data.addAll(elements);
@@ -245,7 +246,7 @@ class DataCollection  extends DataCollectionView
    * nothing happens.
    */
 
-  bool add(ChangeNotificationsMixin dataObj, {author: null}) {
+  bool add(dataObj, {author: null}) {
     var res = !_data.contains(dataObj);
     this._addAll([dataObj], author: author);
     return res;
@@ -256,16 +257,17 @@ class DataCollection  extends DataCollectionView
    * Appends all [elements] to the collection.
    */
 
-  void addAll(Iterable<ChangeNotificationsMixin> elements, {author: null}) {
+  void addAll(Iterable elements, {author: null}) {
     this._addAll(elements, author: author);
   }
 
-  void _removeAll(Iterable<ChangeNotificationsMixin> toBeRemoved, {author: null}) {
+  void _removeAll(Iterable toBeRemoved, {author: null}) {
     //the following causes onChangeListeners removal in the next event loop
-    toBeRemoved.forEach((ChangeNotificationsMixin d) {
-      if(_data.contains(d)){
-        _markRemoved(d, new DataReference(d));
-        _removeOnDataChangeListener(d);
+    toBeRemoved.forEach((data) {
+      if(_data.contains(data)){
+        _markRemoved(data, new DataReference(data));
+        if(data is ChangeNotificationsMixin)
+          _removeOnDataChangeListener(data);
       }
     });
     _data.removeAll(toBeRemoved);
@@ -275,7 +277,7 @@ class DataCollection  extends DataCollectionView
   /**
    * Removes multiple data objects from the collection.
    */
-  void removeAll(Iterable<ChangeNotificationsMixin> toBeRemoved, {author: null}) {
+  void removeAll(Iterable toBeRemoved, {author: null}) {
     this._removeAll(toBeRemoved, author: author);
   }
 
@@ -284,7 +286,7 @@ class DataCollection  extends DataCollectionView
    * Removes a data object from the collection.  If the object was not in
    * the collection, returns [false] and nothing happens.
    */
-  bool remove(ChangeNotificationsMixin dataObj, {author: null}) {
+  bool remove(dataObj, {author: null}) {
     var res = _data.contains(dataObj);
     this._removeAll([dataObj], author: author);
     return res;
@@ -293,12 +295,12 @@ class DataCollection  extends DataCollectionView
   /**
    * Removes all objects that have [property] equal to [value] from this collection.
    */
-  Iterable<ChangeNotificationsMixin> removeBy(String property, dynamic value, {author: null}) {
+  Iterable removeBy(String property, dynamic value, {author: null}) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }
 
-    Iterable<ChangeNotificationsMixin> toBeRemoved = _index[property][value];
+    Iterable toBeRemoved = _index[property][value];
     this._removeAll(toBeRemoved, author: author);
   }
 
@@ -320,11 +322,11 @@ class DataCollection  extends DataCollectionView
   }
 
 
-  ChangeNotificationsMixin lookup(Object object) => _data.lookup(object);
+  lookup(Object object) => _data.lookup(object);
 
-  bool containsAll(Iterable<ChangeNotificationsMixin> other) => _data.containsAll(other);
+  bool containsAll(Iterable other) => _data.containsAll(other);
 
-  void retainWhere(bool test(ChangeNotificationsMixin element), {author: null}) {
+  void retainWhere(bool test(element), {author: null}) {
     this._removeWhere((data) => !test(data), author: author);
   }
 
@@ -333,9 +335,9 @@ class DataCollection  extends DataCollectionView
     this._removeWhere((data) => !toKeep.contains(data), author:author);
   }
 
-  Set<ChangeNotificationsMixin> difference(Set<ChangeNotificationsMixin> other) => _data.difference(other);
-  Set<ChangeNotificationsMixin> intersection(Set<ChangeNotificationsMixin> other) => _data.intersection(other);
-  Set<ChangeNotificationsMixin> union(Set<ChangeNotificationsMixin> other) => _data.union(other);
+  Set difference(Set other) => _data.difference(other);
+  Set intersection(Set other) => _data.intersection(other);
+  Set union(Set other) => _data.union(other);
 
   /**
    * Removes all data objects from the collection.

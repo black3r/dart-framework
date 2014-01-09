@@ -218,5 +218,26 @@ void main() {
           (seasons) => seasons.fold(0, (prev, Data month) => prev + month['days']) == 92);
       expect(where, unorderedEquals([SummerCollection, SpringCollection]));
     });
+    
+    test('is working properly with non listenable elements.', () {
+      var seasons = new DataCollection.from(['spring', 'summer', 'autumn', 'winter']);
+      var warmSeasons = new DataCollection.from(['spring', 'summer']);
+      var coldSeasons = new DataCollection.from(['autumn', 'winter']);
+      var windySeasons = new DataCollection.from(['autumn']);
+      
+      // when
+      var except = seasons.liveDifference(warmSeasons);
+      expect(except, unorderedEquals(coldSeasons));
+      
+      var union = warmSeasons.liveUnion(coldSeasons);
+      expect(union, unorderedEquals(seasons));
+      
+      var intersection = coldSeasons.liveIntersection(windySeasons);
+      expect(intersection, unorderedEquals(['autumn']));
+      
+      var where = seasons.where(
+          (seasons) => seasons.startsWith('s'));
+      expect(where, unorderedEquals(['summer', 'spring']));
+    });
   });
 }

@@ -448,33 +448,35 @@ void main() {
     
     test('Set is listening properly for Set.', () { 
       //given 
-      var SpringCollection = new DataCollection.from([march, april, may]),
-          SummerCollection = new DataCollection.from([june, july, august]),
-          AutumnCollection = new DataCollection.from([september, october, november]),
-          WinterCollection = new DataCollection.from([december, january, february]),
-          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
-                                             AutumnCollection, WinterCollection]);
+      var springCollection = new DataCollection.from([march, april, may]),
+          summerCollection = new DataCollection.from([june, july, august]),
+          autumnCollection = new DataCollection.from([september, october, november]),
+          winterCollection = new DataCollection.from([december, january, february]),
+          seasons = new DataCollection.from([springCollection, summerCollection, 
+                                             autumnCollection, winterCollection]);
       
       //when
       february['days'] = 29;
       
       //then
       seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
-        expect(changeSet.changedItems.keys, unorderedEquals([WinterCollection]));
-        expect(changeSet.changedItems[WinterCollection].changedItems.containsKey(february), isTrue);        
+        expect(changeSet.changedItems.keys, unorderedEquals([winterCollection]));
+        expect(changeSet.changedItems[winterCollection].changedItems.containsKey(february), isTrue);        
       }));
     });
     
     test('is ignoring non DataView elements, when finding by index.', () {
       // given
-      var SpringCollection = new DataCollection.from([march, april, may]),
-          SummerCollection = new DataCollection.from([june, july, august]),
-          AutumnCollection = new DataCollection.from([september, october, november]),
-          WinterCollection = new DataCollection.from([december, january, february]),
-          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
-                                             AutumnCollection, WinterCollection]);
+      var springCollection = new DataCollection.from([march, april, may]),
+          summerCollection = new DataCollection.from([june, july, august]),
+          autumnCollection = new DataCollection.from([september, october, november]),
+          winterCollection = new DataCollection.from([december, january, february]),
+          seasons = new DataCollection.from([springCollection, summerCollection, 
+                                             autumnCollection, winterCollection]);
       
-      var year = new DataCollection.from(months..add(seasons));
+      var year = new DataCollection.from(
+          months..add(seasons)
+                ..addAll(['spring', 'summer', 'autumn', 'winter']));
       
       // when
       year.addIndex(['number']);
@@ -484,6 +486,21 @@ void main() {
       expect(year.findBy('number', 13).isEmpty, isTrue);
     });
     
+    test('is accepting also non clean_data elements.', () {
+      var springCollection = new DataCollection.from([march, april, may]),
+          summerCollection = new DataCollection.from([june, july, august]),
+          autumnCollection = new DataCollection.from([september, october, november]),
+          winterCollection = new DataCollection.from([december, january, february]);
+      var seasonsData = new DataCollection.from(['spring', 'summer', 'autumn', 'winter',
+                                                 springCollection, summerCollection, 
+                                                 autumnCollection, winterCollection]);
+      seasonsData.remove('summer');
+      
+      expect(seasonsData.length, equals(7));
+      expect(seasonsData.contains('spring'), isTrue);
+      expect(seasonsData.contains('summer'), isFalse);
+      expect(seasonsData.contains(springCollection), isTrue);
+    });
     
   });
 
