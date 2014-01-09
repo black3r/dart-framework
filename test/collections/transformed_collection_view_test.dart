@@ -191,6 +191,32 @@ void main() {
       february['number'] = 13;
     });
 
-
+    test('is working properly with non DataView elements.', () {
+      // given
+      var SpringCollection = new DataCollection.from([march, april, may]),
+          SummerCollection = new DataCollection.from([june, july, august]),
+          AutumnCollection = new DataCollection.from([september, october, november]),
+          WinterCollection = new DataCollection.from([december, january, february]),
+          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
+                                             AutumnCollection, WinterCollection]);
+      
+      var warmSeasons = new DataCollection.from([SpringCollection, SummerCollection]);
+      var coldSeasons = new DataCollection.from([AutumnCollection, WinterCollection]);
+      var windySeasons = new DataCollection.from([AutumnCollection]);
+      
+      // when
+      var except = seasons.liveDifference(warmSeasons);
+      expect(except, unorderedEquals(coldSeasons));
+      
+      var union = warmSeasons.liveUnion(coldSeasons);
+      expect(union, unorderedEquals(seasons));
+      
+      var intersection = coldSeasons.liveIntersection(windySeasons);
+      expect(intersection, unorderedEquals([AutumnCollection]));
+      
+      var where = seasons.where(
+          (seasons) => seasons.fold(0, (prev, Data month) => prev + month['days']) == 92);
+      expect(where, unorderedEquals([SummerCollection, SpringCollection]));
+    });
   });
 }

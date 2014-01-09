@@ -20,13 +20,13 @@ abstract class FilteredCollectionBase extends TransformedDataCollection {
   /**
    * Returns true if [dataObj] should be present in the collection.
    */
-  bool _shouldContain(DataView dataObj);
+  bool _shouldContain(ChangeNotificationsMixin dataObj);
 
   /**
    * Decides whether a [dataObj] that has changed in the [source] collection
    * should be added/changed/removed in this filtered collection.
    */
-  void _treatItem(DataView dataObj, ChangeSet changes) {
+  void _treatItem(ChangeNotificationsMixin dataObj, ChangeSet changes) {
     bool shouldBeContained = _shouldContain(dataObj);
     bool isContained = _data.contains(dataObj);
 
@@ -61,7 +61,7 @@ class FilteredCollectionView extends FilteredCollectionBase {
   FilteredCollectionView(DataCollectionView source,
       DataTestFunction this._filter): super([source]);
 
-  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) &&
+  bool _shouldContain(ChangeNotificationsMixin dataObj) => sources[0].contains(dataObj) &&
       _filter(dataObj);
 }
 
@@ -76,7 +76,7 @@ class ExceptedCollectionView extends FilteredCollectionBase {
   ExceptedCollectionView(DataCollectionView source1,
       DataCollectionView source2): super([source1, source2]);
 
-  bool _shouldContain(DataView dataObj) =>
+  bool _shouldContain(ChangeNotificationsMixin dataObj) =>
     sources[0].contains(dataObj) && !sources[1].contains(dataObj);
 
 
@@ -90,7 +90,7 @@ class IntersectedCollectionView extends FilteredCollectionBase {
   IntersectedCollectionView(DataCollectionView source1,
       DataCollectionView source2): super([source1, source2]);
 
-  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) &&
+  bool _shouldContain(ChangeNotificationsMixin dataObj) => sources[0].contains(dataObj) &&
       sources[1].contains(dataObj);
 }
 
@@ -102,6 +102,6 @@ class UnionedCollectionView extends FilteredCollectionBase {
   UnionedCollectionView(DataCollectionView source1,
       DataCollectionView source2): super([source1, source2]);
 
-  bool _shouldContain(DataView dataObj) => sources[0].contains(dataObj) ||
+  bool _shouldContain(ChangeNotificationsMixin dataObj) => sources[0].contains(dataObj) ||
       sources[1].contains(dataObj);
 }

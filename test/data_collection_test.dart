@@ -427,6 +427,64 @@ void main() {
       // then
       expect(count, 1);
     });
+    
+    
+    test('Map is listening properly for Set.', () { 
+      //given 
+      Data seasons = new Data.from({'spring': new DataCollection.from([march, april, may]),
+                      'summer': new DataCollection.from([june, july, august]),
+                      'autumn': new DataCollection.from([september, october, november]),
+                      'winter': new DataCollection.from([december, january, february])});
+      
+      //when
+      february['days'] = 29;
+      
+      //then
+      seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet.changedItems.keys, unorderedEquals(['winter']));
+        expect(changeSet.changedItems['winter'].changedItems.containsKey(february), isTrue);        
+      }));
+    });
+    
+    test('Set is listening properly for Set.', () { 
+      //given 
+      var SpringCollection = new DataCollection.from([march, april, may]),
+          SummerCollection = new DataCollection.from([june, july, august]),
+          AutumnCollection = new DataCollection.from([september, october, november]),
+          WinterCollection = new DataCollection.from([december, january, february]),
+          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
+                                             AutumnCollection, WinterCollection]);
+      
+      //when
+      february['days'] = 29;
+      
+      //then
+      seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet.changedItems.keys, unorderedEquals([WinterCollection]));
+        expect(changeSet.changedItems[WinterCollection].changedItems.containsKey(february), isTrue);        
+      }));
+    });
+    
+    test('is ignoring non DataView elements, when finding by index.', () {
+      // given
+      var SpringCollection = new DataCollection.from([march, april, may]),
+          SummerCollection = new DataCollection.from([june, july, august]),
+          AutumnCollection = new DataCollection.from([september, october, november]),
+          WinterCollection = new DataCollection.from([december, january, february]),
+          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
+                                             AutumnCollection, WinterCollection]);
+      
+      var year = new DataCollection.from(months..add(seasons));
+      
+      // when
+      year.addIndex(['number']);
 
+      // then
+      expect(year.findBy('number', 7), equals([july]));
+      expect(year.findBy('number', 13).isEmpty, isTrue);
+    });
+    
+    
   });
+
 }

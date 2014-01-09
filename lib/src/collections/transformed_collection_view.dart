@@ -7,7 +7,9 @@ part of clean_data;
 /**
  * Represents a read-only, iterable data collection that is a result of a transformation operation.
  */
-abstract class TransformedDataCollection extends DataCollectionView with IterableMixin<DataView> {
+abstract class TransformedDataCollection 
+                extends DataCollectionView 
+                with IterableMixin<ChangeNotificationsMixin> {
 
   /**
    * The source [DataCollectionView](s) this collection is derived from.
@@ -39,9 +41,9 @@ abstract class TransformedDataCollection extends DataCollectionView with Iterabl
   }
 
   // Overridable methods follow
-  void _treatAddedItem(DataView dataObj, int sourceNumber) {}
-  void _treatRemovedItem(DataView dataObj, int sourceNumber) {}
-  void _treatChangedItem(DataView dataObj, ChangeSet c, int sourceNumber) {}
+  void _treatAddedItem(ChangeNotificationsMixin dataObj, int sourceNumber) {}
+  void _treatRemovedItem(ChangeNotificationsMixin dataObj, int sourceNumber) {}
+  void _treatChangedItem(ChangeNotificationsMixin dataObj, ChangeSet c, int sourceNumber) {}
   void _treatItem(dataObj, changeSet) {}
 
   void dispose() {
