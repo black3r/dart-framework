@@ -79,5 +79,5 @@ class DataReference extends Object with ChangeNotificationsMixin{
     changeValue(value);
   }
 
-  String toString() => _value.toString();
+  String toString() => 'DataRef(${_value.toString()})';
 }
