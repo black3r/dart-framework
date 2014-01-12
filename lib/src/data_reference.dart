@@ -32,12 +32,6 @@ class DataReference extends Object with ChangeNotificationsMixin{
     _markChange(_value, newValue);
     _value = newValue;
 
-//    _onChangeController.add(change);
-//    _onChangeSyncController.add({'author': author, 'change': change});
-
-//    _clearChangesSync();
-//    _clearChanges();
-
     if(_onDataChangeListener != null) {
       _onDataChangeListener.cancel();
       _onDataChangeListener = null;
