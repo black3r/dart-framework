@@ -151,15 +151,6 @@ abstract class DataCollectionView extends Object
    return new FilteredCollectionView(this, test);
   }
 
-  /**
-   * Maps the data collection to a new collection w.r.t. the given [mapping].
-   *
-   * The collection remains up-to-date w.r.t. to the source collection via
-   * background synchronization.
-   */
-  DataCollectionView liveMap(DataTransformFunction mapping) {
-    return new MappedCollectionView(this, mapping);
-  }
 
   /**
    * Unions the data collection with another [DataCollectionView] to form a new, [UnionedCollectionView].
