@@ -35,9 +35,17 @@ class Change {
    */
   Change(this.oldValue, this.newValue);
 
-  bool equals (dynamic other){
+  bool equals(dynamic other) {
+    dereference(value) {
+      while (value is DataReference){
+        value = value.value;
+      }
+      return value;
+    }
+
     if (other is Change){
-      return this.oldValue == other.oldValue && this.newValue == other.newValue;
+      return dereference(oldValue) == dereference(other.oldValue) &&
+             dereference(newValue) == dereference(other.newValue);
     } else {
       return false;
     }
@@ -91,7 +99,18 @@ class ChangeSet {
 
   bool equals (dynamic other) {
     if (other is ChangeSet){
-      return mapEq(this.changedItems, other.changedItems);
+      if (this.changedItems.keys.length != other.changedItems.keys.length) return false;
+      for (var k in changedItems.keys){
+        var v = changedItems[k];
+        if (v is Change || v is ChangeSet) {
+          if (!v.equals(other.changedItems[k])){
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+      return true;
     } else {
       return false;
     }

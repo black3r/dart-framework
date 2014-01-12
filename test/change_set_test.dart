@@ -72,8 +72,7 @@ void main() {
 
     test('clone.', () {
       // given
-      var change = new Mock();
-      change.when(callsTo('clone')).alwaysReturn(change);
+      var change = new Change(1,2);
 
       var changeSet = new ChangeSet();
       changeSet.markAdded('january', null);
@@ -85,9 +84,9 @@ void main() {
 
       // then
       expect(identical(clone, changeSet), isFalse);
-      expect(clone.addedItems, equals(changeSet.addedItems));
-      expect(clone.removedItems, equals(changeSet.removedItems));
-      expect(clone.changedItems, equals(changeSet.changedItems));
+      print(clone);
+      print(changeSet);
+      expect(clone.equals(changeSet), isTrue);
     });
 
     test('add children.', () {
@@ -128,9 +127,10 @@ void main() {
       }
 
       // then
-      changeSet.changedItems.forEach((k, Change v){
-        expect(v.isEqualityChange, isTrue);
-      });
+      expect(changeSet.equals(new ChangeSet(
+          {'first': new Change('first', 'first'),
+           'second': new Change('second', 'second'),
+           'third': new Change('third', 'third')})), isTrue);
     });
 
     test('remove previosly added children.', () {
@@ -145,9 +145,10 @@ void main() {
       }
 
       // then
-      changeSet.changedItems.forEach((k, Change v){
-        expect(v.isEqualityChange, isTrue);
-      });
+      expect(changeSet.equals(new ChangeSet(
+          {'first': new Change(undefined, undefined),
+           'second': new Change(undefined, undefined),
+           'third': new Change(undefined, undefined)})), isTrue);
     });
 
     test('change children.', () {
@@ -207,7 +208,7 @@ void main() {
       // then
       expect(changeSet.addedItems, unorderedEquals(children));
       changeSet.changedItems.forEach((key, Change value){
-        expect(value, equals(new Change(undefined, '${key}_')));
+        expect(value.equals(new Change(undefined, '${key}_')), isTrue);
 
       });
     });
@@ -227,10 +228,10 @@ void main() {
       changeSet.mergeIn(anotherChangeSet);
 
       // then
-      expect(changeSet, equals(new ChangeSet({
+      expect(changeSet.equals(new ChangeSet({
         'key1': new Change('v1', 'v2'),
         'key2': new Change('va', 'vb')}
-      )));
+      )), isTrue);
     });
   });
 }
