@@ -184,22 +184,6 @@ class ChangeSet {
     this.changedItems.isEmpty;
 
 
-  /**
-   * Strips redundant changedItems from the [ChangeSet].
-   */
-  void prettify() {
-
-    var equalityChanges = new Set();
-    changedItems.forEach((d,cs){
-      if (cs is Change && cs.oldValue == cs.newValue) {
-       equalityChanges.add(d);
-      }
-    });
-    equalityChanges.forEach((droppableChange) {
-      changedItems.remove(droppableChange);
-    });
-  }
-
   String toString() {
     return 'ChangeSet(${changedItems.toString()})';
   }

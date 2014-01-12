@@ -14,8 +14,8 @@ class DataReference extends Object with ChangeNotificationsMixin{
    * Encapsulated value
    */
   dynamic _value;
-  StreamSubscription _onDataChangeListener, _onDataChangeSyncListener, _onBeforeAddedListener, _onBeforeRemovedListener;
-  
+  StreamSubscription _onDataChangeListener, _onDataChangeSyncListener;
+
   /**
    * Return value of a primitive type.
    */
@@ -29,16 +29,15 @@ class DataReference extends Object with ChangeNotificationsMixin{
   }
 
   changeValue(newValue, {author: null}) {
-    Change change = new Change(_value, newValue);
-    
+    _markChange(_value, newValue);
     _value = newValue;
 
-    _onChangeController.add(change);
-    _onChangeSyncController.add({'author': author, 'change': change});
-   
-    _clearChangesSync();
-    _clearChanges();
-    
+//    _onChangeController.add(change);
+//    _onChangeSyncController.add({'author': author, 'change': change});
+
+//    _clearChangesSync();
+//    _clearChanges();
+
     if(_onDataChangeListener != null) {
       _onDataChangeListener.cancel();
       _onDataChangeListener = null;
@@ -47,15 +46,7 @@ class DataReference extends Object with ChangeNotificationsMixin{
       _onDataChangeSyncListener.cancel();
       _onDataChangeSyncListener = null;
     }
-    if(_onBeforeAddedListener != null) {
-      _onBeforeAddedListener.cancel();
-      _onBeforeAddedListener = null;
-    }
-    if(_onBeforeRemovedListener != null) {
-      _onBeforeRemovedListener.cancel();
-      _onBeforeRemovedListener = null;
-    }
-    
+
     if(newValue is ChangeNotificationsMixin) {
       _onDataChangeSyncListener = newValue.onChangeSync.listen((changeEvent) {
         _onChangeSyncController.add(changeEvent);
@@ -63,20 +54,18 @@ class DataReference extends Object with ChangeNotificationsMixin{
       _onDataChangeListener = newValue.onChange.listen((changeEvent) {
         _onChangeController.add(changeEvent);
       });
-      _onBeforeAddedListener = newValue.onBeforeAdd.listen((changeEvent) {
-        _onBeforeAddedController.add(changeEvent);
-      });
-      _onBeforeRemovedListener = newValue.onBeforeRemove.listen((changeEvent) {
-        _onBeforeRemovedController.add(changeEvent);
-      });
     }
+
+    _notify();
   }
 
   /**
    * Creates new DataReference with [value]
    */
-  DataReference(value) { 
+  DataReference(value) {
     changeValue(value);
+    _clearChanges();
+    _clearChangesSync();
   }
 
   String toString() => _value.toString();

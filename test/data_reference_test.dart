@@ -18,56 +18,56 @@ void main() {
       DataReference ref = new DataReference('value');
       expect(ref.value, 'value');
     });
-    
+
     test('Setter (T02)', () {
       DataReference ref = new DataReference('value');
       ref.value = 'newValue';
       expect(ref.value, 'newValue');
     });
-    
-    
+
+
     test('Listen on change (T03)', () {
       DataReference ref = new DataReference('oldValue');
-      
+
       var check = expectAsync1((Change change) {
         expect(change.oldValue , equals('oldValue'));
         expect(change.newValue , equals('newValue'));
       });
-      
-      ref.onChange.listen(check);
+
       ref.value = 'newValue';
+      ref.onChange.listen(check);
     });
-    
+
     test('Listen on changeSync (T04)', () {
       DataReference ref = new DataReference('oldValue');
-      
+
       var check = expectAsync1((Change change) {
         expect(change.oldValue , equals('oldValue'));
         expect(change.newValue , equals('newValue'));
       });
-      
+
       ref.onChange.listen(check);
       ref.value = 'newValue';
     });
-    
+
     test('Listen on changes of value', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
+      // when
+      dataRef.value['key'] = 'semiNewValue';
+      dataRef.value['key'] = 'newValue';
+
       // then
       dataRef.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.length, equals(1));
-        var change = event.changedItems['key'];
-        expect(change.oldValue, equals('oldValue'));
-        expect(change.newValue, equals('newValue'));
+        print(event);
+        expect(event.equals(new ChangeSet(
+              {'key': new Change('oldValue', 'newValue')}
+        )), isTrue);
       }));
-      
-      // when
-      dataRef.value['key'] = 'newValue';
+
     });
-    
+
     test('Listen synchronyosly on changes of value', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
@@ -81,7 +81,7 @@ void main() {
         expect(change.oldValue, equals('oldValue'));
         expect(change.newValue, equals('newValue'));
       }));
-      
+
       // when
       dataRef.value['key'] = 'newValue';
     });

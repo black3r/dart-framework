@@ -6,6 +6,8 @@ abstract class ChangeNotificationsMixin {
    */
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
+  Change _change = null;
+  Change _changeSync = null;
 
   /**
    * Controlls notification streams. Used to propagate change events to the outside world.
@@ -55,10 +57,12 @@ abstract class ChangeNotificationsMixin {
 
   _clearChanges() {
     _changeSet = new ChangeSet();
+    _change = null;
   }
 
   _clearChangesSync() {
     _changeSetSync = new ChangeSet();
+    _changeSync = null;
   }
 
   _markAdded(dynamic key, dynamic value) {
@@ -80,6 +84,20 @@ abstract class ChangeNotificationsMixin {
     _changeSetSync.markChanged(key, change);
   }
 
+  _markChange(dynamic oldValue, dynamic newValue) {
+    var change = new Change(oldValue, newValue);
+    if (_change == null) {
+      _change = change.clone();
+    } else {
+      _change.mergeIn(change);
+    }
+    if (_changeSync == null) {
+      _changeSync = change.clone();
+    } else {
+      _changeSync.mergeIn(change);
+    }
+  }
+
   //======= /changeSet manipulators =======
 
   /**
@@ -88,20 +106,27 @@ abstract class ChangeNotificationsMixin {
   void _onBeforeNotify() {}
 
   void _notify({author: null}) {
+    if (_changeSync != null) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSync});
+      _clearChangesSync();
+    } else
     if (!_changeSetSync.isEmpty) {
       _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
       _clearChangesSync();
     }
 
     Timer.run(() {
+      var change;
+      if (_change != null) {
+        change = _change;
+      } else
       if (!_changeSet.isEmpty) {
-        _changeSet.prettify();
+        change = _changeSet;
+      }
+      if (change != null) {
         _onBeforeNotify();
-
-        if (!_changeSet.isEmpty) {
-          _onChangeController.add(_changeSet);
-          _clearChanges();
-        }
+        _onChangeController.add(change);
+        _clearChanges();
       }
     });
   }

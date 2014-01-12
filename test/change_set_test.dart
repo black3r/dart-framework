@@ -84,8 +84,6 @@ void main() {
 
       // then
       expect(identical(clone, changeSet), isFalse);
-      print(clone);
-      print(changeSet);
       expect(clone.equals(changeSet), isTrue);
     });
 
