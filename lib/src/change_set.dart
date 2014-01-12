@@ -4,13 +4,6 @@
 
 part of clean_data;
 
-mapEq(Map m1, Map m2){
-  if (m1 == null && m2 == null) return true;
-  if (m1 == null || m2 == null) return false;
-  return m1.keys.length == m2.keys.length && m1.keys.every((k) => m1[k]==m2[k]);
-}
-
-
 class _Undefined {
 
   const _Undefined();
@@ -84,7 +77,7 @@ class ChangeSet {
   /**
    * Creates an empty [ChangeSet].
    */
-  ChangeSet([Map changedItems = const {}]){
+  ChangeSet([Map changedItems = const {}]) {
     this.changedItems = new Map.from(changedItems);
   }
 
@@ -175,7 +168,6 @@ class ChangeSet {
       markChanged(key, changeSet);
     });
   }
-
 
   /**
    * Returns true if there are no changes in the [ChangeSet].

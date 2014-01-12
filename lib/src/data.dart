@@ -6,7 +6,7 @@ part of clean_data;
 
 //TODO consider moving mixin to separate file
 
-abstract class DataView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin{
+abstract class DataView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
 
   final Map<String, DataReference> _fields = new Map();
   /**
