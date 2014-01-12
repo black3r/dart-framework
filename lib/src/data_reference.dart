@@ -8,7 +8,7 @@ part of clean_data;
  * Observable object, which represents single primitive in Data.
  *
  */
-class DataReference extends Object with ChangeNotificationsMixin{
+class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNotificationsMixin{
 
   /**
    * Encapsulated value

@@ -1,13 +1,6 @@
 part of clean_data;
 
 abstract class ChangeNotificationsMixin {
-  /**
-   * Holds pending changes.
-   */
-  ChangeSet _changeSet = new ChangeSet();
-  ChangeSet _changeSetSync = new ChangeSet();
-  Change _change = null;
-  Change _changeSync = null;
 
   /**
    * Controlls notification streams. Used to propagate change events to the outside world.
@@ -53,16 +46,23 @@ abstract class ChangeNotificationsMixin {
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
 
-  //======= changeSet manipulators =======
+  void _onBeforeNotify() {}
+
+}
+
+abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin {
+  /**
+   * Holds pending changes.
+   */
+  ChangeSet _changeSet = new ChangeSet();
+  ChangeSet _changeSetSync = new ChangeSet();
 
   _clearChanges() {
     _changeSet = new ChangeSet();
-    _change = null;
   }
 
   _clearChangesSync() {
     _changeSetSync = new ChangeSet();
-    _changeSync = null;
   }
 
   _markAdded(dynamic key, dynamic value) {
@@ -84,6 +84,39 @@ abstract class ChangeNotificationsMixin {
     _changeSetSync.markChanged(key, change);
   }
 
+  /**
+   * Streams all new changes marked in [changeSet].
+   */
+  void _notify({author: null}) {
+    if (!_changeSetSync.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
+      _clearChangesSync();
+    }
+
+    Timer.run(() {
+      if (!_changeSet.isEmpty) {
+        _onBeforeNotify();
+        if (!_changeSet.isEmpty) {
+          _onChangeController.add(_changeSet);
+          _clearChanges();
+        }
+      }
+    });
+  }
+}
+
+abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin {
+  Change _change = null;
+  Change _changeSync = null;
+
+  _clearChanges() {
+    _change = null;
+  }
+
+  _clearChangesSync() {
+    _changeSync = null;
+  }
+
   _markChange(dynamic oldValue, dynamic newValue) {
     var change = new Change(oldValue, newValue);
     if (_change == null) {
@@ -98,36 +131,25 @@ abstract class ChangeNotificationsMixin {
     }
   }
 
-  //======= /changeSet manipulators =======
-
   /**
    * Streams all new changes marked in [changeSet].
    */
-  void _onBeforeNotify() {}
-
   void _notify({author: null}) {
     if (_changeSync != null) {
       _onChangeSyncController.add({'author': author, 'change': _changeSync});
       _clearChangesSync();
-    } else
-    if (!_changeSetSync.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-      _clearChangesSync();
     }
 
     Timer.run(() {
-      var change;
       if (_change != null) {
-        change = _change;
-      } else
-      if (!_changeSet.isEmpty) {
-        change = _changeSet;
-      }
-      if (change != null) {
         _onBeforeNotify();
-        _onChangeController.add(change);
+        _onChangeController.add(_change);
         _clearChanges();
       }
     });
   }
 }
+
+
+
+

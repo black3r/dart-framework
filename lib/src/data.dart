@@ -6,7 +6,7 @@ part of clean_data;
 
 //TODO consider moving mixin to separate file
 
-abstract class DataView extends Object with ChangeNotificationsMixin {
+abstract class DataView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin{
 
   final Map<String, DataReference> _fields = new Map();
   /**
@@ -59,8 +59,8 @@ abstract class DataView extends Object with ChangeNotificationsMixin {
 
   bool containsValue(Object value) {
     bool contains = false;
-    _fields.forEach((K, V) { 
-      if(V.value == value) contains = true; 
+    _fields.forEach((K, V) {
+      if(V.value == value) contains = true;
     });
     return contains;
   }
@@ -150,7 +150,7 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
   void removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
       _markRemoved(key, _fields[key]);
-      
+
       _removeOnDataChangeListener(key);
 
       _fields.remove(key);
@@ -169,7 +169,7 @@ class Data extends DataView with DataChangeListenersMixin<String> implements Map
   DataReference ref(String key) {
     return _fields[key];
   }
-  
+
   putIfAbsent(key, ifAbsent()) {
     if (!containsKey(key)) {
       add(key, ifAbsent());
