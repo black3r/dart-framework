@@ -26,16 +26,16 @@ run(configuration) {
   unittestConfiguration = configuration;
 
   data_test.main();
-  data_collection_test.main();
+//  data_collection_test.main();
   data_reference_test.main();
-  change_streams_test.main();
+//  change_streams_test.main();
   change_set_test.main();
 
   // collection views test
-  transformed_test.main();
-  filtered_test.main();
-  unioned_test.main();
-  intersected_test.main();
-  excepted_test.main();
-  hash_index_test.main();
+//  transformed_test.main();
+//  filtered_test.main();
+//  unioned_test.main();
+//  intersected_test.main();
+//  excepted_test.main();
+//  hash_index_test.main();
 }

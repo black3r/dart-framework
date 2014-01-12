@@ -13,12 +13,14 @@ mapEq(Map m1, Map m2){
 
 class _Undefined {
 
+  const _Undefined();
+
   String toString(){
     return 'undefined';
   }
 }
 
-var undefined = new _Undefined();
+const undefined = const _Undefined();
 
 /**
  * A representation of a single change in a scalar value.
@@ -33,18 +35,7 @@ class Change {
    */
   Change(this.oldValue, this.newValue);
 
-  get isEqualityChange => oldValue == newValue;
-
-//  /**
-//   * Creates new [Change] from information about the value before change
-//   * [oldValue] and after the change [newValue].
-//   */
-//  Change(this.oldValue, this.newValue) {
-//    if(this.oldValue is DataReference) this.oldValue = this.oldValue.value;
-//    if(this.newValue is DataReference) this.newValue = this.newValue.value;
-//  }
-
-  operator ==(dynamic other){
+  bool equals (dynamic other){
     if (other is Change){
       return this.oldValue == other.oldValue && this.newValue == other.newValue;
     } else {
@@ -98,7 +89,7 @@ class ChangeSet {
     });
   }
 
-  operator ==(dynamic other){
+  bool equals (dynamic other) {
     if (other is ChangeSet){
       return mapEq(this.changedItems, other.changedItems);
     } else {
