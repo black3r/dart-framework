@@ -36,35 +36,32 @@ void main() {
     });
 
     // TODO finish this
-    test('pokus', () {
+    test('Correctly merge changes. (T04)', () {
       Data d = new Data.from({'name': 'jozo'});
-      d.onChangeSync.listen((change){
-        print(change['change']);
-      });
+      var oldRef = d.ref('name');
       d['name'] = 'fero';
       d.remove('name');
       d['name'] = 'miso';
 
       d.onChange.listen((change){
-        print('async');
-        print(change);
+        var newRef = d.ref('name');
+        expect(change.equals(new ChangeSet({'name': new Change(oldRef, newRef)})),
+            isTrue);
       });
     });
 
-    // TODO opravit
-    skip_test('Listen on changeSync (T04)', () {
+    test('Listen on changeSync (T05)', () {
       DataReference ref = new DataReference('oldValue');
 
-      var check = expectAsync1((Change change) {
-        expect(change.oldValue , equals('oldValue'));
-        expect(change.newValue , equals('newValue'));
+      var check = expectAsync1((event) {
+        expect(event['change'].equals(new Change(ref, ref)), isTrue);
       });
 
-      ref.onChange.listen(check);
+      ref.onChangeSync.listen(check);
       ref.value = 'newValue';
     });
 
-    test('Listen on changes of value', () {
+    test('Listen on changes of value. (T06)', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
@@ -83,7 +80,7 @@ void main() {
     });
 
 
-    test('Listen synchronyosly on changes of value', () {
+    test('Listen synchronyosly on changes of value. (T07)', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
