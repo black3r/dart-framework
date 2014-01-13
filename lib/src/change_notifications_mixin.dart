@@ -11,6 +11,13 @@ abstract class ChangeNotificationsMixin {
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
+  get __change;
+  get __changeSync;
+  _clearChanges();
+  _clearChangesSync();
+  void _onBeforeNotify() {}
+
+
   /**
    * Stream populated with [ChangeSet] events whenever the collection or any
    * of data object contained gets changed.
@@ -46,8 +53,24 @@ abstract class ChangeNotificationsMixin {
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
 
-  void _onBeforeNotify() {}
 
+  /**
+   * Streams all new changes marked in [_change].
+   */
+  void _notify({author: null}) {
+    if (!__changeSync.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': __changeSync});
+      _clearChangesSync();
+    }
+
+    Timer.run(() {
+      if (!__change.isEmpty) {
+        _onBeforeNotify();
+        _onChangeController.add(__change);
+        _clearChanges();
+      }
+    });
+  }
 }
 
 abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin {
@@ -56,6 +79,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    */
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
+
+  get __change => _changeSet;
+  get __changeSync => _changeSetSync;
 
   _clearChanges() {
     _changeSet = new ChangeSet();
@@ -96,58 +122,34 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
     Timer.run(() {
       if (!_changeSet.isEmpty) {
         _onBeforeNotify();
-        if (!_changeSet.isEmpty) {
-          _onChangeController.add(_changeSet);
-          _clearChanges();
-        }
+        _onChangeController.add(_changeSet);
+        _clearChanges();
       }
     });
   }
 }
 
 abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin {
-  Change _change = null;
-  Change _changeSync = null;
+  Change _change = new Change();
+  Change _changeSync = new Change();
+
+  get __change => _change;
+  get __changeSync => _changeSync;
 
   _clearChanges() {
-    _change = null;
+    _change = new Change();
   }
 
   _clearChangesSync() {
-    _changeSync = null;
+    _changeSync = new Change();
   }
 
-  _markChange(dynamic oldValue, dynamic newValue) {
-    var change = new Change(oldValue, newValue);
-    if (_change == null) {
-      _change = change.clone();
-    } else {
-      _change.mergeIn(change);
-    }
-    if (_changeSync == null) {
-      _changeSync = change.clone();
-    } else {
-      _changeSync.mergeIn(change);
-    }
+  _markChanged(dynamic oldValue, dynamic newValue) {
+    Change change = new Change(oldValue, newValue);
+    _changeSync.mergeIn(change);
+    _change.mergeIn(change);
   }
 
-  /**
-   * Streams all new changes marked in [changeSet].
-   */
-  void _notify({author: null}) {
-    if (_changeSync != null) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSync});
-      _clearChangesSync();
-    }
-
-    Timer.run(() {
-      if (_change != null) {
-        _onBeforeNotify();
-        _onChangeController.add(_change);
-        _clearChanges();
-      }
-    });
-  }
 }
 
 

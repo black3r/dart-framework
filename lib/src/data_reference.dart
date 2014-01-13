@@ -29,8 +29,8 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
   }
 
   changeValue(newValue, {author: null}) {
-    _markChange(_value, newValue);
     _value = newValue;
+    _markChanged(this, this);
 
     if(_onDataChangeListener != null) {
       _onDataChangeListener.cancel();
@@ -62,5 +62,5 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
     _clearChangesSync();
   }
 
-  String toString() => _value.toString();
+  String toString() => 'Ref(${_value.toString()})';
 }

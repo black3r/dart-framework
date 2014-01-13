@@ -236,12 +236,8 @@ void main() {
 
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.length, equals(1));
-        var change = event.changedItems['key'];
-        expect(change.oldValue, equals('oldValue'));
-        expect(change.newValue, equals('newValue'));
+        var ref = dataObj.ref('key');
+        expect(event.equals(new ChangeSet({'key': new Change(ref, ref)})), isTrue);
       }));
     });
 

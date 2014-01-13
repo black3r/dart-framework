@@ -6,14 +6,17 @@ part of clean_data;
 
 class _Undefined {
 
-  const _Undefined();
+  final String type;
+
+  const _Undefined(this.type);
 
   String toString(){
-    return 'undefined';
+    return type;
   }
 }
 
-const undefined = const _Undefined();
+const undefined = const _Undefined('undefined');
+const unset = const _Undefined('unset');
 
 /**
  * A representation of a single change in a scalar value.
@@ -22,11 +25,15 @@ class Change {
   dynamic oldValue;
   dynamic newValue;
 
+  get isEmpty {
+    return oldValue == unset && newValue == unset;
+  }
+
   /**
    * Creates new [Change] from information about the value before change
    * [oldValue] and after the change [newValue].
    */
-  Change(this.oldValue, this.newValue);
+  Change([this.oldValue = unset, this.newValue = unset]);
 
   bool equals(dynamic other) {
     dereference(value) {
@@ -48,6 +55,13 @@ class Change {
    * Applies another [change] to get representation of whole change.
    */
   void mergeIn(Change change) {
+    if (change.isEmpty) {
+      return;
+    }
+    assert(isEmpty || change.oldValue == this.newValue);
+    if (isEmpty) {
+      oldValue = change.oldValue;
+    }
     newValue = change.newValue;
   }
 
