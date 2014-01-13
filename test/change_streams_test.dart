@@ -25,7 +25,7 @@ removedEquals(ChangeSet changeSet, Iterable removed){
 
 void main() {
 
-  group('(Collection)', () {
+  group('(ChangeStreams)', () {
 
     setUp(() => setUpMonths());
 

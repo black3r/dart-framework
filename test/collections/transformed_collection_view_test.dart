@@ -116,7 +116,10 @@ void main() {
       months.remove(fantasyMonth);
 
       // then
-      excepted.onChange.listen((c) => expect(true, isFalse));
+      excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet.equals(new ChangeSet({fantasyMonth: new Change(undefined, undefined)})), 
+            isTrue);
+      }));
     });
 
     test('removal, change and add is broadcasted (T07)', () {

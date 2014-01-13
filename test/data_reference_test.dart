@@ -18,70 +18,79 @@ void main() {
       DataReference ref = new DataReference('value');
       expect(ref.value, 'value');
     });
-    
+
     test('Setter (T02)', () {
       DataReference ref = new DataReference('value');
       ref.value = 'newValue';
       expect(ref.value, 'newValue');
     });
-    
-    
+
+
     test('Listen on change (T03)', () {
       DataReference ref = new DataReference('oldValue');
-      
-      var check = expectAsync1((Change change) {
-        expect(change.oldValue , equals('oldValue'));
-        expect(change.newValue , equals('newValue'));
-      });
-      
-      ref.onChange.listen(check);
+
       ref.value = 'newValue';
+      ref.onChange.listen(expectAsync1((Change change) {
+        expect(change.equals(new Change(ref, ref)), isTrue);
+      }));
     });
-    
-    test('Listen on changeSync (T04)', () {
+
+    // TODO finish this
+    test('Correctly merge changes. (T04)', () {
+      Data d = new Data.from({'name': 'jozo'});
+      var oldRef = d.ref('name');
+      d['name'] = 'fero';
+      d.remove('name');
+      d['name'] = 'miso';
+
+      d.onChange.listen((change){
+        var newRef = d.ref('name');
+        expect(change.equals(new ChangeSet({'name': new Change(oldRef, newRef)})),
+            isTrue);
+      });
+    });
+
+    test('Listen on changeSync (T05)', () {
       DataReference ref = new DataReference('oldValue');
-      
-      var check = expectAsync1((Change change) {
-        expect(change.oldValue , equals('oldValue'));
-        expect(change.newValue , equals('newValue'));
+
+      var check = expectAsync1((event) {
+        expect(event['change'].equals(new Change(ref, ref)), isTrue);
       });
-      
-      ref.onChange.listen(check);
+
+      ref.onChangeSync.listen(check);
       ref.value = 'newValue';
     });
-    
-    test('Listen on changes of value', () {
+
+    test('Listen on changes of value. (T06)', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
+      // when
+      dataRef.value['key'] = 'semiNewValue';
+      dataRef.value['key'] = 'newValue';
+
       // then
       dataRef.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.length, equals(1));
-        var change = event.changedItems['key'];
-        expect(change.oldValue, equals('oldValue'));
-        expect(change.newValue, equals('newValue'));
+        var ref = data.ref('key');
+        expect(event.equals(new ChangeSet(
+              {'key': new Change(ref, ref)}
+        )), isTrue);
       }));
-      
-      // when
-      dataRef.value['key'] = 'newValue';
+
     });
-    
-    test('Listen synchronyosly on changes of value', () {
+
+
+    test('Listen synchronyosly on changes of value. (T07)', () {
       var data = new Data.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
       // then
       dataRef.onChangeSync.listen(expectAsync1((event) {
-        expect(event['change'].addedItems.isEmpty, isTrue);
-        expect(event['change'].removedItems.isEmpty, isTrue);
-        expect(event['change'].changedItems.length, equals(1));
-        var change = event['change'].changedItems['key'];
-        expect(change.oldValue, equals('oldValue'));
-        expect(change.newValue, equals('newValue'));
+        var ref = data.ref('key');
+        expect(event['change'].equals(new ChangeSet({'key': new Change(ref, ref)}))
+            , isTrue);
       }));
-      
+
       // when
       dataRef.value['key'] = 'newValue';
     });

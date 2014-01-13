@@ -14,7 +14,7 @@ typedef dynamic DataTransformFunction(d);
  * are propagated to registered listeners.
  */
 abstract class DataCollectionView extends Object
-               with IterableMixin, ChangeNotificationsMixin
+               with IterableMixin, ChangeNotificationsMixin, ChangeChildNotificationsMixin
                implements Iterable {
 
   Iterator get iterator => _data.iterator;
@@ -23,7 +23,8 @@ abstract class DataCollectionView extends Object
    * Holds data view objects for the collection.
    */
   final Set _data = new Set();
-
+  final Map _ref = new Map();
+  
   int get length => _data.length;
 
 // ============================ index ======================
@@ -93,8 +94,8 @@ abstract class DataCollectionView extends Object
 
         cs.strictlyChanged.forEach((d, css) {
           if (d is DataView && d.containsKey(indexProp) && css.changedItems.containsKey(indexProp)) {
-            _index[indexProp].remove(css.changedItems[indexProp].oldValue, d);
-            _index[indexProp].add(css.changedItems[indexProp].newValue,d);
+            _index[indexProp].remove(css.changedItems[indexProp].oldDereferencedValue, d);
+            _index[indexProp].add(css.changedItems[indexProp].newValue.value, d);
           }
         });
       }
@@ -231,7 +232,8 @@ class DataCollection  extends DataCollectionView
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
        if(!_data.contains(data)){
-         _markAdded(data, new DataReference(data));
+         _ref[data] = new DataReference(data);
+         _markAdded(data, _ref[data]);
          if(data is ChangeNotificationsMixin) 
            _addOnDataChangeListener(data, data);
        }
@@ -265,7 +267,7 @@ class DataCollection  extends DataCollectionView
     //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((data) {
       if(_data.contains(data)){
-        _markRemoved(data, new DataReference(data));
+        _markRemoved(data, _ref[data]);
         if(data is ChangeNotificationsMixin)
           _removeOnDataChangeListener(data);
       }

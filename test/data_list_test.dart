@@ -196,11 +196,12 @@ void main() {
     test('setRange (T10)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
-
+      var ref2 = list.ref(1);
+      var ref3 = list.ref(2);
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet.changedItems.length, equals(2));
-        expect(changeSet.changedItems[1], changeEquals(new Change('two', 'TWO')));
-        expect(changeSet.changedItems[2], changeEquals(new Change('three', 'THREE')));
+        expect(changeSet.changedItems[1], changeEquals(new Change(ref2, ref2)));
+        expect(changeSet.changedItems[2], changeEquals(new Change(ref3, ref3)));
       }, count: 1));
       
       // when

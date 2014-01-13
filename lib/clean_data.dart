@@ -102,4 +102,5 @@ part 'src/collections/transformed_collection_view.dart';
 part 'src/collections/filtered_collection_view.dart';
 
 part 'src/hash_index.dart';
+part 'src/data_change_listeners_mixin.dart';
 part 'src/change_notifications_mixin.dart';

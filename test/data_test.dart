@@ -236,12 +236,8 @@ void main() {
       
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.length, equals(1));
-        var change = event.changedItems['key'];
-        expect(change.oldValue, equals('oldValue'));
-        expect(change.newValue, equals('newValue'));
+        var ref = dataObj.ref('key');
+        expect(event.equals(new ChangeSet({'key': new Change(ref, ref)})), isTrue);
       }));
     });
 
@@ -327,21 +323,10 @@ void main() {
       dataObj.remove('key3');
 
       // then
-      dataObj.onChange.listen(protectAsync1((e) => expect(true, isFalse)));
-     });
-
-    test('when property is added, changed then removed, no changes are broadcasted. (T19)', () {
-      // given
-      var data = {'key1': 'value1', 'key2': 'value2'};
-      var dataObj = new Data.from(data);
-
-      // when
-      dataObj['key3'] = 'John Doe';
-      dataObj['key3'] = 'John Doe II';
-      dataObj.remove('key3');
-
-      // then
-      dataObj.onChange.listen(protectAsync1((e) => expect(true, isFalse)));
+      dataObj.onChange.listen(expectAsync1((ChangeSet event) {
+        expect(event.equals(new ChangeSet({'key3': new Change(undefined, undefined)}))
+        , isTrue);
+      }));
      });
 
     test('Data implements map.clear(). (T20)', () {
@@ -410,7 +395,6 @@ void main() {
     });
   });
 
-
   group('(Nested Data)', () {
 
     test('listens to changes of its children.', () {
@@ -431,6 +415,7 @@ void main() {
       var child = new Data();
       var dataObj = new Data.from({'child': child});
       var onChange = new Mock();
+
 
       // when
       dataObj.remove('child');
@@ -499,7 +484,6 @@ void main() {
       List keysToRemove = ['child1', 'child2'];
       var mock = new Mock();
       dataObj.onChangeSync.listen((event) => mock.handler(event));
-
       // when
       dataObj.removeAll(keysToRemove, author: 'John Doe');
 
@@ -515,19 +499,6 @@ void main() {
         expect(changeSet.removedItems, unorderedEquals(keysToRemove));
         expect(changeSet.addedItems.isEmpty, isTrue);
       }));
-    });
-
-    test('when property is added then removed, no changes are broadcasted. (T18)', () {
-      // given
-      var dataObj = new Data();
-      var child = new Data();
-
-      // when
-      dataObj['child'] = child;
-      dataObj.remove('child');
-
-      // then
-      dataObj.onChange.listen(protectAsync1((e) => expect(true, isFalse)));
     });
 
     test('when child Data is removed then added, this is a change.', () {
@@ -601,14 +572,13 @@ void main() {
       expect(data1.ref('key').value, equals(data2));
       expect(data1.ref('key2').value, equals('value'));
     });
-    
-    test('does not change, when changing value. (T2)', () { 
+
+    test('does not change, when changing value. (T2)', () {
       //given
       var data = new Data();
       var data1 = new Data();
       var data2 = new Data();
-      
-      //when
+     //when
       data['key'] = data1;
       DataReference ref1 = data.ref('key');
       data['key'] = data2;
@@ -641,15 +611,14 @@ void main() {
       //when
       data['key'] = data1;
       DataReference ref1 = data.ref('key');
-      data.remove('key');
-      
+      data.remove('key');      
       data['key'] = data1;
       DataReference ref2 = data.ref('key');
-      
+
       //then
       expect(ref1, isNot(equals(ref2)));
     });
-    
+
     test('are passed in Change / ChangeSet. (T5)', () {
       // given
       var childOld = new Data();
@@ -662,7 +631,7 @@ void main() {
       dataObj.remove('child');
       dataObj.add('child', childNew);
       DataReference refNew = dataObj.ref('child');
-      
+
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.changedItems.keys, unorderedEquals(['child']));

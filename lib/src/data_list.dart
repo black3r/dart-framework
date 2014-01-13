@@ -7,13 +7,13 @@ part of clean_data;
 Set _toStringVisiting = new HashSet.identity();
 
 //TODO returning references
-class DataList extends Object with ChangeNotificationsMixin implements List {
+class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin implements List {
   List list = new List();
   
   get length => _length;
   set length(newLen) {
     _length = newLen;
-    _notify();
+    _notify(author: author);
   }
   
   get _length => list.length;
@@ -262,29 +262,30 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         return result;
       }
 
-      void add(element) {
+      void add(element, {author: null}) {
         _add(element);
-        _notify();
+        _notify(author: author);
       }
       
-      void addAll(Iterable iterable) {
+      void addAll(Iterable iterable, {author: null}) {
         for (dynamic element in iterable) {
           _add(element);
         }
-        _notify();
+        _notify(author: author);
       }
 
-      bool remove(Object element) {
+      bool remove(Object element, {author: null}) {
         int index = indexOf(element);
         if(index == -1) return false;
         var ret = _remove(_get(index));
-        _notify();
+        _notify(author: author);
         return ret;
       }
       
       bool _remove(DataReference element) {
         for (int i = 0; i < this.length; i++) {
           if (_get(i) == element) {    
+            _markChanged(length-1, new Change(_get(length-1), _get(i)));
             _markRemoved(length-1, _get(i));
             _changeSetSync.changedItems[length-1].oldValue = _get(i);
             _removeOnDataChangeListener(i);
@@ -296,14 +297,14 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         return false;
       }
 
-      void removeWhere(bool test(element)) {
+      void removeWhere(bool test(element), {author: null}) {
         _filter(this, test, false);
-        _notify();
+        _notify(author: author);
       }
 
-      void retainWhere(bool test(element)) {
+      void retainWhere(bool test(element), {author: null}) {
         _filter(this, test, true);
-        _notify();
+        _notify(author: author);
       }
 
       static void _filter(DataList source,
@@ -318,17 +319,17 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         }
       }
 
-      void clear() { this._length = 0; _notify(); }
+      void clear({author: null}) { this._length = 0; _notify(author: author); }
 
       // List interface.
 
-      removeLast() {
+      removeLast({author: null}) {
         if (length == 0) {
           throw new StateError("No elements");
         }
         var result = this[length - 1];
         _length--;
-        _notify();
+        _notify(author: author);
         return result;
       }
       
@@ -389,11 +390,11 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         return new DataList.from(list.getRange(start, end).map((E) => E.value));
       }
 
-      void removeRange(int start, int end) {
+      void removeRange(int start, int end, {author: null}) {
         _rangeCheck(start, end);
         int length = end - start;
         for(int i = end-1; i >= start; i--) _remove(_get(i));
-        _notify();
+        _notify(author: author);
       }
 
       void fillRange(int start, int end, [fill]) {
@@ -445,7 +446,7 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         }
       }
 
-      void replaceRange(int start, int end, Iterable newContents) {
+      void replaceRange(int start, int end, Iterable newContents, {author: null}) {
         _rangeCheck(start, end);
         newContents = newContents.toList().map((E) => new DataReference(E));
         int removeLength = end - start;
@@ -467,7 +468,7 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
           this._setRange(insertEnd, newLength, list, end);
           this._setRange(start, insertEnd, newContents);
         }
-        _notify();
+        _notify(author: author);
       }
 
       int indexOf(Object element, [int startIndex = 0]) {
@@ -509,7 +510,7 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         return -1;
       }
 
-      void insert(int index, element) {
+      void insert(int index, element, {author: null}) {
         if (index < 0 || index > length) {
           throw new RangeError.range(index, 0, length);
         }
@@ -524,17 +525,17 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         this._length++;
         _setRange(index + 1, this.length, list, index);
         _set(index, new DataReference(element));
-        _notify();
+        _notify(author: author);
       }
 
-      removeAt(int index) {
+      removeAt(int index, {author: null}) {
         var result = this[index];
         _remove(_get(index));
-        _notify();
+        _notify(author: author);
         return result;
       }
 
-      void insertAll(int index, Iterable iterable) {
+      void insertAll(int index, Iterable iterable, {author: null}) {
         if (index < 0 || index > length) {
           throw new RangeError.range(index, 0, length);
         }
@@ -548,14 +549,14 @@ class DataList extends Object with ChangeNotificationsMixin implements List {
         for (dynamic element in iterable) {
           _set(index++, new DataReference(element));
         }
-        _notify();
+        _notify(author: author);
       }
       
-      void setAll(int index, Iterable iterable) {
+      void setAll(int index, Iterable iterable, {author: null}) {
         for (dynamic element in iterable) {
           list[index++].value = element;
         }
-        _notify();
+        _notify(author: author);
       }
 
       Iterable get reversed => new DataList.from(list.reversed.map((E) => E.value));

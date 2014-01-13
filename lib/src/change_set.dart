@@ -4,21 +4,20 @@
 
 part of clean_data;
 
-mapEq(Map m1, Map m2){
-  if (m1 == null && m2 == null) return true;
-  if (m1 == null || m2 == null) return false;
-  return m1.keys.length == m2.keys.length && m1.keys.every((k) => m1[k]==m2[k]);
-}
-
 
 class _Undefined {
 
+  final String type;
+
+  const _Undefined(this.type);
+
   String toString(){
-    return 'undefined';
+    return type;
   }
 }
 
-var undefined = new _Undefined();
+const undefined = const _Undefined('undefined');
+const unset = const _Undefined('unset');
 
 /**
  * A representation of a single change in a scalar value.
@@ -26,12 +25,35 @@ var undefined = new _Undefined();
 class Change {
   dynamic oldValue;
   dynamic newValue;
+  dynamic oldDereferencedValue;
+
+  get isEmpty {
+    return oldValue == unset && newValue == unset;
+  }
 
   /**
    * Creates new [Change] from information about the value before change
    * [oldValue] and after the change [newValue].
    */
-  Change(this.oldValue, this.newValue);
+  Change([this.oldValue = unset, this.newValue = unset]) {
+    if(this.oldValue is DataReference) this.oldDereferencedValue = this.oldValue.value;
+  }
+
+  bool equals(dynamic other) {
+    dereference(value) {
+      while (value is DataReference){
+        value = value.value;
+      }
+      return value;
+    }
+
+    if (other is Change){
+      return dereference(oldValue) == dereference(other.oldValue) &&
+             dereference(newValue) == dereference(other.newValue);
+    } else {
+      return false;
+    }
+  }
 
   get isEqualityChange => oldValue == newValue;
 
@@ -56,6 +78,14 @@ class Change {
    * Applies another [change] to get representation of whole change.
    */
   void mergeIn(Change change) {
+    if (change.isEmpty) {
+      return;
+    }
+    assert(isEmpty || change.oldValue == this.newValue);
+    if (isEmpty) {
+      oldValue = change.oldValue;
+      oldDereferencedValue = change.oldDereferencedValue;
+    }
     newValue = change.newValue;
   }
 
@@ -63,7 +93,7 @@ class Change {
    * Clones the [change].
    */
   Change clone() {
-    return new Change(oldValue, newValue);
+    return new Change(oldValue, newValue)..oldDereferencedValue = this.oldDereferencedValue;
   }
 
   String toString() => "Change($oldValue->$newValue)";
@@ -85,7 +115,8 @@ class ChangeSet {
   /**
    * Creates an empty [ChangeSet].
    */
-  ChangeSet([Map changedItems = const {}]){
+
+  ChangeSet([Map changedItems = const {}]) {
     this.changedItems = new Map.from(changedItems);
   }
 
@@ -97,10 +128,20 @@ class ChangeSet {
       changedItems[key] = change.clone();
     });
   }
-
-  operator ==(dynamic other){
+  bool equals (dynamic other) {
     if (other is ChangeSet){
-      return mapEq(this.changedItems, other.changedItems);
+      if (this.changedItems.keys.length != other.changedItems.keys.length) return false;
+      for (var k in changedItems.keys){
+        var v = changedItems[k];
+        if (v is Change || v is ChangeSet) {
+          if (!v.equals(other.changedItems[k])){
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+      return true;
     } else {
       return false;
     }
@@ -188,29 +229,11 @@ class ChangeSet {
     });
   }
 
-
   /**
    * Returns true if there are no changes in the [ChangeSet].
    */
   bool get isEmpty =>
     this.changedItems.isEmpty;
-
-
-  /**
-   * Strips redundant changedItems from the [ChangeSet].
-   */
-  void prettify() {
-
-    var equalityChanges = new Set();
-    changedItems.forEach((d,cs){
-      if (cs is Change && cs.oldValue == cs.newValue) {
-       equalityChanges.add(d);
-      }
-    });
-    equalityChanges.forEach((droppableChange) {
-      changedItems.remove(droppableChange);
-    });
-  }
 
   String toString() {
     return 'ChangeSet(${changedItems.toString()})';
