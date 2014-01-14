@@ -62,12 +62,6 @@ class Change {
     if (change.isEmpty) {
       return;
     }
-//    print('change ${change.oldValue.runtimeType}');
-//    print('change ${change.oldValue}');
-//    print('change ${change.newValue.runtimeType}');
-      var x = change.newValue;
-      print('$x');
-//    print('change ${change.newValue}');
     assert(isEmpty || change.oldValue == this.newValue ||
         change.oldValue.value == this.newValue.value);
     if (isEmpty) {

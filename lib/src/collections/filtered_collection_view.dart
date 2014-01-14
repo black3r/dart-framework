@@ -36,12 +36,12 @@ abstract class FilteredCollectionBase extends TransformedDataCollection {
       }
 
       if (!shouldBeContained) {
-        _markRemoved(dataObj, _ref[dataObj]);
+        _markRemoved(dataObj, dataObj);
         _data.remove(dataObj);
       }
 
     } else if(shouldBeContained) {
-        _markAdded(dataObj, _ref[dataObj]);
+        _markAdded(dataObj, dataObj);
         _data.add(dataObj);
     }
   }
