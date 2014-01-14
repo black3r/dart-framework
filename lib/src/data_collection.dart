@@ -24,7 +24,7 @@ abstract class DataCollectionView extends Object
    */
   final Set _data = new Set();
   final Map _ref = new Map();
-  
+
   int get length => _data.length;
 
 // ============================ index ======================
@@ -197,6 +197,7 @@ abstract class DataCollectionView extends Object
    */
 
   void dispose() {
+    _dispose();
     if (_indexListenerSubscription != null) {
       _indexListenerSubscription.cancel();
     }
@@ -208,13 +209,13 @@ abstract class DataCollectionView extends Object
 /**
  * Collection
  */
-class DataCollection  extends DataCollectionView 
+class DataCollection  extends DataCollectionView
                       implements Set {
 
   /**
    * Creates an empty collection.
    */
-  DataCollection() { 
+  DataCollection() {
   }
 
   /**
@@ -234,7 +235,7 @@ class DataCollection  extends DataCollectionView
        if(!_data.contains(data)){
          _ref[data] = new DataReference(data);
          _markAdded(data, _ref[data]);
-         if(data is ChangeNotificationsMixin) 
+         if(data is ChangeNotificationsMixin)
            _addOnDataChangeListener(data, data);
        }
     });
@@ -267,7 +268,8 @@ class DataCollection  extends DataCollectionView
     //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((data) {
       if(_data.contains(data)){
-        _markRemoved(data, _ref[data]);
+//        _markRemoved(data, _ref[data]);
+        _markRemoved(data, data);
         if(data is ChangeNotificationsMixin)
           _removeOnDataChangeListener(data);
       }

@@ -1,5 +1,6 @@
 part of clean_data;
 
+
 abstract class ChangeNotificationsMixin {
 
   /**
@@ -11,10 +12,18 @@ abstract class ChangeNotificationsMixin {
   final StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
+  /**
+   * [__change] and [__changeSync] are either of a type Change or ChangeSet depending
+   * on concrete implementation of a mixin
+   */
   get __change;
   get __changeSync;
-  _clearChanges();
-  _clearChangesSync();
+
+  /**
+   * following wanna-be-abstract methods must be overriden
+   */
+  void _clearChanges();
+  void _clearChangesSync();
   void _onBeforeNotify() {}
 
 
@@ -31,11 +40,9 @@ abstract class ChangeNotificationsMixin {
    */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
-
   /**
    * Used to propagate change events to the outside world.
    */
-
   final StreamController<dynamic> _onBeforeAddedController =
       new StreamController.broadcast(sync: true);
   final StreamController<dynamic> _onBeforeRemovedController =
@@ -52,32 +59,7 @@ abstract class ChangeNotificationsMixin {
    * data object is removed.
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
-  
-   /**
-    * Internal set of listeners for change events on individual data objects.
-    */
-   final Map<dynamic, StreamSubscription> _dataListeners =
-       new Map<dynamic, StreamSubscription>();
 
-   /**
-    * Starts listening to changes on [dataObj].
-    */
-   void _addOnDataChangeListener(key, dataObj) {
-     if (_dataListeners.containsKey(dataObj)) return;
-
-     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
-       _markChanged(key, changeEvent['change']);
-       _notify(author: changeEvent['author']);
-     });
-   }
-
-   void _removeOnDataChangeListener(key) {
-     if (_dataListeners.containsKey(key)) {
-       _dataListeners[key].cancel();
-       _dataListeners.remove(key);
-     }
-   }
-   
   /**
    * Streams all new changes marked in [_change].
    */
@@ -95,6 +77,12 @@ abstract class ChangeNotificationsMixin {
       }
     });
   }
+
+  void _closeChangeStreams(){
+    _onChangeController.close();
+    _onChangeSyncController.close();
+  }
+
 }
 
 abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin {
@@ -103,6 +91,12 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    */
   ChangeSet _changeSet = new ChangeSet();
   ChangeSet _changeSetSync = new ChangeSet();
+
+  /**
+   * Internal set of listeners for change events on individual data objects.
+   */
+  final Map<dynamic, StreamSubscription> _dataListeners =
+      new Map<dynamic, StreamSubscription>();
 
   get __change => _changeSet;
   get __changeSync => _changeSetSync;
@@ -134,27 +128,34 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
       if(change.newValue == undefined)
         _onBeforeAddedController.add(key);
     }
-    
     _changeSet.markChanged(key, change);
     _changeSetSync.markChanged(key, change);
   }
 
   /**
-   * Streams all new changes marked in [changeSet].
+   * Starts listening to changes on [dataObj].
    */
-  void _notify({author: null}) {
-    if (!_changeSetSync.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': _changeSetSync});
-      _clearChangesSync();
-    }
+  void _addOnDataChangeListener(key, dataObj) {
+    if (_dataListeners.containsKey(dataObj)) return;
 
-    Timer.run(() {
-      if (!_changeSet.isEmpty) {
-        _onBeforeNotify();
-        _onChangeController.add(_changeSet);
-        _clearChanges();
-      }
+    _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
+      _markChanged(key, changeEvent['change']);
+      _notify(author: changeEvent['author']);
     });
+  }
+
+  void _removeOnDataChangeListener(key) {
+    if (_dataListeners.containsKey(key)) {
+      _dataListeners[key].cancel();
+      _dataListeners.remove(key);
+    }
+  }
+
+  void _dispose() {
+    _closeChangeStreams();
+    _dataListeners.forEach((K, V) => V.cancel());
+    _onBeforeAddedController.close();
+    _onBeforeRemovedController.close();
   }
 }
 
@@ -179,8 +180,8 @@ abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin
     _change.mergeIn(change);
   }
 
+  void _dispose(){
+    _closeChangeStreams();
+  }
+
 }
-
-
-
-

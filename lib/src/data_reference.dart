@@ -64,5 +64,11 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
     _clearChangesSync();
   }
 
+  void dispose() {
+    _dispose();
+    _onDataChangeListener.cancel();
+    _onDataChangeSyncListener.cancel();
+  }
+
   String toString() => 'Ref(${_value.toString()})';
 }

@@ -343,5 +343,28 @@ void main() {
         });
     });
 
+//    solo_test('pokus', () {
+//      // given
+//      var winterCollection = new DataCollection.from([december, january,
+//                                                      february]);
+//      // when
+//
+//      winterCollection.onChangeSync.listen((event) {
+//        print(event['change']);
+//      });
+//
+//      print(march);
+//
+//      winterCollection.add(march);
+//      winterCollection.remove(march);
+//
+//      // then
+//      winterCollection.onChange.listen((ChangeSet event) {
+//        print(event);
+//      });
+//    });
+
   });
+
+
 }

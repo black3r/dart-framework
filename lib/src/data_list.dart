@@ -9,13 +9,13 @@ Set _toStringVisiting = new HashSet.identity();
 //TODO returning references
 class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin implements List {
   List list = new List();
-  
+
   get length => _length;
   set length(newLen) {
     _length = newLen;
-    _notify(author: author);
+    _notify();
   }
-  
+
   get _length => list.length;
   set _length(int newLen) {
     if(newLen < 0) throw new RangeError('Negative position');
@@ -28,33 +28,33 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     list.add(ref);
     _addOnDataChangeListener(list.length-1, ref);
     _markAdded(list.length -1, ref);
-  }  
-  
-  
+  }
+
+
   _set(key, DataReference value) {
     _markChanged(key, new Change(list[key], value));
     _removeOnDataChangeListener(key);
     list[key] = value;
     _addOnDataChangeListener(key, value);
   }
-  
+
   DataReference _get(key) => list[key];
-  
+
   dynamic operator [](key) => list[key].value;
   operator []=(key, dynamic value) { list[key].value = value; }
-  
+
   DataList(){}
-  
+
   factory DataList.from(Iterable elements) {
     DataList dataList =  new DataList()..addAll(elements);
     dataList._clearChanges();
     return dataList;
   }
-  
+
   DataReference ref(int pos) {
     return list[pos];
   }
-  
+
   // Iterable interface.
   Iterator get iterator => list.map((DataReference ref) => ref.value).iterator;
 
@@ -199,10 +199,10 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     }
   }
 
-  Iterable where(bool test(element)) => 
+  Iterable where(bool test(element)) =>
       new DataList.from(list.map((E) => E.value).where(test));
 
-  Iterable map(f(element)) => 
+  Iterable map(f(element)) =>
       new DataList.from(list.map((E) => E.value).map(f));
 
   Iterable expand(Iterable f(element)) =>
@@ -266,7 +266,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
         _add(element);
         _notify(author: author);
       }
-      
+
       void addAll(Iterable iterable, {author: null}) {
         for (dynamic element in iterable) {
           _add(element);
@@ -281,10 +281,10 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
         _notify(author: author);
         return ret;
       }
-      
+
       bool _remove(DataReference element) {
         for (int i = 0; i < this.length; i++) {
-          if (_get(i) == element) {    
+          if (_get(i) == element) {
             _markChanged(length-1, new Change(_get(length-1), _get(i)));
             _markRemoved(length-1, _get(i));
             _changeSetSync.changedItems[length-1].oldValue = _get(i);
@@ -332,7 +332,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
         _notify(author: author);
         return result;
       }
-      
+
       void sort([int compare(a, b)]) {
         if (compare == null) {
           var defaultCompare = Comparable.compare;
@@ -407,13 +407,13 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
 
       void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
         _rangeCheck(start, end);
-        for(var elem in iterable) { 
+        for(var elem in iterable) {
           if(start < end) list[start].value = elem;
           start++;
         }
         _notify();
       }
-      
+
       void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {
         _rangeCheck(start, end);
         int length = end - start;
@@ -551,7 +551,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
         }
         _notify(author: author);
       }
-      
+
       void setAll(int index, Iterable iterable, {author: null}) {
         for (dynamic element in iterable) {
           list[index++].value = element;
@@ -578,4 +578,9 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
 
         return result.toString();
       }
+
+      void dispose() {
+        _dispose();
+      }
+
 }

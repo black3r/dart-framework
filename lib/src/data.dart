@@ -4,8 +4,6 @@
 
 part of clean_data;
 
-//TODO consider moving mixin to separate file
-
 abstract class DataView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
 
   final Map<String, DataReference> _fields = new Map();
@@ -97,8 +95,6 @@ class Data extends DataView implements Map {
    */
   Data();
 
-
-
   /**
    * Creates a new data object from key-value pairs [data].
    */
@@ -181,7 +177,7 @@ class Data extends DataView implements Map {
   DataReference ref(String key) {
     return _fields[key];
   }
-  
+
   putIfAbsent(key, ifAbsent()) {
     if (!containsKey(key)) {
       _addAll({key: ifAbsent()});
@@ -189,6 +185,6 @@ class Data extends DataView implements Map {
   }
 
   void dispose() {
-    _dataListeners.forEach((K, V) => V.cancel());
+    _dispose();
   }
 }

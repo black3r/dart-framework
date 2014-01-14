@@ -55,25 +55,6 @@ class Change {
     }
   }
 
-  get isEqualityChange => oldValue == newValue;
-
-//  /**
-//   * Creates new [Change] from information about the value before change
-//   * [oldValue] and after the change [newValue].
-//   */
-//  Change(this.oldValue, this.newValue) {
-//    if(this.oldValue is DataReference) this.oldValue = this.oldValue.value;
-//    if(this.newValue is DataReference) this.newValue = this.newValue.value;
-//  }
-
-  operator ==(dynamic other){
-    if (other is Change){
-      return this.oldValue == other.oldValue && this.newValue == other.newValue;
-    } else {
-      return false;
-    }
-  }
-
   /**
    * Applies another [change] to get representation of whole change.
    */
@@ -185,12 +166,12 @@ class ChangeSet {
     });
     return res;
   }
-  
+
   get strictlyChanged {
     var res = {};
     changedItems.forEach((key, dynamic change) {
       if(change is ChangeSet)
-        res[key] = change; 
+        res[key] = change;
     });
     return res;
   }
@@ -205,7 +186,7 @@ class ChangeSet {
         if(changedItems[key] is Change) {
           changedItems[key].mergeIn(change);
         }
-        else { 
+        else {
           changedItems[key] = change;
         }
       }
