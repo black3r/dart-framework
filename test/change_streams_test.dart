@@ -131,13 +131,7 @@ void main() {
 
       // then
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.strictlyChanged.isEmpty, isTrue);
-        expect(event.changedItems.keys, unorderedEquals([january]));
-        expect(event.changedItems[january], new isInstanceOf<Change>());
-        expect(event.changedItems[january].newValue.value, january);
-        expect(event.changedItems[january].oldValue.value, january);
+        expect(event.equals(new ChangeSet({january: new Change(january, january)})), isTrue);
       }));
     });
 
@@ -298,9 +292,9 @@ void main() {
       var author;
 
       selection.onChangeSync.listen(
-        (Map map){
-          changeSet = map['change'];
-          author = map['author'];
+        (Map event){
+          changeSet = event['change'];
+          author = event['author'];
         }
       );
 

@@ -104,6 +104,7 @@ class Data extends DataView implements Map {
       dataObj[key] = data[key];
     }
     dataObj._clearChanges();
+    dataObj._clearChangesSync();
     return dataObj;
   }
 

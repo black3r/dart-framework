@@ -23,7 +23,7 @@ abstract class DataCollectionView extends Object
    * Holds data view objects for the collection.
    */
   final Set _data = new Set();
-  final Map _ref = new Map();
+//  final Map _ref = new Map();
 
   int get length => _data.length;
 
@@ -223,18 +223,20 @@ class DataCollection  extends DataCollectionView
    */
   factory DataCollection.from(Iterable data) {
     var collection = new DataCollection();
-    for (var dataObj in data) {
-      collection.add(dataObj);
-    }
+    collection.addAll(data);
+//    for (var dataObj in data) {
+//      collection.add(dataObj);
+//    }
     collection._clearChanges();
+    collection._clearChangesSync();
     return collection;
   }
 
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
        if(!_data.contains(data)){
-         _ref[data] = new DataReference(data);
-         _markAdded(data, _ref[data]);
+//         _ref[data] = new DataReference(data);
+         _markAdded(data, data);
          if(data is ChangeNotificationsMixin)
            _addOnDataChangeListener(data, data);
        }

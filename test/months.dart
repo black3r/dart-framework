@@ -36,3 +36,9 @@ setUpMonths() {
   winter = new DataCollection.from([december, january, february]);
 
 }
+
+main(){
+  print('begin');
+  setUpMonths();
+  print('end');
+}
