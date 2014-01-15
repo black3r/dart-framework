@@ -94,8 +94,8 @@ abstract class DataCollectionView extends Object
 
         cs.strictlyChanged.forEach((d, css) {
           if (d is DataView && d.containsKey(indexProp) && css.changedItems.containsKey(indexProp)) {
-            _index[indexProp].remove(css.changedItems[indexProp].oldDereferencedValue, d);
-            _index[indexProp].add(css.changedItems[indexProp].newValue.value, d);
+            _index[indexProp].remove(css.changedItems[indexProp].oldValue, d);
+            _index[indexProp].add(css.changedItems[indexProp].newValue, d);
           }
         });
       }

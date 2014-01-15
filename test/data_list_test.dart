@@ -17,7 +17,7 @@ class ChangeEquals extends Matcher {
     return compare(item.oldValue, change.oldValue) &&
         compare(item.newValue, change.newValue);
   }
-  
+
   bool compare(var a, var b) {
     if(a is DataReference) a = a.value;
     if(b is DataReference) b = b.value;
@@ -43,69 +43,69 @@ void main() {
       expect(list.length, equals(4));
       expect(list, orderedEquals(['one', 'two', 'three', 'four']));
     });
-    
+
     test('adding element fires change. (T02)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
-      
+
       list.onChangeSync.listen(expectAsync1((Map event) {
         var changeSet = event['change'];
         expect(changeSet.changedItems[3], changeEquals(new Change(undefined, 'four')));
         expect(changeSet.changedItems.length, equals(1));
       }, count: 1));
-      
+
       list.add('four');
-      
+
       expect(list.length, equals(4));
       expect(list, orderedEquals(['one', 'two', 'three', 'four']));
     });
-    
+
     test('removing last element fires change. (T03)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
-      
+
       list.onChangeSync.listen(expectAsync1((Map event) {
         var changeSet = event['change'];
         expect(changeSet.changedItems[2], changeEquals(new Change('three', undefined)));
         expect(changeSet.changedItems.length, equals(1));
       }, count: 1));
-      
+
       list.removeLast();
-      
+
       expect(list.length, equals(2));
       expect(list, orderedEquals(['one', 'two']));
     });
-    
+
     test('removing element fires change. (T04)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
-      
+
       list.onChangeSync.listen(expectAsync1((Map event) {
         var changeSet = event['change'];
         expect(changeSet.changedItems.length, equals(2));
         expect(changeSet.changedItems[1], changeEquals(new Change('two', 'three')));
         expect(changeSet.changedItems[2], changeEquals(new Change('two', undefined)));
       }, count: 1));
-      
+
       list.remove('two');
-      
+
       expect(list.length, equals(2));
-      expect(list, orderedEquals(['one', 'three']));     
+      expect(list, orderedEquals(['one', 'three']));
     });
-    
+
     test('add more items at once. (T05)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
-      
+
       list.onChangeSync.listen(expectAsync1((Map event) {
         var changeSet = event['change'];
         expect(changeSet.changedItems.length, equals(2));
         expect(changeSet.changedItems[3], changeEquals(new Change(undefined, 'four')));
         expect(changeSet.changedItems[4], changeEquals(new Change(undefined, 'five')));
       }, count: 1));
-      
+
       list.addAll(['four', 'five']);
-      
+
       expect(list.length, equals(5));
       expect(list, orderedEquals(['one', 'two', 'three', 'four', 'five']));
     });
-    
+
     test('removeWhere (T06)', () {
       // given
       DataList dataList = new DataList.from(['element1','doge', 'doge', 'element4']);
@@ -117,7 +117,7 @@ void main() {
         expect(changeSet.changedItems[2], changeEquals(new Change('doge', undefined)));
         expect(changeSet.changedItems[3], changeEquals(new Change('doge', undefined)));
       }, count: 1));
-      
+
       // when
       dataList.removeWhere((el) => el == 'doge');
 
@@ -125,7 +125,7 @@ void main() {
       expect(new List.from(dataList), unorderedEquals(
           ['element1', 'element4']));
     });
-    
+
     test('retainWhere (T07)', () {
       // given
       DataList list = new DataList.from(['element1','doge', 'doge', 'element4']);
@@ -137,7 +137,7 @@ void main() {
         expect(changeSet.changedItems[2], changeEquals(new Change('doge', undefined)));
         expect(changeSet.changedItems[3], changeEquals(new Change('doge', undefined)));
       }, count: 1));
-      
+
       // when
       list.retainWhere((el) => el != 'doge');
 
@@ -145,7 +145,7 @@ void main() {
       expect(list, orderedEquals(
           ['element1', 'element4']));
     });
-    
+
     test('sort (T08)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
@@ -154,7 +154,7 @@ void main() {
         var changeSet = event['change'];
         expect(changeSet.changedItems.length, equals(5));
       }, count: 1));
-      
+
       // when
       list.sort();
 
@@ -162,18 +162,18 @@ void main() {
       expect(new List.from(list), orderedEquals(
           ['five', 'four', 'one', 'three', 'two']));
     });
-    
+
     test('shuffle (T09)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
       }, count: 1));
-      
+
       // when
       list.shuffle();
     });
-    
+
     test('removeRange (T09)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
@@ -186,13 +186,13 @@ void main() {
         expect(changeSet.changedItems[3], changeEquals(new Change('two', undefined)));
         expect(changeSet.changedItems[4], changeEquals(new Change('three', undefined)));
       }, count: 1));
-      
+
       // when
       list.removeRange(1, 3);
       expect(list, orderedEquals(
           ['one', 'four', 'five']));
     });
-    
+
     test('setRange (T10)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
@@ -200,16 +200,16 @@ void main() {
       var ref3 = list.ref(2);
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet.changedItems.length, equals(2));
-        expect(changeSet.changedItems[1], changeEquals(new Change(ref2, ref2)));
-        expect(changeSet.changedItems[2], changeEquals(new Change(ref3, ref3)));
+        expect(changeSet.changedItems[1], changeEquals(new Change('two', 'TWO')));
+        expect(changeSet.changedItems[2], changeEquals(new Change('three', 'THREE')));
       }, count: 1));
-      
+
       // when
       list.setRange(1, 3, ['TWO', 'THREE']);
       expect(list, orderedEquals(
           ['one', 'TWO', 'THREE', 'four', 'five']));
     });
-    
+
     test('replaceRange (T11)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
@@ -221,13 +221,13 @@ void main() {
         expect(changeSet.changedItems[3], changeEquals(new Change('four', undefined)));
         expect(changeSet.changedItems[4], changeEquals(new Change('five', undefined)));
       }, count: 1));
-      
+
       // when
       list.replaceRange(1, 5, ['TWO', 'THREE']);
       expect(list, orderedEquals(
           ['one', 'TWO', 'THREE']));
     });
-    
+
     test('insert (T12)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'three', 'five']);
@@ -237,13 +237,13 @@ void main() {
         expect(changeSet.changedItems[3], changeEquals(new Change('five', 'four')));
         expect(changeSet.changedItems[4], changeEquals(new Change(undefined, 'five')));
       }, count: 1));
-      
+
       // when
       list.insert(3, 'four');
       expect(list, orderedEquals(
           ['one', 'two', 'three', 'four', 'five']));
     });
-    
+
     test('insertAll (T13)', () {
       // given
       DataList list = new DataList.from(['one', 'two', 'five']);
@@ -254,13 +254,13 @@ void main() {
         expect(changeSet.changedItems[3], changeEquals(new Change(undefined, 'four')));
         expect(changeSet.changedItems[4], changeEquals(new Change(undefined, 'five')));
       }, count: 1));
-      
+
       // when
       list.insertAll(2, ['three', 'four']);
       expect(list, orderedEquals(
           ['one', 'two', 'three', 'four', 'five']));
     });
-    
+
     group('nested', () {
       test('listens to changes of its children.', () {
         // given
@@ -276,7 +276,7 @@ void main() {
           expect(event.changedItems[1].addedItems, equals(['name']));
         }));
       });
-      
+
       test('do not listen to removed children changes.', () {
         // given
         var child = new Data();
@@ -295,7 +295,7 @@ void main() {
           onChange.getLogs().verify(neverHappened);
         });
       });
-      
+
       test('do not listen after remove multiple children with removeRange.', () {
         // given
         var child1 = new Data();
@@ -328,5 +328,5 @@ void main() {
       });
     });
   });
-  
+
 }

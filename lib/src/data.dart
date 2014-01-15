@@ -128,7 +128,7 @@ class Data extends DataView implements Map {
         _fields[key].changeValue(value, author: author);
       } else {
         DataReference ref = new DataReference(value);
-        _markAdded(key, ref);
+        _markAdded(key, ref.value);
         _addOnDataChangeListener(key, ref);
         _fields[key] = ref;
       }
@@ -160,7 +160,7 @@ class Data extends DataView implements Map {
 
   void _removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      _markRemoved(key, _fields[key]);
+      _markRemoved(key, _fields[key].value);
       _removeOnDataChangeListener(key);
       _fields.remove(key);
     }

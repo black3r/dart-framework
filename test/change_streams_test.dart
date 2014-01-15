@@ -165,19 +165,8 @@ void main() {
 
       // then
       winterCollection.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.strictlyChanged.keys, unorderedEquals([february]));
-
-        // verify the data object changeset is valid
-        ChangeSet changes = event.changedItems[february];
-        expect(changes.addedItems.isEmpty, isTrue);
-        expect(changes.removedItems.isEmpty, isTrue);
-        expect(changes.changedItems.length, equals(1));
-
-        Change change = changes.changedItems['days'];
-        expect(change.oldValue.value, equals(28));
-        expect(change.newValue.value, equals(29));
+        expect(event.equals(new ChangeSet({february: new ChangeSet({'days': new Change(28, 29)})}))
+        , isTrue);
       }));
     });
 
@@ -336,29 +325,6 @@ void main() {
           expect(count, equals(2));
         });
     });
-
-//    solo_test('pokus', () {
-//      // given
-//      var winterCollection = new DataCollection.from([december, january,
-//                                                      february]);
-//      // when
-//
-//      winterCollection.onChangeSync.listen((event) {
-//        print(event['change']);
-//      });
-//
-//      print(march);
-//
-//      winterCollection.add(march);
-//      winterCollection.remove(march);
-//
-//      // then
-//      winterCollection.onChange.listen((ChangeSet event) {
-//        print(event);
-//      });
-//    });
-
   });
-
 
 }

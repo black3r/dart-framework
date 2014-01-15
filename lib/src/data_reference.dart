@@ -31,7 +31,7 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
 
   changeValue(newValue, {author: null}) {
     assert(newValue is! DataReference);
-    _markChanged(this, this);
+    _markChanged(this._value, newValue);
     _value = newValue;
 
     if(_onDataChangeListener != null) {

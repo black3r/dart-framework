@@ -25,7 +25,6 @@ const unset = const _Undefined('unset');
 class Change {
   dynamic oldValue;
   dynamic newValue;
-  dynamic oldDereferencedValue;
 
   get isEmpty {
     return oldValue == unset && newValue == unset;
@@ -35,21 +34,15 @@ class Change {
    * Creates new [Change] from information about the value before change
    * [oldValue] and after the change [newValue].
    */
-  Change([this.oldValue = unset, this.newValue = unset]) {
-    if(this.oldValue is DataReference) this.oldDereferencedValue = this.oldValue.value;
+  Change([this.oldValue = unset, this.newValue = unset]){
+    assert(oldValue is! DataReference);
+    assert(newValue is! DataReference);
   }
 
   bool equals(dynamic other) {
-    dereference(value) {
-      while (value is DataReference){
-        value = value.value;
-      }
-      return value;
-    }
-
     if (other is Change){
-      return dereference(oldValue) == dereference(other.oldValue) &&
-             dereference(newValue) == dereference(other.newValue);
+      return oldValue == other.oldValue &&
+             newValue == other.newValue;
     } else {
       return false;
     }
@@ -62,11 +55,9 @@ class Change {
     if (change.isEmpty) {
       return;
     }
-    assert(isEmpty || change.oldValue == this.newValue ||
-        change.oldValue.value == this.newValue.value);
+    assert(isEmpty || change.oldValue == this.newValue);
     if (isEmpty) {
       oldValue = change.oldValue;
-      oldDereferencedValue = change.oldDereferencedValue;
     }
     newValue = change.newValue;
   }
@@ -75,7 +66,7 @@ class Change {
    * Clones the [change].
    */
   Change clone() {
-    return new Change(oldValue, newValue)..oldDereferencedValue = this.oldDereferencedValue;
+    return new Change(oldValue, newValue);
   }
 
   String toString() => "Change($oldValue->$newValue)";

@@ -13,11 +13,11 @@ abstract class ChangeNotificationsMixin {
       new StreamController.broadcast(sync: true);
 
   /**
-   * [__change] and [__changeSync] are either of a type Change or ChangeSet depending
+   * [_change] and [_changeSync] are either of a type Change or ChangeSet depending
    * on concrete implementation of a mixin
    */
-  get __change;
-  get __changeSync;
+  get _change;
+  get _changeSync;
 
   /**
    * following wanna-be-abstract methods must be overriden
@@ -64,15 +64,15 @@ abstract class ChangeNotificationsMixin {
    * Streams all new changes marked in [_change].
    */
   void _notify({author: null}) {
-    if (!__changeSync.isEmpty) {
-      _onChangeSyncController.add({'author': author, 'change': __changeSync});
+    if (!_changeSync.isEmpty) {
+      _onChangeSyncController.add({'author': author, 'change': _changeSync});
       _clearChangesSync();
     }
 
     Timer.run(() {
-      if (!__change.isEmpty) {
+      if (!_change.isEmpty) {
         _onBeforeNotify();
-        _onChangeController.add(__change);
+        _onChangeController.add(_change);
         _clearChanges();
       }
     });
@@ -89,8 +89,8 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   /**
    * Holds pending changes.
    */
-  ChangeSet _changeSet = new ChangeSet();
-  ChangeSet _changeSetSync = new ChangeSet();
+  ChangeSet _change = new ChangeSet();
+  ChangeSet _changeSync = new ChangeSet();
 
   /**
    * Internal set of listeners for change events on individual data objects.
@@ -98,27 +98,24 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   final Map<dynamic, StreamSubscription> _dataListeners =
       new Map<dynamic, StreamSubscription>();
 
-  get __change => _changeSet;
-  get __changeSync => _changeSetSync;
-
   _clearChanges() {
-    _changeSet = new ChangeSet();
+    _change = new ChangeSet();
   }
 
   _clearChangesSync() {
-    _changeSetSync = new ChangeSet();
+    _changeSync = new ChangeSet();
   }
 
   _markAdded(dynamic key, dynamic value) {
     _onBeforeAddedController.add(key);
-    _changeSetSync.markAdded(key, value);
-    _changeSet.markAdded(key, value);
+    _changeSync.markAdded(key, value);
+    _change.markAdded(key, value);
   }
 
   _markRemoved(dynamic key, dynamic value) {
     _onBeforeRemovedController.add(key);
-    _changeSet.markRemoved(key, value);
-    _changeSetSync.markRemoved(key, value);
+    _change.markRemoved(key, value);
+    _changeSync.markRemoved(key, value);
   }
 
   _markChanged(dynamic key, dynamic change) {
@@ -128,8 +125,8 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
       if(change.newValue == undefined)
         _onBeforeAddedController.add(key);
     }
-    _changeSet.markChanged(key, change);
-    _changeSetSync.markChanged(key, change);
+    _change.markChanged(key, change);
+    _changeSync.markChanged(key, change);
   }
 
   /**
@@ -162,9 +159,6 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin {
   Change _change = new Change();
   Change _changeSync = new Change();
-
-  get __change => _change;
-  get __changeSync => _changeSync;
 
   _clearChanges() {
     _change = new Change();

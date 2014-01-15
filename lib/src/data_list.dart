@@ -6,7 +6,6 @@ part of clean_data;
 
 Set _toStringVisiting = new HashSet.identity();
 
-//TODO returning references
 class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin implements List {
   List list = new List();
 
@@ -27,12 +26,12 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     DataReference ref = new DataReference(value);
     list.add(ref);
     _addOnDataChangeListener(list.length-1, ref);
-    _markAdded(list.length -1, ref);
+    _markAdded(list.length -1, value);
   }
 
 
   _set(key, DataReference value) {
-    _markChanged(key, new Change(list[key], value));
+    _markChanged(key, new Change(list[key].value, value.value));
     _removeOnDataChangeListener(key);
     list[key] = value;
     _addOnDataChangeListener(key, value);
@@ -285,9 +284,9 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
       bool _remove(DataReference element) {
         for (int i = 0; i < this.length; i++) {
           if (_get(i) == element) {
-            _markChanged(length-1, new Change(_get(length-1), _get(i)));
-            _markRemoved(length-1, _get(i));
-            _changeSetSync.changedItems[length-1].oldValue = _get(i);
+            _markChanged(length-1, new Change(_get(length-1).value, _get(i).value));
+            _markRemoved(length-1, _get(i).value);
+            _changeSync.changedItems[length-1].oldValue = _get(i);
             _removeOnDataChangeListener(i);
             this._setRange(i, this.length - 1, list, i + 1);
             list.length -= 1;
@@ -339,11 +338,11 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
           compare = defaultCompare;
         }
         for(int i=0; i < list.length; i++) {
-          _markChanged(i, new Change(list[i], undefined));
+          _markChanged(i, new Change(list[i].value, undefined));
         }
         var sorted = list.sort((a,b) => compare(a.value, b.value));
         for(int i=0; i < list.length; i++) {
-          _markChanged(i, new Change(undefined, list[i]));
+          _markChanged(i, new Change(undefined, list[i].value));
         }
         _notify();
       }
