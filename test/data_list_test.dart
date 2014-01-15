@@ -10,6 +10,11 @@ import 'package:unittest/mock.dart';
 import 'dart:async';
 import 'months.dart';
 
+// TODO: write matcher also for ChangeSet, make use of Change.equals and ChangeSet.equals
+
+// TODO: use matchers for matching the exact form of change(Set). This should reduce
+// the number of expect calls to one (in most cases).
+
 class ChangeEquals extends Matcher {
   Change change;
   ChangeEquals(this.change) {}

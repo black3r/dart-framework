@@ -12,7 +12,7 @@ void main() {
   var conf = unittestConfiguration;
   conf.timeout = new Duration(seconds: 2);
   unittestConfiguration = conf;
-  
+
   group('(TransformedDataCollection)', () {
 
     setUp(() => setUpMonths());
@@ -25,7 +25,7 @@ void main() {
 
       // when
       january['temperature'] = -10;
-      
+
       //then
       excepted.onChange.listen(expectAsync1((ChangeSet event) {
         expect(event.addedItems.isEmpty, isTrue);
@@ -117,7 +117,7 @@ void main() {
 
       // then
       excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
-        expect(changeSet.equals(new ChangeSet({fantasyMonth: new Change(undefined, undefined)})), 
+        expect(changeSet.equals(new ChangeSet({fantasyMonth: new Change(undefined, undefined)})),
             isTrue);
       }));
     });
@@ -151,7 +151,7 @@ void main() {
           expect(d, equals(fantasyMonth));
           expect(excepted.contains(fantasyMonth), isFalse);
       }));
-      
+
       // when
       months.add(fantasyMonth);
     });
@@ -165,7 +165,7 @@ void main() {
           expect(d, equals(january));
           expect(excepted.contains(january), isTrue);
       }));
-      
+
       // when
       months.remove(january);
     });
@@ -194,50 +194,51 @@ void main() {
       february['number'] = 13;
     });
 
+    // TODO what is this?
     test('is working properly with non DataView elements.', () {
       // given
       var SpringCollection = new DataCollection.from([march, april, may]),
           SummerCollection = new DataCollection.from([june, july, august]),
           AutumnCollection = new DataCollection.from([september, october, november]),
           WinterCollection = new DataCollection.from([december, january, february]),
-          seasons = new DataCollection.from([SpringCollection, SummerCollection, 
+          seasons = new DataCollection.from([SpringCollection, SummerCollection,
                                              AutumnCollection, WinterCollection]);
-      
+
       var warmSeasons = new DataCollection.from([SpringCollection, SummerCollection]);
       var coldSeasons = new DataCollection.from([AutumnCollection, WinterCollection]);
       var windySeasons = new DataCollection.from([AutumnCollection]);
-      
+
       // when
       var except = seasons.liveDifference(warmSeasons);
       expect(except, unorderedEquals(coldSeasons));
-      
+
       var union = warmSeasons.liveUnion(coldSeasons);
       expect(union, unorderedEquals(seasons));
-      
+
       var intersection = coldSeasons.liveIntersection(windySeasons);
       expect(intersection, unorderedEquals([AutumnCollection]));
-      
+
       var where = seasons.where(
           (seasons) => seasons.fold(0, (prev, Data month) => prev + month['days']) == 92);
       expect(where, unorderedEquals([SummerCollection, SpringCollection]));
     });
-    
+
     test('is working properly with non listenable elements.', () {
       var seasons = new DataCollection.from(['spring', 'summer', 'autumn', 'winter']);
       var warmSeasons = new DataCollection.from(['spring', 'summer']);
       var coldSeasons = new DataCollection.from(['autumn', 'winter']);
       var windySeasons = new DataCollection.from(['autumn']);
-      
+
       // when
       var except = seasons.liveDifference(warmSeasons);
       expect(except, unorderedEquals(coldSeasons));
-      
+
       var union = warmSeasons.liveUnion(coldSeasons);
       expect(union, unorderedEquals(seasons));
-      
+
       var intersection = coldSeasons.liveIntersection(windySeasons);
       expect(intersection, unorderedEquals(['autumn']));
-      
+
       var where = seasons.where(
           (seasons) => seasons.startsWith('s'));
       expect(where, unorderedEquals(['summer', 'spring']));

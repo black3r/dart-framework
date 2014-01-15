@@ -76,11 +76,9 @@ abstract class DataView extends Object with ChangeNotificationsMixin, ChangeChil
    * Should release all allocated (referenced) resources as subscribtions.
    */
   void dispose() {
-    _onChangeController.close();
-    _onChangeSyncController.close();
-    _onBeforeRemovedController.close();
-    _onBeforeAddedController.close();
+    _dispose();
   }
+
 }
 
 /**
@@ -185,7 +183,4 @@ class Data extends DataView implements Map {
     }
   }
 
-  void dispose() {
-    _dispose();
-  }
 }

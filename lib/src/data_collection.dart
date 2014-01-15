@@ -23,7 +23,6 @@ abstract class DataCollectionView extends Object
    * Holds data view objects for the collection.
    */
   final Set _data = new Set();
-//  final Map _ref = new Map();
 
   int get length => _data.length;
 
@@ -75,6 +74,7 @@ abstract class DataCollectionView extends Object
    */
   void _initIndexListener() {
 
+    // TODO: think about this.
     _indexListenerSubscription = this.onChangeSync.listen((Map changes) {
       ChangeSet cs = changes['change'];
 
@@ -115,24 +115,20 @@ abstract class DataCollectionView extends Object
   // ============================ /index ======================
 
   /**
-   * Stream populated with [ChangeNotificationsMixin] events before any
-   * data object is added.
+   * Stream populated with obj before any obj is added.
    */
-   Stream<ChangeNotificationsMixin> get onBeforeAdd => _onBeforeAddedController.stream;
+  Stream get onBeforeAdd => _onBeforeAddedController.stream;
 
   /**
-   * Stream populated with [ChangeNotificationsMixin] events before any
-   * data object is removed.
+   * Stream populated with obj before any obj is removed.
    */
-   Stream<ChangeNotificationsMixin> get onBeforeRemove => _onBeforeRemovedController.stream;
+  Stream get onBeforeRemove => _onBeforeRemovedController.stream;
 
-  /**
-   * Used to propagate change events to the outside world.
-   */
 
-  final StreamController<ChangeNotificationsMixin> _onBeforeAddedController =
+
+  final StreamController_onBeforeAddedController =
       new StreamController.broadcast(sync: true);
-  final StreamController<ChangeNotificationsMixin> _onBeforeRemovedController =
+  final StreamController _onBeforeRemovedController =
       new StreamController.broadcast(sync: true);
 
   /**
@@ -224,9 +220,6 @@ class DataCollection  extends DataCollectionView
   factory DataCollection.from(Iterable data) {
     var collection = new DataCollection();
     collection.addAll(data);
-//    for (var dataObj in data) {
-//      collection.add(dataObj);
-//    }
     collection._clearChanges();
     collection._clearChangesSync();
     return collection;
@@ -235,10 +228,10 @@ class DataCollection  extends DataCollectionView
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
        if(!_data.contains(data)){
-//         _ref[data] = new DataReference(data);
          _markAdded(data, data);
-         if(data is ChangeNotificationsMixin)
+         if(data is ChangeNotificationsMixin) {
            _addOnDataChangeListener(data, data);
+         }
        }
     });
     _data.addAll(elements);
@@ -267,13 +260,12 @@ class DataCollection  extends DataCollectionView
   }
 
   void _removeAll(Iterable toBeRemoved, {author: null}) {
-    //the following causes onChangeListeners removal in the next event loop
     toBeRemoved.forEach((data) {
-      if(_data.contains(data)){
-//        _markRemoved(data, _ref[data]);
+      if (_data.contains(data)) {
         _markRemoved(data, data);
-        if(data is ChangeNotificationsMixin)
+        if (data is ChangeNotificationsMixin) {
           _removeOnDataChangeListener(data);
+        }
       }
     });
     _data.removeAll(toBeRemoved);
@@ -306,8 +298,7 @@ class DataCollection  extends DataCollectionView
       throw new NoIndexException('Property $property is not indexed.');
     }
 
-    Iterable toBeRemoved = _index[property][value];
-    this._removeAll(toBeRemoved, author: author);
+    this._removeAll(_index[property][value], author: author);
   }
 
   /**
