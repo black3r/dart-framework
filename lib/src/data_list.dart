@@ -397,21 +397,21 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
         _notify(author: author);
       }
 
-      void fillRange(int start, int end, [fill]) {
+      void fillRange(int start, int end, [fill, author]) {
         _rangeCheck(start, end);
         for (int i = start; i < end; i++) {
           _set(i, new DataReference(fill));
         }
-        _notify();
+        _notify(author: author);
       }
 
-      void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+      void setRange(int start, int end, Iterable iterable, [int skipCount = 0, author]) {
         _rangeCheck(start, end);
         for(var elem in iterable) {
           if(start < end) list[start].value = elem;
           start++;
         }
-        _notify();
+        _notify(author: author);
       }
 
       void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {

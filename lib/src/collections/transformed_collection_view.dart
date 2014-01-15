@@ -7,8 +7,8 @@ part of clean_data;
 /**
  * Represents a read-only, iterable data collection that is a result of a transformation operation.
  */
-abstract class TransformedDataCollection 
-                extends DataCollectionView 
+abstract class TransformedDataCollection
+                extends DataCollectionView
                 with IterableMixin {
 
   /**
@@ -29,7 +29,7 @@ abstract class TransformedDataCollection
   /**
    * Reflects [changes] in the collection w.r.t. [config].
    */
-  void _mergeIn(ChangeSet changes, int sourceNumber) {
+  void _mergeIn(ChangeSet changes, int sourceNumber, {author}) {
     changes.addedItems.forEach((dataObj) => _treatAddedItem(dataObj, sourceNumber));
     changes.removedItems.forEach((dataObj) => _treatRemovedItem(dataObj, sourceNumber));
     changes.strictlyChanged.forEach((dataObj,changes) => _treatChangedItem(dataObj, changes, sourceNumber));
@@ -37,7 +37,7 @@ abstract class TransformedDataCollection
     for (var item in items) {
       _treatItem(item, changes.strictlyChanged[item]);
     }
-    _notify();
+    _notify(author: author);
   }
 
   // Overridable methods follow
