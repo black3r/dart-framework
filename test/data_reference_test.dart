@@ -36,7 +36,7 @@ void main() {
     });
 
     test('Correctly merge changes. (T04)', () {
-      Data d = new Data.from({'name': 'Bond. James Bond.'});
+      DataMap d = new DataMap.from({'name': 'Bond. James Bond.'});
       var oldRef = d.ref('name');
       d['name'] = 'Guybrush';
       d.remove('name');
@@ -60,7 +60,7 @@ void main() {
     });
 
     test('Listen on changes of value. (T06)', () {
-      var data = new Data.from({'key': 'oldValue'});
+      var data = new DataMap.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
 
       // when
@@ -80,7 +80,7 @@ void main() {
 
     test('Listen synchronyosly on changes of value. (T07)', () {
       //given
-      var data = new Data.from({'key': 'oldValue'});
+      var data = new DataMap.from({'key': 'oldValue'});
       var dataRef = new DataReference(data);
       var change;
       dataRef.onChangeSync.listen((event){

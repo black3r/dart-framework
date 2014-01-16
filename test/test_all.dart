@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-import 'data_test.dart' as data_test;
+import 'data_map_test.dart' as data_map_test;
 import 'data_list_test.dart' as data_list_test;
-import 'data_collection_test.dart' as data_collection_test;
+import 'data_set_test.dart' as data_set_test;
 import 'data_reference_test.dart' as data_reference_test;
 import 'hash_index_test.dart' as hash_index_test;
 import 'change_set_test.dart' as change_set_test;
-import 'change_streams_test.dart' as change_streams_test;
+import 'set_streams_test.dart' as set_streams_test;
 
-import 'collections/transformed_collection_view_test.dart' as transformed_test;
-import 'collections/filtered_collection_view_test.dart' as filtered_test;
-import 'collections/unioned_collection_view_test.dart' as unioned_test;
-import 'collections/intersected_collection_view_test.dart' as intersected_test;
-import 'collections/excepted_collection_view_test.dart' as excepted_test;
+import 'data_sets/transformed_set_view_test.dart' as transformed_test;
+import 'data_sets/filtered_set_view_test.dart' as filtered_test;
+import 'data_sets/unioned_set_view_test.dart' as unioned_test;
+import 'data_sets/intersected_set_view_test.dart' as intersected_test;
+import 'data_sets/excepted_set_view_test.dart' as excepted_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/vm_config.dart';
 
@@ -26,14 +26,14 @@ main() {
 run(configuration) {
   unittestConfiguration = configuration;
 
-  data_test.main();
+  data_map_test.main();
   data_list_test.main();
-  data_collection_test.main();
+  data_set_test.main();
   data_reference_test.main();
-  change_streams_test.main();
+  set_streams_test.main();
   change_set_test.main();
 
-  // collection views test
+  // set views test
   transformed_test.main();
   filtered_test.main();
   unioned_test.main();

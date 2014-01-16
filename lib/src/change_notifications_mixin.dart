@@ -49,13 +49,13 @@ abstract class ChangeNotificationsMixin {
       new StreamController.broadcast(sync: true);
 
   /**
-   * Stream populated with [DataView] events before any
+   * Stream populated with [DataMapView] events before any
    * data object is added.
    */
    Stream<dynamic> get onBeforeAdd => _onBeforeAddedController.stream;
 
   /**
-   * Stream populated with [DataView] events before any
+   * Stream populated with [DataMapView] events before any
    * data object is removed.
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;

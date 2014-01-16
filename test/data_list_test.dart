@@ -280,7 +280,7 @@ void main() {
     group('nested', () {
       test('listens to changes of its children.', () {
         // given
-        DataList dataList = new DataList.from([new Data(), new Data()]);
+        DataList dataList = new DataList.from([new DataMap(), new DataMap()]);
 
         // when
         dataList[0]['name'] = 'John Doe';
@@ -295,7 +295,7 @@ void main() {
 
       test('do not listen to removed children changes.', () {
         // given
-        var child = new Data();
+        var child = new DataMap();
         DataList dataList = new DataList.from([child]);
         var onChange = new Mock();
 
@@ -314,9 +314,9 @@ void main() {
 
       test('do not listen after remove multiple children with removeRange.', () {
         // given
-        var child1 = new Data();
-        var child2 = new Data();
-        DataList dataList = new DataList.from([new Data(), child1, child2]);
+        var child1 = new DataMap();
+        var child2 = new DataMap();
+        DataList dataList = new DataList.from([new DataMap(), child1, child2]);
         var onRemove = new Mock();
         var onChange = new Mock();
         dataList.onChangeSync.listen((event) => onRemove.handler(event));
