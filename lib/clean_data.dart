@@ -97,6 +97,7 @@ part 'src/data_set.dart';
 part 'src/data_reference.dart';
 part 'src/data_list.dart';
 part 'src/change_set.dart';
+part 'src/cleanify.dart';
 
 part 'src/sets/transformed_set_view.dart';
 part 'src/sets/filtered_set_view.dart';

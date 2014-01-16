@@ -10,6 +10,7 @@ import 'data_reference_test.dart' as data_reference_test;
 import 'hash_index_test.dart' as hash_index_test;
 import 'change_set_test.dart' as change_set_test;
 import 'set_streams_test.dart' as set_streams_test;
+import 'cleanify_test.dart' as cleanify_test;
 
 import 'data_sets/transformed_set_view_test.dart' as transformed_test;
 import 'data_sets/filtered_set_view_test.dart' as filtered_test;
@@ -40,4 +41,6 @@ run(configuration) {
   intersected_test.main();
   excepted_test.main();
   hash_index_test.main();
+  
+  cleanify_test.main();
 }
