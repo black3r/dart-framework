@@ -8,7 +8,7 @@ Set _toStringVisiting = new HashSet.identity();
 
 
 class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, ListMixin implements List {
-  List list = new List();
+  List _list = new List();
 
   get length => _length;
   set length(newLen) {
@@ -16,117 +16,52 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     _notify();
   }
 
-  get _length => list.length;
+  get _length => _list.length;
   set _length(int newLen) {
     if(newLen < 0) throw new RangeError('Negative position');
-    while(newLen > _length) _add(null);
-    while(newLen < _length) _remove(list.last);
+    while(newLen > _length) _add(new DataReference(null));
+    while(newLen < _length) _remove(_list.last);
   }
 
-  _add(dynamic value) {
-    DataReference ref = new DataReference(value);
-    list.add(ref);
-    _addOnDataChangeListener(list.length-1, ref);
-    _markAdded(list.length -1, value);
+  _add(DataReference value) {
+    _list.add(value);
+    _addOnDataChangeListener(_list.length-1, value);
+    _markAdded(_list.length -1, value.value);
   }
-
 
   _set(key, DataReference value) {
-    _markChanged(key, new Change(list[key].value, value.value));
+    _markChanged(key, new Change(_list[key].value, value.value));
     _removeOnDataChangeListener(key);
-    list[key] = value;
+    _list[key] = value;
     _addOnDataChangeListener(key, value);
   }
 
-  DataReference _get(key) => list[key];
 
-  dynamic operator [](key) => list[key].value;
-  operator []=(key, dynamic value) { list[key].value = value; }
+  dynamic operator [](key) => _list[key].value;
+  operator []=(key, dynamic value) { _list[key].value = value; }
 
   DataList(){}
 
   factory DataList.from(Iterable elements) {
     DataList dataList =  new DataList()..addAll(elements);
     dataList._clearChanges();
+    dataList._clearChangesSync();
     return dataList;
   }
 
-  DataReference ref(int pos) {
-    return list[pos];
-  }
+  DataReference ref(int pos) => _list[pos];
 
   // Iterable interface.
-  Iterator get iterator => list.map((DataReference ref) => ref.value).iterator;
-
-  dynamic elementAt(int index) => this[index];
-
-  void forEach(void action(element)) {
-    int length = this.length;
-    for (int i = 0; i < length; i++) {
-      action(this[i]);
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-    }
-  }
-
-  bool get isEmpty => length == 0;
-
-  bool get isNotEmpty => !isEmpty;
-
-  dynamic get first {
-    if (length == 0) throw new StateError("No elements");
-    return this[0];
-  }
-
-  dynamic get last {
-    if (length == 0) throw new StateError("No elements");
-    return this[length - 1];
-  }
-
-  dynamic get single {
-    if (length == 0) throw new StateError("No elements");
-    if (length > 1) throw new StateError("Too many elements");
-    return this[0];
-  }
-
-  Iterable where(bool test(element)) =>
-      new DataList.from(list.map((E) => E.value).where(test));
-
-  Iterable map(f(element)) =>
-      new DataList.from(list.map((E) => E.value).map(f));
-
-  Iterable expand(Iterable f(element)) =>
-      new DataList.from(list.map((E) => E.value).expand(f));
-
-  Iterable skip(int count) => new DataList.from(list.map((E) => E.value).skip(count));
-
-  Iterable skipWhile(bool test(element)) {
-    return new DataList.from(list.map((E) => E.value).skipWhile(test));
-  }
-
-  Iterable take(int count) =>
-      new DataList.from(list.map((E) => E.value).take(count));
-
-  Iterable takeWhile(bool test(element)) =>
-    new DataList.from(list.map((E) => E.value).takeWhile(test));
-
-  Set toSet() {
-    Set result = new DataCollection();
-    for (int i = 0; i < length; i++) {
-      result.add(this[i]);
-    }
-    return result;
-  }
+  Iterator get iterator => _list.map((DataReference ref) => ref.value).iterator;
 
   void add(element, {author: null}) {
-    _add(element);
+    _add(new DataReference(element));
     _notify(author: author);
   }
 
   void addAll(Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
-      _add(element);
+      _add(new DataReference(element));
     }
     _notify(author: author);
   }
@@ -134,20 +69,18 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
   bool remove(Object element, {author: null}) {
     int index = indexOf(element);
     if(index == -1) return false;
-    var ret = _remove(_get(index));
+    var ret = _remove(ref(index));
     _notify(author: author);
     return ret;
   }
 
   bool _remove(DataReference element) {
     for (int i = 0; i < this.length; i++) {
-      if (_get(i) == element) {
-        _markChanged(length-1, new Change(_get(length-1).value, _get(i).value));
-        _markRemoved(length-1, _get(i).value);
-        _changeSync.changedItems[length-1].oldValue = _get(i);
+      if (ref(i) == element) {
         _removeOnDataChangeListener(i);
-        this._setRange(i, this.length - 1, list, i + 1);
-        list.length -= 1;
+        this._setRange(i, this.length - 1, _list, i + 1);
+        _markRemoved(length-1, ref(length-1).value);
+        _list.length -= 1;
         return true;
       }
     }
@@ -164,12 +97,13 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     _notify(author: author);
   }
 
+  // TODO: filter should run in linear time
   static void _filter(DataList source,
                       bool test(var element),
                       bool retainMatching) {
     int length = source.length;
     for (int i = length - 1; i >= 0; i--) {
-      var element = source._get(i);
+      var element = source.ref(i);
       if (test(element.value) != retainMatching) {
          source._remove(element);
       }
@@ -190,38 +124,6 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     return result;
   }
 
-  void sort([int compare(a, b)]) {
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    for(int i=0; i < list.length; i++) {
-      _markChanged(i, new Change(list[i].value, undefined));
-    }
-    var sorted = list.sort((a,b) => compare(a.value, b.value));
-    for(int i=0; i < list.length; i++) {
-      _markChanged(i, new Change(undefined, list[i].value));
-    }
-    _notify();
-  }
-
-  void shuffle([Random random]) {
-    if (random == null) random = new Random();
-    int length = this.length;
-    while (length > 1) {
-      int pos = random.nextInt(length);
-      length -= 1;
-      var tmp = _get(length);
-      _set(length, _get(pos));
-      _set(pos, tmp);
-    }
-    _notify();
-  }
-
-  Map<int, dynamic> asMap() {
-    return new Data.from(list.map((E) => E).toList().asMap());
-  }
-
   void _rangeCheck(int start, int end) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
@@ -231,7 +133,38 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     }
   }
 
-  List sublist(int start, [int end]) {
+  void _markAllRemoved(){
+    for(int i=0; i < _list.length; i++) {
+      _markChanged(i, new Change(_list[i].value, undefined));
+    }
+  }
+
+  void _markAllAdded(){
+    for(int i=0; i < _list.length; i++) {
+      _markChanged(i, new Change(undefined, _list[i].value));
+    }
+  }
+
+
+  void sort([int compare(a, b)]) {
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    _markAllRemoved();
+    _list.sort((a,b) => compare(a.value, b.value));
+    _markAllAdded();
+    _notify();
+  }
+
+  void shuffle([Random random]) {
+    _markAllRemoved();
+    _list.shuffle(random);
+    _markAllAdded();
+    _notify();
+  }
+
+  DataList sublist(int start, [int end]) {
     if (end == null) end = this.length;
     _rangeCheck(start, end);
     int length = end - start;
@@ -242,15 +175,10 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     return result;
   }
 
-  Iterable getRange(int start, int end) {
-    _rangeCheck(start, end);
-    return new DataList.from(list.getRange(start, end).map((E) => E.value));
-  }
-
   void removeRange(int start, int end, {author: null}) {
     _rangeCheck(start, end);
     int length = end - start;
-    for(int i = end-1; i >= start; i--) _remove(_get(i));
+    for(int i = end-1; i >= start; i--) _remove(ref(i));
     _notify(author: author);
   }
 
@@ -265,7 +193,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0, author]) {
     _rangeCheck(start, end);
     for(var elem in iterable) {
-      if(start < end) list[start].value = elem;
+      if(start < end) _list[start].value = elem;
       start++;
     }
     _notify(author: author);
@@ -314,7 +242,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
       int newLength = this.length - delta;
       this._setRange(start, insertEnd, newContents);
       if (delta != 0) {
-        this._setRange(insertEnd, newLength, list, end);
+        this._setRange(insertEnd, newLength, _list, end);
         this._length = newLength;
       }
     } else {
@@ -322,57 +250,19 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
       int newLength = this.length + delta;
       int insertEnd = start + insertLength;  // aka. end + delta.
       this._length = newLength;
-      this._setRange(insertEnd, newLength, list, end);
+      this._setRange(insertEnd, newLength, _list, end);
       this._setRange(start, insertEnd, newContents);
     }
     _notify(author: author);
   }
 
-  int indexOf(Object element, [int startIndex = 0]) {
-    if (startIndex >= this.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < this.length; i++) {
-      if (this[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the list [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  int lastIndexOf(Object element, [int startIndex]) {
-    if (startIndex == null) {
-      startIndex = this.length - 1;
-    } else {
-      if (startIndex < 0) {
-        return -1;
-      }
-      if (startIndex >= this.length) {
-        startIndex = this.length - 1;
-      }
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (this[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
 
   void insert(int index, element, {author: null}) {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
     }
     if (index == this.length) {
-      _add(element);
+      _add(new DataReference(element));
       return;
     }
     // We are modifying the length just below the is-check. Without the check
@@ -380,14 +270,14 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     // (with a length that has been increased, but without a new element).
     if (index is! int) throw new ArgumentError(index);
     this._length++;
-    _setRange(index + 1, this.length, list, index);
+    _setRange(index + 1, this.length, _list, index);
     _set(index, new DataReference(element));
     _notify(author: author);
   }
 
   removeAt(int index, {author: null}) {
     var result = this[index];
-    _remove(_get(index));
+    _remove(ref(index));
     _notify(author: author);
     return result;
   }
@@ -402,7 +292,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
     this._length += insertionLength;
-    _setRange(index + insertionLength, this.length, list, index);
+    _setRange(index + insertionLength, this.length, _list, index);
     for (dynamic element in iterable) {
       _set(index++, new DataReference(element));
     }
@@ -411,29 +301,9 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
 
   void setAll(int index, Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
-      list[index++].value = element;
+      _list[index++].value = element;
     }
     _notify(author: author);
-  }
-
-  Iterable get reversed => new DataList.from(list.reversed.map((E) => E.value));
-
-  String toString() {
-    if (_toStringVisiting.contains(this)) {
-      return '[...]';
-    }
-
-    var result = new StringBuffer();
-    try {
-      _toStringVisiting.add(this);
-      result.write('[');
-      result.writeAll(this, ', ');
-      result.write(']');
-    } finally {
-      _toStringVisiting.remove(this);
-    }
-
-    return result.toString();
   }
 
   void dispose() {

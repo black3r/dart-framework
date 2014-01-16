@@ -120,7 +120,6 @@ class ChangeSet {
     }
   }
 
-
   /**
    * Clone changeSet.
    */
@@ -172,45 +171,24 @@ class ChangeSet {
    * Marks all the changes in [ChangeSet] or [Change] for a
    * given [dataObj].
    */
-  // TODO refactor this
 
-  void _markChanged(dynamic key, change) {
+  void markChanged(dynamic key, change) {
     bool contains = changedItems.containsKey(key);
     bool oldIsChangeSet = contains && changedItems[key] is ChangeSet;
     bool newIsChangeSet = change is ChangeSet;
+    bool oldIsChange = !oldIsChangeSet;
+    bool newIsChange = !newIsChangeSet;
 
-    if (!contains) changedItems[key] = change.clone();
-
-    if(changedItems.containsKey(key)) {
-      if(change is Change) {
-        if(changedItems[key] is Change) {
-          changedItems[key].mergeIn(change);
-        } else {
-          changedItems[key] = change.clone();
-        }
-      } else if(changedItems[key] is! Change) {
-          changedItems[key].mergeIn(change);
-      }
-    } else {
+    if (!contains || oldIsChangeSet && newIsChange) {
       changedItems[key] = change.clone();
+      return;
     }
-  }
-
-
-  void markChanged(dynamic key, change) {
-    if(changedItems.containsKey(key)) {
-      if(change is Change) {
-        if(changedItems[key] is Change) {
-          changedItems[key].mergeIn(change);
-        } else {
-          changedItems[key] = change.clone();
-        }
-      } else if(changedItems[key] is! Change) {
-          changedItems[key].mergeIn(change);
-      }
-    } else {
-      changedItems[key] = change.clone();
+    if (oldIsChange || oldIsChangeSet && newIsChangeSet){
+      changedItems[key].mergeIn(change);
+      return;
     }
+    // previous ifs should contain all possible cases
+    assert(false);
   }
 
   /**
