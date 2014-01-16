@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Support for automatical data synchronization among sets.
+ * Support for automatical data synchronization among collections.
  *
  * ## Concepts
  *
@@ -13,10 +13,10 @@
  *   that does the work of grouping multiple changes that occured during
  *   execution to single [ChangeSet] fired in the next event loop.
  *
- * * __Data__: Data are stored using a [Map] compatible instances of class
+ * * __DataMap__: Data are stored using a [Map] compatible instances of class
  *   [DataMap].
  *
- * * __Set__: Multiple data objects can be stored and manipulated using
+ * * __DataSet__: Multiple data objects can be stored and manipulated using
  *   the instance of [DataSet] class. [DataSet] behave similarly
  *   to [Set], each object can be contained at most once and no order is
  *   guaranteed.
@@ -32,7 +32,7 @@
  *
  *     import 'package:clean_data/clean_data.dart';
  *     void main() {
- *       var person = new Data.from({"name": "John"});
+ *       var person = new DataMap.from({"name": "John"});
  *       person.onChange.listen((changeSet) => print("Person has changed!"));
  *
  *       person['surname'] = 'Doe';
@@ -48,13 +48,13 @@
  *
  * Create simple set and listen to its changes:
  *
- *     import 'package:clean_data/clean_data.dar';
+ *     import 'package:clean_data/clean_data.dart';
  *     void main() {
  *       var colleagues = new DataSet();
  *       colleagues.onChange.listen((changeSet) => print("Team has changed!"));
  *
- *       colleagues.add(new Data.from({"name": "John"}));
- *       colleagues.add(new Data.from({"name": "Peter"}));
+ *       colleagues.add(new DataMap.from({"name": "John"}));
+ *       colleagues.add(new DataMap.from({"name": "Peter"}));
  *
  *     }
  *
@@ -66,10 +66,10 @@
  *
  * Our set also listens to changes in its underlying data objects:
  *
- *     import 'package:clean_data/clean_data.dar';
+ *     import 'package:clean_data/clean_data.dart';
  *     void main() {
- *       var john = new Data.from({"name": "John"});
- *       var peter = new Data.from({"name": "Peter"});
+ *       var john = new DataMap.from({"name": "John"});
+ *       var peter = new DataMap.from({"name": "Peter"});
  *
  *       var colleagues = new DataSet.from([john, peter]);
  *       colleagues.onChange.listen((changeSet) => print("Team has changed!"));
