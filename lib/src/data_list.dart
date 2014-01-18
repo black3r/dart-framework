@@ -4,8 +4,6 @@
 
 part of clean_data;
 
-Set _toStringVisiting = new HashSet.identity();
-
 
 class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, ListMixin implements List {
   List _list = new List();
