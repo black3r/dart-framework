@@ -536,14 +536,14 @@ void main() {
     });
 
     test('data can be replaced by another data.', () {
-      // given
-      var dataObj = new DataMap.from({'child': new DataMap()});
+      DataMap data = new DataMap();
+      data['name'] = new DataMap();
+      data['name'] = new DataMap();
+      data['name']['first'] = 'Guybrush';
 
-      // when
-      dataObj['child']['name'] = 'John Doe';
-      dataObj['child'] = new DataMap();
-
-      // then no Error is thrown
+      data.onChange.listen(expectAsync1((change){
+        expect(change.equals(new ChangeSet({'name': new Change(undefined, data['name'])})), isTrue);
+      }));
     });
   });
 
@@ -632,4 +632,5 @@ void main() {
       }));
     });
   });
+
 }

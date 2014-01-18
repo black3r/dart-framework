@@ -183,8 +183,12 @@ class ChangeSet {
       changedItems[key] = change.clone();
       return;
     }
-    if (oldIsChange || oldIsChangeSet && newIsChangeSet){
+    if (oldIsChange && newIsChange || oldIsChangeSet && newIsChangeSet){
       changedItems[key].mergeIn(change);
+      return;
+    }
+    if (oldIsChange && newIsChangeSet) {
+      // do nothing
       return;
     }
     // previous ifs should contain all possible cases
