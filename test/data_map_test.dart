@@ -56,6 +56,7 @@ void main() {
 
       // then
       expect(dataObj['key'], equals('value'));
+      expect(dataObj['nonexistent key'], equals(null));
     });
 
     test('remove multiple keys. (T04)', () {
@@ -559,6 +560,7 @@ void main() {
       //then
       expect(data1.ref('key').value, equals(data2));
       expect(data1.ref('key2').value, equals('value'));
+      expect(data1.ref('nonexistent key'), equals(null));
     });
 
     test('does not change, when changing value. (T2)', () {

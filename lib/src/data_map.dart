@@ -12,7 +12,7 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
-  dynamic operator[](key) => _fields[key].value;
+  dynamic operator[](key) => _fields.containsKey(key) ? _fields[key].value : null;
 
   /**
    * Returns true if there is no {key, value} pair in the data object.
