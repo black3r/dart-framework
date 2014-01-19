@@ -8,7 +8,9 @@ import 'package:unittest/unittest.dart';
 import 'package:clean_data/clean_data.dart';
 import 'package:unittest/mock.dart';
 import 'dart:async';
+import 'matchers.dart' as matchers;
 
+var equals = matchers.equals;
 
 void main() {
 
@@ -43,8 +45,8 @@ void main() {
       d['name'] = 'Guybrush Threepwood';
 
       d.onChange.listen((change){
-        expect(change.equals(new ChangeSet({'name': new Change('Bond. James Bond.', 'Guybrush Threepwood')})),
-            isTrue);
+        expect(change, equals(new ChangeSet({
+          'name': new Change('Bond. James Bond.', 'Guybrush Threepwood')})));
       });
     });
 
@@ -52,7 +54,7 @@ void main() {
       DataReference ref = new DataReference('oldValue');
 
       var check = expectAsync1((event) {
-        expect(event['change'].equals(new Change('oldValue', 'newValue')), isTrue);
+        expect(event['change'], equals(new Change('oldValue', 'newValue')));
       });
 
       ref.onChangeSync.listen(check);
@@ -70,11 +72,10 @@ void main() {
       // then
       dataRef.onChange.listen(expectAsync1((ChangeSet event) {
         var ref = data.ref('key');
-        expect(event.equals(new ChangeSet(
-              {'key': new Change('oldValue', 'newValue')}
-        )), isTrue);
+        expect(event, equals(new ChangeSet({
+          'key': new Change('oldValue', 'newValue')
+        })));
       }));
-
     });
 
 
@@ -91,9 +92,7 @@ void main() {
       dataRef.value['key'] = 'newValue';
 
       // then
-      expect(change.equals(new ChangeSet({'key': new Change('oldValue', 'newValue')}))
-          , isTrue);
-
+      expect(change, equals(new ChangeSet({'key': new Change('oldValue', 'newValue')})));
     });
   });
 }

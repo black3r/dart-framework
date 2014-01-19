@@ -14,7 +14,7 @@ var equals = matchers.equals;
 
 void main() {
 
-  group('(Data)', () {
+  group('(DataMap)', () {
 
     test('initialize. (T01)', () {
 

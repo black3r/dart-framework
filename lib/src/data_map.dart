@@ -65,7 +65,7 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
   /**
    * Converts to Map.
    */
-  Map toJson() => new Map.from(_fields);
+  Map toJson() => new Map.fromIterables(_fields.keys, _fields.values.map((E) => E.value));
 
   /**
    * Returns Json representation of the object.

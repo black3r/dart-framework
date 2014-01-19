@@ -327,7 +327,7 @@ void main() {
         });
 
         // but async onChange drops information about changes in removed items.
-        dataList.onChange.listen(expectAsync1((changeSet) { print(changeSet);
+        dataList.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet, equals(new ChangeSet({
             1: new Change(child1, undefined), 
             2: new Change(child2, undefined)            

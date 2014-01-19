@@ -5,7 +5,7 @@ import 'package:clean_data/clean_data.dart';
 import 'dart:collection';
 
 main(){
-  group('Cleanify', () {
+  group('(Cleanify)', () {
     test('from Object creates DataReference. (T01)', () {
       var result = cleanify('String');
       expect(result, new isInstanceOf<DataReference>());
@@ -61,7 +61,7 @@ main(){
       expect(result['name'].contains('random'), isTrue);
     });
     
-    test('creates CleanData recursively for Set. (T06)', () {
+    test('creates CleanData recursively for Set. (T07)', () {
       DataSet result = cleanify(new Set.from([{'list': [4, 7]}]));
       
       expect(result, new isInstanceOf<DataSet>());
@@ -71,8 +71,8 @@ main(){
     });
   });
   
-  group('Decleanify', () {
-    test('from DataReference yield value. (T01)', () {
+  group('(Decleanify)', () {
+    test('from DataReference yields value. (T01)', () {
       var data = 'String';
       var result = cleanify(data);
       expect(decleanify(result), equals(data));

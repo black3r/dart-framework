@@ -9,11 +9,13 @@ import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 import 'dart:async';
 import 'months.dart';
+import 'matchers.dart' as matchers;
 
+var equals = matchers.equals;
 
 void main() {
 
-  group('(Set)', () {
+  group('(DataSet)', () {
 
     setUp(() => setUpMonths());
 
@@ -230,7 +232,27 @@ void main() {
      expect(winterSet.findBy('number', 3), equals([march]));
    });
 
+   test('is ignoring non DataView elements, when finding by index.', () {
+     // given
+     var springSet = new DataSet.from([march, april, may]),
+         summerSet = new DataSet.from([june, july, august]),
+         autumnSet = new DataSet.from([september, october, november]),
+         winterSet = new DataSet.from([december, january, february]),
+         seasons = new DataSet.from([springSet, summerSet, 
+                                     autumnSet, winterSet]);
+     
+     var year = new DataSet.from(
+         months..add(seasons)
+           ..addAll(['spring', 'summer', 'autumn', 'winter']));
+     
+     // when
+     year.addIndex(['number']);
 
+     // then
+     expect(year.findBy('number', 7), equals([july]));
+     expect(year.findBy('number', 13).isEmpty, isTrue);
+   });
+   
     test('removeWhere spec. (T29)', () {
 
       // given & when
@@ -395,7 +417,7 @@ void main() {
       expect(winterSet.add(march), isTrue);
     });
 
-    test('remove data object return value. (T40)', () {
+    test('remove data object returns value. (T40)', () {
       // given
       var winterSet = new DataSet.from([december, january, february]);
 
@@ -441,8 +463,11 @@ void main() {
       
       //then
       seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
-        expect(changeSet.changedItems.keys, unorderedEquals(['winter']));
-        expect(changeSet.changedItems['winter'].changedItems.containsKey(february), isTrue);        
+        expect(changeSet, equals(new ChangeSet({
+          'winter': new ChangeSet({
+            february: new ChangeSet({'days': new Change(28, 29)})
+          })
+        })));   
       }));
     });
     
@@ -460,30 +485,12 @@ void main() {
       
       //then
       seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
-        expect(changeSet.changedItems.keys, unorderedEquals([winterSet]));
-        expect(changeSet.changedItems[winterSet].changedItems.containsKey(february), isTrue);        
+        expect(changeSet, equals(new ChangeSet({
+          winterSet: new ChangeSet({
+            february: new ChangeSet({'days': new Change(28, 29)})
+          })
+        })));
       }));
-    });
-    
-    test('is ignoring non DataView elements, when finding by index.', () {
-      // given
-      var springSet = new DataSet.from([march, april, may]),
-          summerSet = new DataSet.from([june, july, august]),
-          autumnSet = new DataSet.from([september, october, november]),
-          winterSet = new DataSet.from([december, january, february]),
-          seasons = new DataSet.from([springSet, summerSet, 
-                                             autumnSet, winterSet]);
-      
-      var year = new DataSet.from(
-          months..add(seasons)
-                ..addAll(['spring', 'summer', 'autumn', 'winter']));
-      
-      // when
-      year.addIndex(['number']);
-
-      // then
-      expect(year.findBy('number', 7), equals([july]));
-      expect(year.findBy('number', 13).isEmpty, isTrue);
     });
     
     test('is accepting also non clean_data elements.', () {

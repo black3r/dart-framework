@@ -7,6 +7,9 @@ library change_set_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
+import 'matchers.dart' as matchers;
+
+var equals = matchers.equals;
 
 void main() {
 
@@ -126,10 +129,11 @@ void main() {
 
       // then
 
-      expect(changeSet.equals(new ChangeSet(
-          {'first': new Change('first', 'first'),
-           'second': new Change('second', 'second'),
-           'third': new Change('third', 'third')})), isTrue);
+      expect(changeSet, equals(new ChangeSet({
+        'first': new Change('first', 'first'),
+        'second': new Change('second', 'second'),
+        'third': new Change('third', 'third')
+      })));
     });
 
     test('remove previosly added children.', () {
@@ -145,10 +149,11 @@ void main() {
 
       // then
 
-      expect(changeSet.equals(new ChangeSet(
-          {'first': new Change(undefined, undefined),
-           'second': new Change(undefined, undefined),
-           'third': new Change(undefined, undefined)})), isTrue);
+      expect(changeSet, equals(new ChangeSet({
+        'first': new Change(undefined, undefined),
+        'second': new Change(undefined, undefined),
+        'third': new Change(undefined, undefined)
+      })));
     });
 
     test('change children.', () {
@@ -208,7 +213,7 @@ void main() {
       // then
       expect(changeSet.addedItems, unorderedEquals(children));
       changeSet.changedItems.forEach((key, Change value){
-        expect(value.equals(new Change(undefined, '${key}_')), isTrue);
+        expect(value, equals(new Change(undefined, '${key}_')));
       });
     });
 
@@ -227,10 +232,10 @@ void main() {
       changeSet.mergeIn(anotherChangeSet);
 
       // then
-      expect(changeSet.equals(new ChangeSet({
+      expect(changeSet, equals(new ChangeSet({
         'key1': new Change('v1', 'v2'),
         'key2': new Change('va', 'vb')}
-      )), isTrue);
+      )));
     });
   });
 }
