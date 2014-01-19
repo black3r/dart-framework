@@ -7,6 +7,9 @@ library transformed_set_view_test;
 import 'package:unittest/unittest.dart';
 import '../months.dart';
 import 'package:clean_data/clean_data.dart';
+import '../matchers.dart' as matchers;
+
+var equals = matchers.equals;
 
 void main() {
   var conf = unittestConfiguration;
@@ -27,11 +30,10 @@ void main() {
       january['temperature'] = -10;
 
       //then
-      excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.keys, equals([january]));
-        expect(event.changedItems[january].addedItems, equals(['temperature']));
+      excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          january: new ChangeSet({'temperature': new Change(undefined, -10)})
+        })));
       }));
     });
 
@@ -47,10 +49,10 @@ void main() {
       months.add(fantasyMonth);
 
       // then
-      excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.strictlyChanged.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.addedItems, equals([fantasyMonth]));
+      excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          fantasyMonth: new Change(undefined, fantasyMonth)
+        })));
       }));
     });
 
@@ -64,10 +66,10 @@ void main() {
       evenMonths.add(january);
 
       //then
-      excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.strictlyChanged.isEmpty, isTrue);
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems, equals([january]));
+      excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          january: new Change(january, undefined)
+        })));
       }));
     });
 
@@ -79,10 +81,10 @@ void main() {
       january['number'] = 0;
 
       // then
-      evenMonths.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems, unorderedEquals([january]));
-        expect(event.strictlyChanged.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
+      evenMonths.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          january: new Change(undefined, january)
+        })));
         expect(evenMonths, unorderedEquals([january, february, april, june,
                                             august, october, december]));
       }));
@@ -96,10 +98,10 @@ void main() {
       february['number'] = 13;
 
       // then
-      evenMonths.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.removedItems, unorderedEquals([february]));
-        expect(event.strictlyChanged.isEmpty, isTrue);
-        expect(event.addedItems.isEmpty, isTrue);
+      evenMonths.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          february: new Change(february, undefined)
+        })));
         expect(evenMonths, unorderedEquals([april, june, august, october,
                                             december]));
       }));
@@ -117,8 +119,8 @@ void main() {
 
       // then
       excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
-        expect(changeSet.equals(new ChangeSet({fantasyMonth: new Change(undefined, undefined)})),
-            isTrue);
+        expect(changeSet, equals(new ChangeSet({
+          fantasyMonth: new Change(undefined, undefined)})));
       }));
     });
 
@@ -132,10 +134,10 @@ void main() {
       months.add(january);
 
       // then
-      excepted.onChange.listen(expectAsync1((ChangeSet event) {
-        expect(event.addedItems.isEmpty, isTrue);
-        expect(event.removedItems.isEmpty, isTrue);
-        expect(event.changedItems.keys, unorderedEquals([january]));
+      excepted.onChange.listen(expectAsync1((ChangeSet changeSet) {
+        expect(changeSet, equals(new ChangeSet({
+          january: new Change(january, january)
+        })));
       }));
     });
 
@@ -195,7 +197,7 @@ void main() {
     });
 
     // TODO what is this?
-    test('is working properly with non DataView elements.', () {
+    test('is working properly with non DataView elements. (T12)', () {
       // given
       var SpringSet = new DataSet.from([march, april, may]),
           SummerSet = new DataSet.from([june, july, august]),
@@ -223,7 +225,7 @@ void main() {
       expect(where, unorderedEquals([SummerSet, SpringSet]));
     });
 
-    test('is working properly with non listenable elements.', () {
+    test('is working properly with non listenable elements. (T13)', () {
       var seasons = new DataSet.from(['spring', 'summer', 'autumn', 'winter']);
       var warmSeasons = new DataSet.from(['spring', 'summer']);
       var coldSeasons = new DataSet.from(['autumn', 'winter']);
