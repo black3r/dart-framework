@@ -109,7 +109,24 @@ void main() {
       expect(list.length, equals(5));
       expect(list, orderedEquals(['one', 'two', 'three', 'four', 'five']));
     });
+    
+    test('set an item to any index. (T06)', () {
+      DataList list = new DataList.from(['one', 'two', 'three']);
 
+      list.onChangeSync.listen(expectAsync1((Map event) {
+        var changeSet = event['change'];
+        expect(event['author'], equals('clean_data'));
+        print(changeSet);
+        expect(changeSet.changedItems.length, equals(1));
+        expect(changeSet.changedItems[2], changeEquals(new Change('three', 'TWO')));
+      }, count: 1));
+
+      list.set(2, 'TWO', author: 'clean_data');
+
+      expect(list.length, equals(3));
+      expect(list, orderedEquals(['one', 'two', 'TWO']));
+    });
+    
     test('removeWhere (T06)', () {
       // given
       DataList dataList = new DataList.from(['element1','doge', 'doge', 'element4']);

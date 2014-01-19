@@ -56,7 +56,12 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     _add(new DataReference(element));
     _notify(author: author);
   }
-
+  
+  set(int key, dynamic value, {author: null}) {
+    _set(key, new DataReference(value));
+    _notify(author: author);
+  }
+  
   void addAll(Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
       _add(new DataReference(element));
