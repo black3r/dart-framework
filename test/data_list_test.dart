@@ -116,7 +116,6 @@ void main() {
       list.onChangeSync.listen(expectAsync1((Map event) {
         var changeSet = event['change'];
         expect(event['author'], equals('clean_data'));
-        print(changeSet);
         expect(changeSet.changedItems.length, equals(1));
         expect(changeSet.changedItems[2], changeEquals(new Change('three', 'TWO')));
       }, count: 1));
