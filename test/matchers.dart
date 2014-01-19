@@ -97,7 +97,7 @@ Matcher equals(expected, [limit=100]) {
 }
         
 int main() {
-  group('changeEquals Matcher', () {
+  group('(changeEquals Matcher)', () {
     test('actually matches.', () {
       Change change = new Change('a', 'b');
       Change change2 = new Change('a', 'b');
@@ -119,7 +119,7 @@ int main() {
     });
   });
   
-  group('changeSetEquals Matcher', () {
+  group('(changeSetEquals Matcher)', () {
     test('actually matches', () {
       ChangeSet changeSet = new ChangeSet({'name': new Change('Jozef', 'Peter')});
       ChangeSet changeSet2 = new ChangeSet();

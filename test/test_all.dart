@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
+import 'matchers.dart' as matchers_test;
 import 'data_map_test.dart' as data_map_test;
 import 'data_list_test.dart' as data_list_test;
 import 'data_set_test.dart' as data_set_test;
@@ -27,6 +27,7 @@ main() {
 run(configuration) {
   unittestConfiguration = configuration;
 
+  matchers_test.main();
   data_map_test.main();
   data_list_test.main();
   data_set_test.main();
