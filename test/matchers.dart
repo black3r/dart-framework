@@ -73,7 +73,7 @@ class ChangeSetEquals extends Matcher {
         mismatchDescription.add('is not equal on key: "$key" which ');
         var subDescription = new StringDescription();
         matcher.describeMismatch(item.changedItems[key], subDescription,
-            matchState['state'], verbose);    
+            {}, verbose);    
         if (subDescription.length > 0) {
           mismatchDescription.add(subDescription);
         } else {
