@@ -32,3 +32,21 @@ _cleanify(data) {
     return data;
   }
 }
+
+dynamic decleanify(data) {
+  if(data is DataList) {
+    return new List.from(data.map((value) => decleanify(value)));
+  }
+  else if(data is DataMap) {
+    return new Map.fromIterables(data.keys, data.values.map((value) => decleanify(value)));
+  }
+  else if(data is DataSet) {
+    return new Set.from(data.map((value) => decleanify(value)));
+  }
+  else if(data is DataReference) {
+    return data.value;
+  }
+  else {
+    return data;
+  }
+}
