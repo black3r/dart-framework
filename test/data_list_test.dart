@@ -79,7 +79,7 @@ void main() {
       expect(list.length, equals(5));
       expect(list, orderedEquals(['one', 'two', 'three', 'four', 'five']));
     });
-    
+
     test('set an item to any index. (T06)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
 
@@ -94,7 +94,7 @@ void main() {
       expect(list.length, equals(3));
       expect(list, orderedEquals(['one', 'two', 'TWO']));
     });
-    
+
     test('removeWhere (T06)', () {
       // given
       DataList dataList = new DataList.from(['element1','doge', 'doge', 'element4']);
@@ -329,11 +329,26 @@ void main() {
         // but async onChange drops information about changes in removed items.
         dataList.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet, equals(new ChangeSet({
-            1: new Change(child1, undefined), 
-            2: new Change(child2, undefined)            
+            1: new Change(child1, undefined),
+            2: new Change(child2, undefined)
           })));
         }));
       });
+    });
+
+    test('Cleanify value when adding ', (){
+      var _data = [{'aa': 1}, [1,2,3]];
+      var data = new DataList.from(_data);
+      var cdata = cleanify(_data);
+      expect(data[0] is DataMap, isTrue);
+      expect(data[1] is DataList, isTrue);
+      expect(data, equals(cdata));
+    });
+
+    test('Do not change values that are already cleanified ', (){
+      var child = new DataMap.from({'aa': 1});
+      var data = new DataList.from([child]);
+      expect(data[0] == child, isTrue);
     });
   });
 
