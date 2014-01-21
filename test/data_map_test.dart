@@ -10,7 +10,7 @@ import 'package:unittest/mock.dart';
 import 'dart:async';
 import 'matchers.dart' as matchers;
 
-var equals = matchers.equals; 
+var equals = matchers.equals;
 
 void main() {
 
@@ -128,13 +128,13 @@ void main() {
 
       // then sync onChange propagates information about all changes and
       // adds
-      
+
       ChangeSet expectedChangeSet = new ChangeSet({
         'key1': new Change(undefined, 'value1'),
         'key2': new Change(undefined, 'value2'),
         'key3': new Change(undefined, 'value3')
       });
-      
+
       mock.getLogs().verify(happenedOnce);
       var event = mock.getLogs().first.args.first;
       expect(event['author'], equals('John Doe'));
@@ -263,8 +263,8 @@ void main() {
       // then
       dataObj.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
-          'key1': new Change('value1', 'newValue1'), 
-          'key2': new Change('value2', undefined), 
+          'key1': new Change('value1', 'newValue1'),
+          'key2': new Change('value2', undefined),
           'key3': new Change(undefined, 'value3')})));
       }));
     });
@@ -357,7 +357,7 @@ void main() {
         'key2': new Change('value2', undefined)
       })));
       expect(dataObj.isEmpty, isTrue);
-      
+
       dataObj.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
           'key1': new Change('value1', undefined),
@@ -412,6 +412,22 @@ void main() {
         })));
       }));
     });
+
+    test('Cleanify value when adding ', (){
+      var _data = {'a': {'aa': 1}, 'b': [1,2,3]};
+      var data = new DataMap.from(_data);
+      var cdata = cleanify(_data);
+      expect(data['a'] is DataMap, isTrue);
+      expect(data['b'] is DataList, isTrue);
+      expect(data, equals(cdata));
+    });
+
+    test('Do not change values that are already cleanified ', (){
+      var child = new DataMap.from({'aa': 1});
+      var data = new DataMap.from({'a': child});
+      expect(data['a'] == child, isTrue);
+    });
+
   });
 
   group('(Nested Data)', () {
@@ -486,6 +502,7 @@ void main() {
       expect(event['author'], equals('John Doe'));
 
       var changeSet = event['change'];
+
       expect(event['change'], equals(new ChangeSet({
         'child1': new Change(undefined, data['child1']),
         'child2': new Change(undefined, data['child2']),

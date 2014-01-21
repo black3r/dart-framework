@@ -4,6 +4,14 @@
 
 part of clean_data;
 
+refcl(data){
+  var res = cleanify(data);
+  if (res is DataReference) {
+    return res;
+  } else {
+    return new DataReference(res);
+  }
+}
 
 class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, ListMixin implements List {
   List _list = new List();
@@ -53,18 +61,18 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
   Iterator get iterator => _list.map((DataReference ref) => ref.value).iterator;
 
   void add(element, {author: null}) {
-    _add(new DataReference(element));
+    _add(refcl(element));
     _notify(author: author);
   }
-  
+
   set(int key, dynamic value, {author: null}) {
-    _set(key, new DataReference(value));
+    _set(key, refcl(value));
     _notify(author: author);
   }
-  
+
   void addAll(Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
-      _add(new DataReference(element));
+      _add(refcl(element));
     }
     _notify(author: author);
   }
@@ -188,7 +196,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
   void fillRange(int start, int end, [fill, author]) {
     _rangeCheck(start, end);
     for (int i = start; i < end; i++) {
-      _set(i, new DataReference(fill));
+      _set(i, refcl(fill));
     }
     _notify(author: author);
   }
@@ -236,7 +244,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
 
   void replaceRange(int start, int end, Iterable newContents, {author: null}) {
     _rangeCheck(start, end);
-    newContents = newContents.toList().map((E) => new DataReference(E));
+    newContents = newContents.toList().map((E) => refcl(E));
     int removeLength = end - start;
     int insertLength = newContents.length;
     if (removeLength >= insertLength) {
@@ -265,7 +273,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
       throw new RangeError.range(index, 0, length);
     }
     if (index == this.length) {
-      _add(new DataReference(element));
+      _add(refcl(element));
       return;
     }
     // We are modifying the length just below the is-check. Without the check
@@ -274,7 +282,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     if (index is! int) throw new ArgumentError(index);
     this._length++;
     _setRange(index + 1, this.length, _list, index);
-    _set(index, new DataReference(element));
+    _set(index, refcl(element));
     _notify(author: author);
   }
 
@@ -297,7 +305,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     this._length += insertionLength;
     _setRange(index + insertionLength, this.length, _list, index);
     for (dynamic element in iterable) {
-      _set(index++, new DataReference(element));
+      _set(index++, refcl(element));
     }
     _notify(author: author);
   }

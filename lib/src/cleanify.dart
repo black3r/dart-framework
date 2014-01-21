@@ -4,8 +4,11 @@
 
 part of clean_data;
 
-ChangeNotificationsMixin cleanify(data) {
+cleanify(data) {
   var ret;
+  if (data is ChangeNotificationsMixin) {
+    return data;
+  }
   if(data is List || data is Map || data is Set || data is Iterable) {
     return _cleanify(data);
   }

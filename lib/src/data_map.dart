@@ -122,10 +122,14 @@ class DataMap extends DataMapView implements Map {
 
   void _addAll(Map other, {author: null}) {
     other.forEach((key, value) {
+//      if (value is! ChangeNotificationsMixin && (value is List || value is Set || value is Map)) {
+      if (value is List || value is Set || value is Map) {
+        value = cleanify(value);
+      }
       if (_fields.containsKey(key)) {
         _fields[key].changeValue(value, author: author);
       } else {
-        DataReference ref = new DataReference(value);
+        var ref = new DataReference(value);
         _markAdded(key, ref.value);
         _addOnDataChangeListener(key, ref);
         _fields[key] = ref;
