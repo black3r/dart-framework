@@ -46,24 +46,46 @@ abstract class FilteredDataSetBase extends TransformedDataSet {
     }
   }
 }
-
 /**
  * Represents a read-only data set that is a result of a filtering
  * operation on another collection.
  */
 class FilteredDataSetView extends FilteredDataSetBase {
 
-  final _filter;
-
+  dynamic _filter;
+  ChangeNotificationsMixin _args;
+  StreamSubscription subscribtion = null;
   /**
    * Creates a new filtered data set from [source], using [filter].
    */
   FilteredDataSetView(DataSetView source,
-      DataTestFunction this._filter): super([source]);
+      this._filter, [ChangeNotificationsMixin this._args = null]): super([source]) {
+    if(_args != null) subscribtion = _args.onChangeSync.listen((_) {
+      changeFilter(this._filter, _args);
+    });
+  }
 
   bool _shouldContain(dataObj) => sources[0].contains(dataObj) &&
-      _filter(dataObj);
+      ((this._args == null && _filter(dataObj)) ||
+          (this._args != null && _filter(dataObj, this._args)));
+
+  changeFilter(newFilter, [ChangeNotificationsMixin newArgs = null]) {
+    if(newArgs != _args) {
+      if(subscribtion != null) subscribtion.cancel();
+      if(_args != null) {
+        subscribtion = _args.onChangeSync.listen((_) {
+          changeFilter(this._filter, _args);
+        });
+      }
+    }
+    _args = newArgs;
+    _filter = newFilter;
+    for(var item in sources[0]) _treatItem(item, null);
+
+    _notify();
+  }
 }
+
 
 /**
  * Represents a read-only data set that is a result of an minus operation of two sets.

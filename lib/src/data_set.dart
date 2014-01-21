@@ -144,8 +144,8 @@ abstract class DataSetView extends Object
    * The set remains up-to-date w.r.t. to the source set via
    * background synchronization.
    */
-  DataSetView liveWhere(DataTestFunction test) {
-   return new FilteredDataSetView(this, test);
+  DataSetView liveWhere(test, [ChangeNotificationsMixin args = null]) {
+   return new FilteredDataSetView(this, test, args);
   }
 
 
