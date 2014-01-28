@@ -99,6 +99,7 @@ part 'src/data_list.dart';
 part 'src/change_set.dart';
 part 'src/cleanify.dart';
 
+part 'src/sets/transformed_data_base.dart';
 part 'src/sets/transformed_set_view.dart';
 part 'src/sets/transformed_list_view.dart';
 part 'src/sets/filtered_set_view.dart';
