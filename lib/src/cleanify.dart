@@ -4,32 +4,34 @@
 
 part of clean_data;
 
-cleanify(data) {
+cleanify(data, {bool reference: true}) {
   var ret;
   if (data is ChangeNotificationsMixin) {
     return data;
   }
   if(data is List || data is Map || data is Set || data is Iterable) {
-    return _cleanify(data);
+    return _cleanify(data, reference: reference);
   }
   else {
-    return new DataReference(data);
+    if (reference)
+      return new DataReference(data);
+    else return data;
   }
 }
 
-_cleanify(data) {
+_cleanify(data, {bool reference: true}) {
   var ret;
   if(data is List) {
-    return new DataList.from(data.map((elem) => _cleanify(elem)));
+    return new DataList.from(data.map((elem) => _cleanify(elem, reference: reference)));
   }
   else if(data is Map) {
     Map map = new Map();
-    data.forEach((K, V) => map[K] = _cleanify(V));
+    data.forEach((K, V) => map[K] = _cleanify(V, reference: reference));
     return new DataMap.from(map);
   }
   else if(data is Set || data is Iterable || data is Iterator) {
     if(data is Iterator) data = new List(data);
-    return new DataSet.from(data.map((elem) => _cleanify(elem)));
+    return new DataSet.from(data.map((elem) => _cleanify(elem, reference: reference)));
   }
   else {
     return data;

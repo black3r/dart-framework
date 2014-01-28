@@ -234,7 +234,7 @@ class DataSet extends DataSetView
          }
        }
     });
-    _data.addAll(elements);
+    _data.addAll(elements.map((element) => cleanify(element, reference: false)));
     _notify(author: author);
   }
 
