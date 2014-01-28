@@ -1,21 +1,21 @@
-// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Clean project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of clean_data;
 
 /**
- * Represents a read-only, iterable data collection that is a result of a transformation operation.
+ * Represents a read-only, iterable list-like data collection that is a result of a transformation operation.
  */
-abstract class TransformedDataSet extends DataSetView {
+abstract class TransformedDataList extends DataListView {
 
   /**
    * The source [DataSetView](s) this collection is derived from.
    */
-  final List<DataSetView> sources;
+  final List<ChangeNotificationsMixin> sources;
   List<StreamSubscription> _sourcesSubscription;
 
-  TransformedDataSet(List<DataSetView> this.sources) {
+  TransformedDataList(List<ChangeNotificationsMixin> this.sources) {
     _sourcesSubscription = new List(this.sources.length);
 
     for (var i = 0; i < sources.length; i++) {

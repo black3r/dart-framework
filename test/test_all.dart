@@ -17,6 +17,8 @@ import 'data_sets/filtered_set_view_test.dart' as filtered_test;
 import 'data_sets/unioned_set_view_test.dart' as unioned_test;
 import 'data_sets/intersected_set_view_test.dart' as intersected_test;
 import 'data_sets/excepted_set_view_test.dart' as excepted_test;
+import 'data_sets/mapped_set_view_test.dart' as mapped_test;
+import 'data_sets/sorted_list_view_test.dart' as sorted_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/vm_config.dart';
 
@@ -41,7 +43,9 @@ run(configuration) {
   unioned_test.main();
   intersected_test.main();
   excepted_test.main();
+  mapped_test.main();
+  sorted_test.main();
   hash_index_test.main();
-  
+
   cleanify_test.main();
 }

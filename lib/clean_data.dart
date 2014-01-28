@@ -100,7 +100,10 @@ part 'src/change_set.dart';
 part 'src/cleanify.dart';
 
 part 'src/sets/transformed_set_view.dart';
+part 'src/sets/transformed_list_view.dart';
 part 'src/sets/filtered_set_view.dart';
+part 'src/sets/mapped_set_view.dart';
+part 'src/sets/sorted_list_view.dart';
 
 part 'src/hash_index.dart';
 part 'src/data_change_listeners_mixin.dart';

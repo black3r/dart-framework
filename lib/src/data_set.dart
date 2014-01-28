@@ -200,6 +200,32 @@ abstract class DataSetView extends Object
   }
 
   String toString() => toList().toString();
+
+  void _addAll(Iterable elements, {author: null}){
+    elements.forEach((data) {
+       if(!_data.contains(data)){
+         _markAdded(data, data);
+         if(data is ChangeNotificationsMixin) {
+           _addOnDataChangeListener(data, data);
+         }
+       }
+    });
+    _data.addAll(elements);
+    _notify(author: author);
+  }
+
+  void _removeAll(Iterable toBeRemoved, {author: null}) {
+    toBeRemoved.forEach((data) {
+      if (_data.contains(data)) {
+        _markRemoved(data, data);
+        if (data is ChangeNotificationsMixin) {
+          _removeOnDataChangeListener(data);
+        }
+      }
+    });
+    _data.removeAll(toBeRemoved);
+    _notify(author: author);
+  }
 }
 
 /**
@@ -225,19 +251,6 @@ class DataSet extends DataSetView
     return set;
   }
 
-  void _addAll(Iterable elements, {author: null}){
-    elements.forEach((data) {
-       if(!_data.contains(data)){
-         _markAdded(data, data);
-         if(data is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(data, data);
-         }
-       }
-    });
-    _data.addAll(elements);
-    _notify(author: author);
-  }
-
   /**
    * Appends the [dataObj] to the set. If the element
    * was already in the set, [false] is returned and
@@ -254,22 +267,8 @@ class DataSet extends DataSetView
   /**
    * Appends all [elements] to the set.
    */
-
   void addAll(Iterable elements, {author: null}) {
     this._addAll(elements, author: author);
-  }
-
-  void _removeAll(Iterable toBeRemoved, {author: null}) {
-    toBeRemoved.forEach((data) {
-      if (_data.contains(data)) {
-        _markRemoved(data, data);
-        if (data is ChangeNotificationsMixin) {
-          _removeOnDataChangeListener(data);
-        }
-      }
-    });
-    _data.removeAll(toBeRemoved);
-    _notify(author: author);
   }
 
   /**
