@@ -1,15 +1,15 @@
-// Copyright (c) 2013, the Clean project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Clean project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of clean_data;
 
 /**
- * Represents a read-only, iterable data collection that is a result of a transformation operation.
+ * Represents a read-only, iterable list-like data collection that is a result of a transformation operation.
  */
-abstract class TransformedDataSet extends DataSetView with TransformedDataBase{
+abstract class TransformedDataList extends DataListView with TransformedDataBase {
 
-  TransformedDataSet(List<ChangeNotificationsMixin> sources) {
+  TransformedDataList(List<ChangeNotificationsMixin> sources) {
     this.sources = sources;
     _sourcesSubscription = new List(this.sources.length);
 

@@ -122,4 +122,39 @@ main(){
       expect(decleanify(result), equals(data));
     });
   });
+
+  group('(Clone)', () {
+    test('creates new instance of DataMap. (T01)', () {
+      DataMap x = new DataMap.from({'a': 'b'});
+      DataMap result = clone(x);
+      expect(result, new isInstanceOf<DataMap>());
+      expect(result, equals(x));
+      expect(result == x, isFalse);
+    });
+
+    test('creates new instance of DataSet. (T02)', () {
+      DataSet x = new DataSet.from(['a', 'b']);
+      DataSet result = clone(x);
+      expect(result, equals(x));
+      expect(result == x, isFalse);
+    });
+
+    test('creates new instance of DataList. (T03)', () {
+      DataList x = new DataList.from(['a', 'a', 'b']);
+      DataList result = clone(x);
+      expect(result, equals(x));
+      expect(result == x, isFalse);
+    });
+
+    test('creates deep clones. (T04)', () {
+      DataMap x = new DataMap.from({'a': {'b': 'c'}});
+      DataMap result = clone(x);
+      expect(result, equals(x));
+      expect(result == x, isFalse);
+      expect(result['a'], equals(x['a']));
+      expect(result['a'] == x['a'], isFalse);
+      expect(result['a']['b'], equals(x['a']['b']));
+      expect(result['a']['b'] == x['a']['b'], isTrue);
+    });
+  });
 }
