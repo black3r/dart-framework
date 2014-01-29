@@ -53,3 +53,26 @@ dynamic decleanify(data) {
     return data;
   }
 }
+
+_clone(data) {
+  if(data is DataList) {
+    return new DataList.from(data.map((elem) => _clone(elem)));
+  }
+  else if(data is DataMap) {
+    DataMap map = new DataMap();
+    data.forEach((K, V) => map[K] = _clone(V));
+    return new DataMap.from(map);
+  }
+  else if(data is DataSet) {
+    return new DataSet.from(data.map((elem) => _clone(elem)));
+  }
+  else {
+    return data;
+  }
+}
+
+ChangeNotificationsMixin clone(data) {
+  if (data is DataList || data is DataMap || data is DataSet) {
+    return _clone(data);
+  }
+}

@@ -13,21 +13,12 @@ refcl(data){
   }
 }
 
-class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, ListMixin implements List {
+abstract class DataListView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin implements Iterable {
   List _list = new List();
-
   get length => _length;
-  set length(newLen) {
-    _length = newLen;
-    _notify();
-  }
-
   get _length => _list.length;
-  set _length(int newLen) {
-    if(newLen < 0) throw new RangeError('Negative position');
-    while(newLen > _length) _add(new DataReference(null));
-    while(newLen < _length) _remove(_list.last);
-  }
+  dynamic operator [](key) => _list[key].value;
+  DataReference ref(int pos) => _list[pos];
 
   _add(DataReference value) {
     _list.add(value);
@@ -42,8 +33,106 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     _addOnDataChangeListener(key, value);
   }
 
+  bool _remove(DataReference element) {
+    for (int i = 0; i < this.length; i++) {
+      if (ref(i) == element) {
+        _removeOnDataChangeListener(i);
+        this._setRange(i, this.length - 1, _list, i + 1);
+        _markRemoved(length-1, ref(length-1).value);
+        _list.length -= 1;
+        return true;
+      }
+    }
+    return false;
+  }
 
-  dynamic operator [](key) => _list[key].value;
+  DataListView(){}
+
+  // Iterable interface.
+  Iterator get iterator => _list.map((DataReference ref) => ref.value).iterator;
+
+  void _rangeCheck(int start, int end) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
+    }
+  }
+
+  void _markAllRemoved(){
+    for(int i=0; i < _list.length; i++) {
+      _markChanged(i, new Change(_list[i].value, undefined));
+    }
+  }
+
+  void _markAllAdded(){
+    for(int i=0; i < _list.length; i++) {
+      _markChanged(i, new Change(undefined, _list[i].value));
+    }
+  }
+
+  void dispose() {
+    _dispose();
+  }
+
+  String toString() => _list.toString();
+
+  void _sort([int compare(a, b)]) {
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    _markAllRemoved();
+    _list.sort((a,b) => compare(a.value, b.value));
+    _markAllAdded();
+  }
+
+  void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {
+    _rangeCheck(start, end);
+    int length = end - start;
+    if (length == 0) return;
+
+    if (skipCount < 0) throw new ArgumentError(skipCount);
+
+    List otherList;
+    int otherStart;
+    // TODO(floitsch): Make this accept more.
+    if (iterable is List) {
+      otherList = iterable;
+      otherStart = skipCount;
+    } else {
+      otherList = iterable.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + length > otherList.length) {
+      throw new StateError("Not enough elements");
+    }
+    if (otherStart < start) {
+      // Copy backwards to ensure correct copy if [from] is this.
+      for (int i = length - 1; i >= 0; i--) {
+        _set(start + i, otherList[otherStart + i]);
+      }
+    } else {
+      for (int i = 0; i < length; i++) {
+        _set(start + i, otherList[otherStart + i]);
+      }
+    }
+  }
+}
+
+class DataList extends DataListView with ListMixin implements List {
+  set length(newLen) {
+    _length = newLen;
+    _notify();
+  }
+
+  set _length(int newLen) {
+    if(newLen < 0) throw new RangeError('Negative position');
+    while(newLen > _length) _add(new DataReference(null));
+    while(newLen < _length) _remove(_list.last);
+  }
+
   operator []=(key, dynamic value) { _list[key].value = value; }
 
   DataList(){}
@@ -54,11 +143,6 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     dataList._clearChangesSync();
     return dataList;
   }
-
-  DataReference ref(int pos) => _list[pos];
-
-  // Iterable interface.
-  Iterator get iterator => _list.map((DataReference ref) => ref.value).iterator;
 
   void add(element, {author: null}) {
     _add(refcl(element));
@@ -83,19 +167,6 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     var ret = _remove(ref(index));
     _notify(author: author);
     return ret;
-  }
-
-  bool _remove(DataReference element) {
-    for (int i = 0; i < this.length; i++) {
-      if (ref(i) == element) {
-        _removeOnDataChangeListener(i);
-        this._setRange(i, this.length - 1, _list, i + 1);
-        _markRemoved(length-1, ref(length-1).value);
-        _list.length -= 1;
-        return true;
-      }
-    }
-    return false;
   }
 
   void removeWhere(bool test(element), {author: null}) {
@@ -135,36 +206,8 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     return result;
   }
 
-  void _rangeCheck(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
-  }
-
-  void _markAllRemoved(){
-    for(int i=0; i < _list.length; i++) {
-      _markChanged(i, new Change(_list[i].value, undefined));
-    }
-  }
-
-  void _markAllAdded(){
-    for(int i=0; i < _list.length; i++) {
-      _markChanged(i, new Change(undefined, _list[i].value));
-    }
-  }
-
-
   void sort([int compare(a, b)]) {
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    _markAllRemoved();
-    _list.sort((a,b) => compare(a.value, b.value));
-    _markAllAdded();
+    _sort(compare);
     _notify();
   }
 
@@ -210,37 +253,7 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
     _notify(author: author);
   }
 
-  void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {
-    _rangeCheck(start, end);
-    int length = end - start;
-    if (length == 0) return;
 
-    if (skipCount < 0) throw new ArgumentError(skipCount);
-
-    List otherList;
-    int otherStart;
-    // TODO(floitsch): Make this accept more.
-    if (iterable is List) {
-      otherList = iterable;
-      otherStart = skipCount;
-    } else {
-      otherList = iterable.skip(skipCount).toList(growable: false);
-      otherStart = 0;
-    }
-    if (otherStart + length > otherList.length) {
-      throw new StateError("Not enough elements");
-    }
-    if (otherStart < start) {
-      // Copy backwards to ensure correct copy if [from] is this.
-      for (int i = length - 1; i >= 0; i--) {
-        _set(start + i, otherList[otherStart + i]);
-      }
-    } else {
-      for (int i = 0; i < length; i++) {
-        _set(start + i, otherList[otherStart + i]);
-      }
-    }
-  }
 
   void replaceRange(int start, int end, Iterable newContents, {author: null}) {
     _rangeCheck(start, end);
@@ -315,10 +328,6 @@ class DataList extends Object with ChangeNotificationsMixin, ChangeChildNotifica
       _list[index++].value = element;
     }
     _notify(author: author);
-  }
-
-  void dispose() {
-    _dispose();
   }
 
 }
