@@ -259,11 +259,27 @@ class DataSet extends DataSetView
    */
   factory DataSet.from(Iterable data) {
     var set = new DataSet();
-    set.addAll(data);
+    set._addAll(data);
     set._clearChanges();
     set._clearChangesSync();
     return set;
   }
+
+
+  void _addAll(Iterable elements, {author: null}){
+    elements.forEach((data) {
+       if(!_data.contains(data)){
+         var cdata = cleanify(data, reference: false);
+         _markAdded(cdata, cdata);
+         if(cdata is ChangeNotificationsMixin) {
+           _addOnDataChangeListener(data, data);
+         }
+         _data.add(cdata);
+       }
+    });
+    _notify(author: author);
+  }
+
 
   /**
    * Appends the [dataObj] to the set. If the element

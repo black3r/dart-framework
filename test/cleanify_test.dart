@@ -12,6 +12,14 @@ main(){
       expect(result.value, equals('String'));
     });
 
+    test('from Object does not create DataReference when reference: false. ', () {
+      var data = 'String';
+      var result = cleanify(data, reference: false);
+      expect(result, new isInstanceOf<String>());
+      expect(result, equals('String'));
+      expect(result == data, isTrue);
+    });
+
     test('from List creates DataList. (T02)', () {
       var result = cleanify(['L', 'I', 'S', 'T']);
       expect(result, new isInstanceOf<DataList>());
