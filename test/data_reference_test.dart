@@ -21,6 +21,11 @@ void main() {
       expect(ref.value, 'value');
     });
 
+    test('Dispose', (){
+      DataReference ref = new DataReference('value');
+      ref.dispose();
+    });
+
     test('Setter (T02)', () {
       DataReference ref = new DataReference('value');
       ref.value = 'newValue';
