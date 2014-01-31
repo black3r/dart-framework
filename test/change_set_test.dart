@@ -315,7 +315,10 @@ void main() {
         'key2' : new ChangeSet({
           'key4' : new Change(4, 5)
         }),
-        'key3' : new Change(undefined, '3')
+        'key3' : new Change(undefined, '3'),
+        'key5' : new ChangeSet({
+          'key6' : new Change(10, 20)
+        })
       });
       
       var data = {
@@ -323,7 +326,8 @@ void main() {
         'key2' : new DataMap.from({
           'key4' : 1
          }),
-        'key3' : null
+        'key3' : null,
+        'key5' : null
       };
       
       var dataMap = new DataMap.from(data);
@@ -338,7 +342,8 @@ void main() {
           'key2' : new DataMap.from({
             'key4' : 5 
            }),
-           'key3' : '3'
+           'key3' : '3',
+           'key5' : null
         })
       ));
     });
