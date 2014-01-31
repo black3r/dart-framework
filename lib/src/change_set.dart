@@ -263,3 +263,23 @@ class ChangeSet {
     return jsonMap;
   }
 }
+
+void apply(ChangeSet changeSet, DataMap dataMap) {
+  var changedItems = changeSet.changedItems;
+
+  for (var key in changedItems.keys) {
+    if (dataMap.containsKey(key)) {
+      if (changedItems[key] is Change) {
+        var newValue = changedItems[key].newValue;
+
+        if (newValue != undefined && newValue != unset) {
+          dataMap[key] = newValue;
+        }
+      } else {
+        if (dataMap[key] is DataMap) {
+          apply(changedItems[key], dataMap[key]);
+        }
+      }
+    }
+  }
+}

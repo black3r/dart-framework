@@ -304,4 +304,43 @@ void main() {
       ));
     });
   });
+  
+  group('(ChangeSet and DataMap)', () {
+    
+    test('apply ChangeSet on DataMap', () {
+      
+      // given
+      var changeSet = new ChangeSet({
+        'key1' : new Change(undefined, 1),
+        'key2' : new ChangeSet({
+          'key4' : new Change(4, 5)
+        }),
+        'key3' : new Change(undefined, '3')
+      });
+      
+      var data = {
+        'key1' : 0,
+        'key2' : new DataMap.from({
+          'key4' : 1
+         }),
+        'key3' : null
+      };
+      
+      var dataMap = new DataMap.from(data);
+      
+      // when
+      apply(changeSet, dataMap);
+      
+      // then
+      expect(dataMap, equals(
+        new DataMap.from({
+          'key1' : 1,
+          'key2' : new DataMap.from({
+            'key4' : 5 
+           }),
+           'key3' : '3'
+        })
+      ));
+    });
+  });
 }
