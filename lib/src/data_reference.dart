@@ -67,8 +67,12 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
 
   void dispose() {
     _dispose();
-    _onDataChangeListener.cancel();
-    _onDataChangeSyncListener.cancel();
+    if (_onDataChangeListener != null) {
+      _onDataChangeListener.cancel();
+    }
+    if (_onDataChangeSyncListener != null) {
+      _onDataChangeSyncListener.cancel();
+    }
   }
 
   String toString() => 'Ref(${_value.toString()})';
