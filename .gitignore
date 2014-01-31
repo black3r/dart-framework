@@ -1,3 +1,6 @@
 packages
 .buildlog
 lib/docs/
+pubspec.lock
+*.swp
+.project
