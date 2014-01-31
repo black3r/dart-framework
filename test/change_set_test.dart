@@ -237,5 +237,38 @@ void main() {
         'key2': new Change('va', 'vb')}
       )));
     });
+    
+    test('export to JSON.', () {
+      // given
+      Map changes = {
+        'first' : new Change(undefined, 1),
+        'second' : new Change('4', '5'),
+        'third' : new ChangeSet({
+          'fourth' : new Change(10, 11),
+          'fifth' : new ChangeSet({
+            'sixth' : new Change(0, undefined)
+          })
+        }),
+        'seventh' : new Change(undefined, '7')
+      };
+      
+      changeSet = new ChangeSet(changes);
+      
+      // when
+      Map changeSetInJson = changeSet.toJson();
+      
+      // then
+      expect(changeSetInJson, equals({
+        'first' : [CLEAN_UNDEFINED, 1],
+        'second' : ['4', '5'],
+        'third' : {
+          'fourth' : [10, 11],
+          'fifth' : {
+            'sixth' : [0, CLEAN_UNDEFINED]
+          }
+        },
+        'seventh' : [CLEAN_UNDEFINED, '7']
+      }));
+    });
   });
 }

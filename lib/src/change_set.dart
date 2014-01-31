@@ -19,6 +19,8 @@ class _Undefined {
 const undefined = const _Undefined('undefined');
 const unset = const _Undefined('unset');
 
+final String CLEAN_UNDEFINED = '__clean_undefined';
+
 /**
  * A representation of a single change in a scalar value.
  */
@@ -212,5 +214,31 @@ class ChangeSet {
 
   String toString() {
     return 'ChangeSet(${changedItems.toString()})';
+  }
+  
+  Map toJson() {
+    Map jsonMap = {};
+    
+    for (var key in changedItems.keys) {
+      if (changedItems[key] is ChangeSet) {
+        jsonMap[key] = changedItems[key].toJson();
+        continue;
+      }
+
+      List changeValues = [changedItems[key].oldValue, 
+          changedItems[key].newValue];
+      
+      jsonMap[key] = [];
+
+      for (var changeValue in changeValues) {
+        if (changeValue != undefined && changeValue != unset) {
+          jsonMap[key].add(changeValue);
+        } else {
+          jsonMap[key].add(CLEAN_UNDEFINED);
+        }
+      }
+    }
+    
+    return jsonMap;
   }
 }
