@@ -217,14 +217,15 @@ abstract class DataSetView extends Object
 
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
-       if(!_data.contains(data)){
-         _markAdded(data, data);
-         if(data is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(data, data);
+       var cdata = cleanify(data);
+       if(!_data.contains(cdata)){
+         _markAdded(cdata, cdata);
+         _data.add(cdata);
+         if(cdata is ChangeNotificationsMixin) {
+           _addOnDataChangeListener(cdata, cdata);
          }
        }
     });
-    _data.addAll(elements);
     _notify(author: author);
   }
 
