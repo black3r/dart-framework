@@ -217,7 +217,7 @@ abstract class DataSetView extends Object
 
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
-       var cdata = cleanify(data);
+       var cdata = cleanify(data, reference: false);
        if(!_data.contains(cdata)){
          _markAdded(cdata, cdata);
          _data.add(cdata);
@@ -264,21 +264,6 @@ class DataSet extends DataSetView
     set._clearChanges();
     set._clearChangesSync();
     return set;
-  }
-
-
-  void _addAll(Iterable elements, {author: null}){
-    elements.forEach((data) {
-       if(!_data.contains(data)){
-         var cdata = cleanify(data, reference: false);
-         _markAdded(cdata, cdata);
-         if(cdata is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(data, data);
-         }
-         _data.add(cdata);
-       }
-    });
-    _notify(author: author);
   }
 
 
