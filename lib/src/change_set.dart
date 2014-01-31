@@ -94,6 +94,27 @@ class ChangeSet {
   ChangeSet([Map changedItems = const {}]) {
     this.changedItems = new Map.from(changedItems);
   }
+  
+  ChangeSet.fromJson(Map json) {
+    for (var key in json.keys) {
+
+      // Change
+      if (json[key] is List) {
+        List changeList = json[key];
+        
+        var oldValue = changeList[0] == CLEAN_UNDEFINED ? undefined : 
+          changeList[0];
+        var newValue = changeList[1] == CLEAN_UNDEFINED ? undefined : 
+          changeList[1];
+        
+        changedItems[key] = new Change(oldValue, newValue);
+        
+      } // ChangeSet 
+      else {
+        changedItems[key] = new ChangeSet.fromJson(json[key]);
+      }
+    }
+  }
 
   /**
    * Creates [ChangeSet] from [other]

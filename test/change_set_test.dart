@@ -270,5 +270,38 @@ void main() {
         'seventh' : [CLEAN_UNDEFINED, '7']
       }));
     });
+    
+    test('import from JSON', () {
+      // given
+      Map changeSetInJson = {
+        'first' : [CLEAN_UNDEFINED, 1],
+        'second' : ['4', '5'],
+        'third' : {
+          'fourth' : [10, 11],
+          'fifth' : {
+            'sixth' : [0, CLEAN_UNDEFINED]
+          }
+        },
+        'seventh' : [CLEAN_UNDEFINED, '7']
+      };
+      
+      // when
+      changeSet = new ChangeSet.fromJson(changeSetInJson);
+      
+      // then
+      expect(changeSet.toString(), equals(
+        new ChangeSet({
+          'first' : new Change(undefined, 1),
+          'second' : new Change('4', '5'),
+          'third' : new ChangeSet({
+            'fourth' : new Change(10, 11),
+            'fifth' : new ChangeSet({
+              'sixth' : new Change(0, undefined)
+            })
+          }),
+          'seventh' : new Change(undefined, '7')
+        }).toString()
+      ));
+    });
   });
 }
