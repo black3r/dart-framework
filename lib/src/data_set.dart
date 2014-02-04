@@ -216,6 +216,11 @@ abstract class DataSetView extends Object
   String toString() => toList().toString();
 
   void _addAll(Iterable elements, {author: null}){
+    _silentAddAll(elements);
+    _notify(author: author);
+  }
+
+  void _silentAddAll(Iterable elements, {author: null}){
     elements.forEach((data) {
        var cdata = cleanify(data, reference: false);
        if(!_data.contains(cdata)){
@@ -226,8 +231,8 @@ abstract class DataSetView extends Object
          }
        }
     });
-    _notify(author: author);
   }
+
 
   void _removeAll(Iterable toBeRemoved, {author: null}) {
     toBeRemoved.forEach((data) {
@@ -260,7 +265,7 @@ class DataSet extends DataSetView
    */
   factory DataSet.from(Iterable data) {
     var set = new DataSet();
-    set._addAll(data);
+    set._silentAddAll(data);
     set._clearChanges();
     set._clearChangesSync();
     return set;

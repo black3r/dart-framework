@@ -98,9 +98,7 @@ class DataMap extends DataMapView implements Map {
    */
   factory DataMap.from(dynamic data) {
     var dataObj = new DataMap();
-    for (var key in data.keys) {
-      dataObj[key] = data[key];
-    }
+    dataObj._initAddAll(data);
     dataObj._clearChanges();
     dataObj._clearChangesSync();
     return dataObj;
@@ -120,9 +118,19 @@ class DataMap extends DataMapView implements Map {
     _addAll(other, author:author);
   }
 
+  void _initAddAll(Map other){
+    other.forEach((key, value) {
+      if (value is List || value is Set || value is Map) {
+        value = cleanify(value);
+      }
+      var ref = new DataReference(value);
+      _addOnDataChangeListener(key, ref);
+      _fields[key] = ref;
+    });
+  }
+
   void _addAll(Map other, {author: null}) {
     other.forEach((key, value) {
-//      if (value is! ChangeNotificationsMixin && (value is List || value is Set || value is Map)) {
       if (value is List || value is Set || value is Map) {
         value = cleanify(value);
       }
@@ -130,7 +138,7 @@ class DataMap extends DataMapView implements Map {
         _fields[key].changeValue(value, author: author);
       } else {
         var ref = new DataReference(value);
-        _markAdded(key, ref.value);
+          _markAdded(key, ref.value);
         _addOnDataChangeListener(key, ref);
         _fields[key] = ref;
       }

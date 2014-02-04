@@ -26,20 +26,6 @@ abstract class ChangeNotificationsMixin {
   void _clearChangesSync();
   void _onBeforeNotify() {}
 
-
-  /**
-   * Stream populated with [ChangeSet] events whenever the collection or any
-   * of data object contained gets changed.
-   */
-  Stream<ChangeSet> get onChange => _onChangeController.stream;
-
-  /**
-   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
-   * synchronously at the moment when the collection or any data object contained
-   * gets changed.
-   */
-  Stream<Map> get onChangeSync => _onChangeSyncController.stream;
-
   /**
    * Used to propagate change events to the outside world.
    */
@@ -59,6 +45,22 @@ abstract class ChangeNotificationsMixin {
    * data object is removed.
    */
    Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
+
+
+
+  /**
+   * Stream populated with [ChangeSet] events whenever the collection or any
+   * of data object contained gets changed.
+   */
+  Stream<ChangeSet> get onChange => _onChangeController.stream;
+
+  /**
+   * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
+   * synchronously at the moment when the collection or any data object contained
+   * gets changed.
+   */
+  Stream<Map> get onChangeSync => _onChangeSyncController.stream;
+
 
   /**
    * Streams all new changes marked in [_change].
@@ -81,6 +83,9 @@ abstract class ChangeNotificationsMixin {
   void _closeChangeStreams(){
     _onChangeController.close();
     _onChangeSyncController.close();
+//    _onBeforeAddedController.close();
+//    _onBeforeRemovedController.close();
+
   }
 
 }
@@ -91,6 +96,8 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    */
   ChangeSet _change = new ChangeSet();
   ChangeSet _changeSync = new ChangeSet();
+
+
 
   /**
    * Internal set of listeners for change events on individual data objects.
@@ -150,9 +157,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 
   void _dispose() {
     _closeChangeStreams();
-    _dataListeners.forEach((K, V) => V.cancel());
     _onBeforeAddedController.close();
     _onBeforeRemovedController.close();
+    _dataListeners.forEach((K, V) => V.cancel());
   }
 }
 

@@ -20,6 +20,11 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
   dynamic operator [](key) => _list[key].value;
   DataReference ref(int pos) => _list[pos];
 
+  _silentAdd(DataReference value){
+    _list.add(value);
+    _addOnDataChangeListener(_list.length-1, value);
+  }
+
   _add(DataReference value) {
     _list.add(value);
     _addOnDataChangeListener(_list.length-1, value);
@@ -138,7 +143,11 @@ class DataList extends DataListView with ListMixin implements List {
   DataList(){}
 
   factory DataList.from(Iterable elements) {
-    DataList dataList =  new DataList()..addAll(elements);
+
+    DataList dataList =  new DataList();
+    for (var elem in elements) {
+      dataList._silentAdd(refcl(elem));
+    }
     dataList._clearChanges();
     dataList._clearChangesSync();
     return dataList;
