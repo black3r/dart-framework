@@ -83,9 +83,6 @@ abstract class ChangeNotificationsMixin {
   void _closeChangeStreams(){
     _onChangeController.close();
     _onChangeSyncController.close();
-//    _onBeforeAddedController.close();
-//    _onBeforeRemovedController.close();
-
   }
 
 }

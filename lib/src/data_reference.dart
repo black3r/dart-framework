@@ -63,7 +63,7 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
    * Creates new DataReference with [value]
    */
   DataReference(value) {
-    changeValue(value);
+    _silentChangeValue(value);
     _clearChanges();
     _clearChangesSync();
   }
