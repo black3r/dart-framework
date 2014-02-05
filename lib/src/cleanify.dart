@@ -4,7 +4,7 @@
 
 part of clean_data;
 
-cleanify(data, {bool reference: true}) {
+cleanify(data) {
   if (data is ChangeNotificationsMixin) {
     return data;
   }
@@ -19,9 +19,7 @@ cleanify(data, {bool reference: true}) {
     return new DataSet.from(data);
   }
   else {
-    if (reference)
-      return new DataReference(data);
-    else return data;
+    return data;
   }
 }
 
