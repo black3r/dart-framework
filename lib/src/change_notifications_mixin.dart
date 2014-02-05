@@ -98,8 +98,13 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   /**
    * Internal set of listeners for change events on individual data objects.
    */
-  final Map<dynamic, StreamSubscription> _dataListeners =
-      new Map<dynamic, StreamSubscription>();
+  Map<dynamic, StreamSubscription> _dataListeners;
+
+  ensureDataListenersExists(){
+    if (_dataListeners == null){
+      _dataListeners = {};
+    }
+  }
 
   _clearChanges() {
     _change = null;
@@ -149,6 +154,7 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    * Starts listening to changes on [dataObj].
    */
   void _addOnDataChangeListener(key, dataObj) {
+    ensureDataListenersExists();
     if (_dataListeners.containsKey(key)) return;
 
     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
@@ -158,6 +164,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   }
 
   void _removeOnDataChangeListener(key) {
+    if (_dataListeners == null){
+      return;
+    }
     if (_dataListeners.containsKey(key)) {
       _dataListeners[key].cancel();
       _dataListeners.remove(key);
