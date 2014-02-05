@@ -44,18 +44,7 @@ dynamic decleanify(data) {
 }
 
 _clone(data) {
-  if(data is DataList) {
-    return new DataList.from(data.map((elem) => _clone(elem)));
-  }
-  else if(data is DataMap) {
-    return cleanify(decleanify(data));
-  }
-  else if(data is DataSet) {
-    return new DataSet.from(data.map((elem) => _clone(elem)));
-  }
-  else {
-    return data;
-  }
+  return cleanify(decleanify(data));
 }
 
 ChangeNotificationsMixin clone(data) {
