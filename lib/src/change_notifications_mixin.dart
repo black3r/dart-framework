@@ -6,10 +6,9 @@ abstract class ChangeNotificationsMixin {
   /**
    * Controlls notification streams. Used to propagate change events to the outside world.
    */
-  final StreamController<dynamic> _onChangeController =
-      new StreamController.broadcast();
+  StreamController<dynamic> _onChangeController;
 
-  final StreamController<Map> _onChangeSyncController =
+  StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
   /**
@@ -29,22 +28,32 @@ abstract class ChangeNotificationsMixin {
   /**
    * Used to propagate change events to the outside world.
    */
-  final StreamController<dynamic> _onBeforeAddedController =
-      new StreamController.broadcast(sync: true);
-  final StreamController<dynamic> _onBeforeRemovedController =
-      new StreamController.broadcast(sync: true);
+   StreamController<dynamic> _onBeforeAddedController;
+  StreamController<dynamic> _onBeforeRemovedController;
 
   /**
    * Stream populated with [DataMapView] events before any
    * data object is added.
    */
-   Stream<dynamic> get onBeforeAdd => _onBeforeAddedController.stream;
+   Stream<dynamic> get onBeforeAdd {
+     if(_onBeforeAddedController == null) {
+       _onBeforeAddedController =
+           new StreamController.broadcast(sync: true);
+     }
+     return _onBeforeAddedController.stream;
+   }
 
   /**
    * Stream populated with [DataMapView] events before any
    * data object is removed.
    */
-   Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
+   Stream<dynamic> get onBeforeRemove {
+     if(_onBeforeRemovedController == null) {
+       _onBeforeRemovedController =
+           new StreamController.broadcast(sync: true);
+     }
+     return _onBeforeRemovedController.stream;
+   }
 
 
 
@@ -52,7 +61,13 @@ abstract class ChangeNotificationsMixin {
    * Stream populated with [ChangeSet] events whenever the collection or any
    * of data object contained gets changed.
    */
-  Stream<ChangeSet> get onChange => _onChangeController.stream;
+  Stream<ChangeSet> get onChange {
+    if(_onChangeController == null) {
+      _onChangeController =
+          new StreamController.broadcast(sync: true);
+    }
+    return _onChangeController.stream;
+  }
 
   /**
    * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
