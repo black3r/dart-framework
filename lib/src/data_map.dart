@@ -6,66 +6,69 @@ part of clean_data;
 
 abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
 
-  final Map<String, DataReference> _fields = new Map();
+  final Map<String, dynamic> _fields = new Map();
+  final Map<String, DataReference> _references = new Map();
   /**
    * Returns the value for the given key or null if key is not in the data object.
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
-  dynamic operator[](key) => _fields.containsKey(key) ? _fields[key].value : null;
+  dynamic operator[](key) => _references.containsKey(key) ? _references[key].value :
+      _fields.containsKey(key) ? _fields[key] : null;
 
   /**
    * Returns true if there is no {key, value} pair in the data object.
    */
   bool get isEmpty {
-    return _fields.isEmpty;
+    return _fields.isEmpty && _references.isEmpty;
   }
 
   /**
    * Returns true if there is at least one {key, value} pair in the data object.
    */
   bool get isNotEmpty {
-    return _fields.isNotEmpty;
+    return _fields.isNotEmpty || _references.isNotEmpty;
   }
 
   /**
    * The keys of data object.
    */
   Iterable get keys {
-    return _fields.keys;
+    return _fields.keys.toList()..addAll(_references.keys);
   }
   /**
    * The values of [DataMap].
    */
   Iterable get values {
-    return _fields.values.map((DataReference ref) => ref.value);
+    return _fields.values.toList()
+        ..addAll(_references.values.map((DataReference ref) => ref.value));
   }
 
   /**
    * The number of {key, value} pairs in the [DataMap].
    */
   int get length {
-    return _fields.length;
+    return _fields.length + _references.length;
   }
 
   /**
    * Returns whether this data object contains the given [key].
    */
   bool containsKey(String key) {
-    return _fields.containsKey(key);
+    return _fields.containsKey(key) || _references.containsKey(key);
   }
 
   bool containsValue(Object value) {
     bool contains = false;
-    _fields.forEach((K, V) {
+    _references.forEach((K, V) {
       if(V.value == value) contains = true;
     });
-    return contains;
+    return contains || _fields.containsValue(value);
   }
   /**
    * Converts to Map.
    */
-  Map toJson() => new Map.fromIterables(_fields.keys, _fields.values.map((E) => E.value));
+  Map toJson() => new Map.fromIterables(this.keys, this.values);
 
   /**
    * Returns Json representation of the object.
@@ -98,7 +101,7 @@ class DataMap extends DataMapView implements Map {
    */
   factory DataMap.from(dynamic data) {
     var dataObj = new DataMap();
-    dataObj._initAddAll(data);
+    dataObj._addAll(data);
     dataObj._clearChanges();
     dataObj._clearChangesSync();
     return dataObj;
@@ -135,12 +138,16 @@ class DataMap extends DataMapView implements Map {
         value = cleanify(value);
       }
       if (_fields.containsKey(key)) {
-        _fields[key].changeValue(value, author: author);
+        _markChanged(key, new Change(_fields[key], value));
+        _removeOnDataChangeListener(key);
+        if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
+        _fields[key] = value;
+      } else if(_references.containsKey(key)) {
+        _references[key].changeValue(value, author: author);
       } else {
-        var ref = new DataReference(value);
-          _markAdded(key, ref.value);
-        _addOnDataChangeListener(key, ref);
-        _fields[key] = ref;
+        _markAdded(key, value);
+        if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
+        _fields[key] = value;
       }
     });
     _notify(author: author);
@@ -170,9 +177,15 @@ class DataMap extends DataMapView implements Map {
 
   void _removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      _markRemoved(key, _fields[key].value);
+      if(_fields.containsKey(key)){
+        _markRemoved(key, _fields[key]);
+        _fields.remove(key);
+      }
+      if(_references.containsKey(key)){
+        _markRemoved(key, _references[key].value);
+        _references.remove(key);
+      }
       _removeOnDataChangeListener(key);
-      _fields.remove(key);
     }
     _notify(author: author);
   }
@@ -182,11 +195,19 @@ class DataMap extends DataMapView implements Map {
   }
 
   void forEach(void f(key, value)) {
-    _fields.forEach((K, V) => f(K, V.value));
+    _fields.forEach((K, V) => f(K, V));
+    _references.forEach((K, V) => f(K, V.value));
   }
 
   DataReference ref(String key) {
-    return _fields[key];
+    if(!_references.containsKey(key) && _fields.containsKey(key)) {
+      DataReference ref = new DataReference(_fields[key]);
+      _fields.remove(key);
+      _removeOnDataChangeListener(key);
+      _addOnDataChangeListener(key, ref);
+      _references[key] = ref;
+    }
+    return _references[key];
   }
 
   putIfAbsent(key, ifAbsent()) {

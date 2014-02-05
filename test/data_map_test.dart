@@ -480,7 +480,7 @@ void main() {
       });
 
       // then
-      future.then((_) {
+      return future.then((_) {
         onChange.getLogs().verify(neverHappened);
       });
     });
