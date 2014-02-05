@@ -66,13 +66,13 @@ abstract class ChangeNotificationsMixin {
    * Streams all new changes marked in [_change].
    */
   void _notify({author: null}) {
-    if (!_changeSync.isEmpty) {
+    if (_changeSync != null) {
       _onChangeSyncController.add({'author': author, 'change': _changeSync});
       _clearChangesSync();
     }
 
     Timer.run(() {
-      if (!_change.isEmpty) {
+      if (_change != null) {
         _onBeforeNotify();
         _onChangeController.add(_change);
         _clearChanges();
@@ -91,10 +91,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   /**
    * Holds pending changes.
    */
-  ChangeSet _change = new ChangeSet();
-  ChangeSet _changeSync = new ChangeSet();
 
-
+  ChangeSet _change;
+  ChangeSet _changeSync;
 
   /**
    * Internal set of listeners for change events on individual data objects.
@@ -103,26 +102,39 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
       new Map<dynamic, StreamSubscription>();
 
   _clearChanges() {
-    _change = new ChangeSet();
+    _change = null;
+    _changeSync = null;
+  }
+
+  ensureChangesExists() {
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
   }
 
   _clearChangesSync() {
-    _changeSync = new ChangeSet();
+    _changeSync = null;
   }
 
   _markAdded(dynamic key, dynamic value) {
+     ensureChangesExists();
     _onBeforeAddedController.add(key);
     _changeSync.markAdded(key, value);
     _change.markAdded(key, value);
   }
 
   _markRemoved(dynamic key, dynamic value) {
+    ensureChangesExists();
     _onBeforeRemovedController.add(key);
     _change.markRemoved(key, value);
     _changeSync.markRemoved(key, value);
   }
 
   _markChanged(dynamic key, dynamic change) {
+    ensureChangesExists();
     if(change is Change) {
       if(change.oldValue == undefined)
         _onBeforeAddedController.add(key);
