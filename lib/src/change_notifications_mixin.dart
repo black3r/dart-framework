@@ -137,7 +137,7 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    * Starts listening to changes on [dataObj].
    */
   void _addOnDataChangeListener(key, dataObj) {
-    if (_dataListeners.containsKey(dataObj)) return;
+    if (_dataListeners.containsKey(key)) return;
 
     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
       _markChanged(key, changeEvent['change']);
