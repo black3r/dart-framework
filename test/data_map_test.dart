@@ -14,6 +14,8 @@ var equals = matchers.equals;
 
 void main() {
 
+  unittestConfiguration.timeout = new Duration(seconds: 5);
+
   group('(DataMap)', () {
 
     test('initialize. (T01)', () {
