@@ -26,7 +26,7 @@ class SortedDataListView extends TransformedDataList {
   }
 
   void _treatAddedItem(dataObj, int sourceNumber) {
-    _add(refcl(dataObj));
+    _add(cleanify(dataObj));
     _sort(this._sorter);
     _notify();
   }

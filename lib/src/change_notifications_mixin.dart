@@ -115,24 +115,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    */
   Map<dynamic, StreamSubscription> _dataListeners;
 
-  ensureDataListenersExists(){
-    if (_dataListeners == null){
-      _dataListeners = {};
-    }
-  }
-
   _clearChanges() {
     _change = null;
     _changeSync = null;
-  }
-
-  ensureChangesExists() {
-    if (_change == null) {
-      _change = new ChangeSet();
-    }
-    if (_changeSync == null) {
-      _changeSync = new ChangeSet();
-    }
   }
 
   _clearChangesSync() {
@@ -140,21 +125,36 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   }
 
   _markAdded(dynamic key, dynamic value) {
-     ensureChangesExists();
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
     if(_onBeforeAddedController != null) _onBeforeAddedController.add(key);
     _changeSync.markAdded(key, value);
     _change.markAdded(key, value);
   }
 
   _markRemoved(dynamic key, dynamic value) {
-    ensureChangesExists();
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
     if(_onBeforeRemovedController != null) _onBeforeRemovedController.add(key);
     _change.markRemoved(key, value);
     _changeSync.markRemoved(key, value);
   }
 
   _markChanged(dynamic key, dynamic change) {
-    ensureChangesExists();
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
     if(change is Change) {
       if(change.oldValue == undefined && _onBeforeAddedController != null)
         _onBeforeAddedController.add(key);
@@ -169,8 +169,12 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    * Starts listening to changes on [dataObj].
    */
   void _addOnDataChangeListener(key, dataObj) {
-    ensureDataListenersExists();
-    if (_dataListeners.containsKey(key)) return;
+    if (_dataListeners == null){
+      _dataListeners = {};
+    }
+    if (_dataListeners.containsKey(key)) {
+      throw new Exception('Re-adding listener on key: $key, with dataObj: $dataObj in: $this.');
+    }
 
     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
       _markChanged(key, changeEvent['change']);

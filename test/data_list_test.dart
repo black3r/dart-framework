@@ -315,24 +315,22 @@ void main() {
         // when
         dataList.removeRange(1,3);
 
-        // then
-        var future = new Future.delayed(new Duration(milliseconds: 20), () {
-          dataList.onChangeSync.listen((e) => onChange(e));
-          child1['name'] = 'John Doe';
-          child2['name'] = 'Mills';
-        });
-
-        future.then((_) {
-          onChange.getLogs().verify(neverHappened);
-        });
-
-        // but async onChange drops information about changes in removed items.
+        //then
         dataList.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet, equals(new ChangeSet({
             1: new Change(child1, undefined),
             2: new Change(child2, undefined)
           })));
         }));
+        var future = new Future.delayed(new Duration(milliseconds: 20), () {
+          dataList.onChangeSync.listen((e) => onChange(e));
+          child1['name'] = 'John Doe';
+          child2['name'] = 'Mills';
+        });
+
+        return future.then((_) {
+          onChange.getLogs().verify(neverHappened);
+        });
       });
     });
 
@@ -359,6 +357,33 @@ void main() {
       data.add(child);
     });
 
-  });
+    group('DataList with DataReference', () {
+      test('removing element shifts references.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        data.remove(data[0]);
+        expect(ref, equals(data.ref(0)));
+      });
 
+      test('changing reference changes list.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        ref.value['id'] = 4;
+        expect(data[1]['id'], equals(4));
+        data.onChange.listen((expectAsync1((change) =>
+            expect(change, equals(new ChangeSet({
+              1: new ChangeSet({'id': new Change(2,4)})
+            }))))));
+      });
+
+      test('after removing element, do not listen on reference.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        data.remove(data[1]);
+        data.onChangeSync.listen(protectAsync1((_) => expect(true, isFalse)));
+        ref.value = 'Change';
+
+      });
+    });
+  });
 }

@@ -56,10 +56,10 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
   }
 
   bool containsValue(Object value) {
-    bool contains = false;
     if(_fields.containsValue(value)) return true;
-    _fields.forEach((K, elem) => elem is DataReference ? elem.value == value : elem == value);
-    return false;
+    bool contains = false;
+    _fields.forEach((K, elem) { if(elem is DataReference && elem.value == value) contains = true;});
+    return contains;
   }
   /**
    * Converts to Map.
