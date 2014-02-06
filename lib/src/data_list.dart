@@ -44,7 +44,7 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
 
   bool _remove(int index) {
     if(index < 0 || index >= _list.length) return false;
-    _removeOnDataChangeListener(index);
+    _removeOnDataChangeListener(_list.length - 1);
     this._setRange(index, this.length - 1, _list, index + 1);
     _markRemoved(length-1, this[length - 1]);
     _list.length -= 1;
