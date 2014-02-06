@@ -222,7 +222,7 @@ abstract class DataSetView extends Object
 
   void _silentAddAll(Iterable elements, {author: null}){
     elements.forEach((data) {
-       var cdata = cleanify(data, reference: false);
+       var cdata = cleanify(data);
        if(!_data.contains(cdata)){
          _markAdded(cdata, cdata);
          _data.add(cdata);
