@@ -4,11 +4,11 @@
 
 part of clean_data;
 
-abstract class TransformedDataBase {
+abstract class TransformedDataBase implements ChangeNotificationsMixin {
   /**
    * The source [ChangeNotificationsMixin](s) this collection is derived from.
    */
-  List<ChangeNotificationsMixin> sources;
+  List<dynamic> sources;
   List<StreamSubscription> _sourcesSubscription;
 
   /**
@@ -30,6 +30,4 @@ abstract class TransformedDataBase {
   void _treatRemovedItem(dataObj, int sourceNumber) {}
   void _treatChangedItem(dataObj, ChangeSet c, int sourceNumber) {}
   void _treatItem(dataObj, changeSet) {}
-
-  void _notify({author: null});
 }

@@ -46,6 +46,7 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
       _onDataChangeSyncListener = newValue.onChangeSync.listen((changeEvent) {
         _onChangeSyncController.add(changeEvent);
       });
+      _onChangeController = new StreamController.broadcast();
       _onDataChangeListener = newValue.onChange.listen((changeEvent) {
         _onChangeController.add(changeEvent);
       });

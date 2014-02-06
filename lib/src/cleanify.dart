@@ -4,7 +4,7 @@
 
 part of clean_data;
 
-cleanify(data, {bool reference: true}) {
+cleanify(data) {
   if (data is ChangeNotificationsMixin) {
     return data;
   }
@@ -19,9 +19,7 @@ cleanify(data, {bool reference: true}) {
     return new DataSet.from(data);
   }
   else {
-    if (reference)
-      return new DataReference(data);
-    else return data;
+    return data;
   }
 }
 
@@ -44,20 +42,7 @@ dynamic decleanify(data) {
 }
 
 _clone(data) {
-  if(data is DataList) {
-    return new DataList.from(data.map((elem) => _clone(elem)));
-  }
-  else if(data is DataMap) {
-    DataMap map = new DataMap();
-    data.forEach((K, V) => map[K] = _clone(V));
-    return new DataMap.from(map);
-  }
-  else if(data is DataSet) {
-    return new DataSet.from(data.map((elem) => _clone(elem)));
-  }
-  else {
-    return data;
-  }
+  return cleanify(decleanify(data));
 }
 
 ChangeNotificationsMixin clone(data) {

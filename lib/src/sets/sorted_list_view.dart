@@ -10,31 +10,35 @@ class SortedDataListView extends TransformedDataList {
 
   SortedDataListView(source, this._sorter) : super([source]) {
     for (var value in source) {
-      _refmap[value] = refcl(value);
-      _list.add(_refmap[value]);
+      _silentAdd(value);
     }
-    _list.sort((a, b) => this._sorter(a.value, b.value));
+    _list.sort((a, b) => this._sorter(a is DataReference ? a.value : a, b is DataReference ? b.value : b));
   }
 
   SortedDataListView.fromKey(source, key) : super([source]) {
     for (var value in source) {
-      _refmap[value] = refcl(value);
-      _list.add(_refmap[value]);
+      _silentAdd(value);
     }
     this._sorter = (a, b) {
       return key(a).compareTo(key(b));
     };
-    _list.sort((a, b) => this._sorter(a.value, b.value));
+    _list.sort((a, b) => this._sorter(a is DataReference ? a.value : a, b is DataReference ? b.value : b));
   }
 
   void _treatAddedItem(dataObj, int sourceNumber) {
-    _add(refcl(dataObj));
+    _add(cleanify(dataObj));
     _sort(this._sorter);
     _notify();
   }
 
   void _treatRemovedItem(dataObj, int sourceNumber) {
-    _remove(_refmap[dataObj]);
+    bool removed = false;
+    for(int i = 0; i < _list.length; i++) {
+      if(_list[i] is DataReference) {
+        if(_list[i].value == dataObj) { _remove(i); break; }
+      }
+      else if(_list[i] == dataObj) { _remove(i); break; }
+    }
     _notify();
   }
 

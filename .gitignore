@@ -3,3 +3,7 @@ packages
 lib/docs/
 pubspec.lock
 *.swp
+*.js
+*.deps
+*.map
+

@@ -49,10 +49,10 @@ void main() {
       d.remove('name');
       d['name'] = 'Guybrush Threepwood';
 
-      d.onChange.listen((change){
+      d.onChange.listen(expectAsync1((change){
         expect(change, equals(new ChangeSet({
           'name': new Change('Bond. James Bond.', 'Guybrush Threepwood')})));
-      });
+      }));
     });
 
     test('Listen on changeSync (T05)', () {

@@ -6,13 +6,13 @@ part of clean_data;
 
 abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
 
-  final Map<String, DataReference> _fields = new Map();
+  final Map<String, dynamic> _fields = new Map();
   /**
    * Returns the value for the given key or null if key is not in the data object.
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
-  dynamic operator[](key) => _fields.containsKey(key) ? _fields[key].value : null;
+  dynamic operator[](key) => _fields[key] is DataReference ? _fields[key].value : _fields[key];
 
   /**
    * Returns true if there is no {key, value} pair in the data object.
@@ -38,7 +38,7 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
    * The values of [DataMap].
    */
   Iterable get values {
-    return _fields.values.map((DataReference ref) => ref.value);
+    return _fields.values.map((elem) => elem is DataReference ? elem.value : elem);
   }
 
   /**
@@ -56,16 +56,15 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
   }
 
   bool containsValue(Object value) {
+    if(_fields.containsValue(value)) return true;
     bool contains = false;
-    _fields.forEach((K, V) {
-      if(V.value == value) contains = true;
-    });
+    _fields.forEach((K, elem) { if(elem is DataReference && elem.value == value) contains = true;});
     return contains;
   }
   /**
    * Converts to Map.
    */
-  Map toJson() => new Map.fromIterables(_fields.keys, _fields.values.map((E) => E.value));
+  Map toJson() => new Map.fromIterables(this.keys, this.values);
 
   /**
    * Returns Json representation of the object.
@@ -99,8 +98,6 @@ class DataMap extends DataMapView implements Map {
   factory DataMap.from(dynamic data) {
     var dataObj = new DataMap();
     dataObj._initAddAll(data);
-    dataObj._clearChanges();
-    dataObj._clearChangesSync();
     return dataObj;
   }
 
@@ -123,9 +120,8 @@ class DataMap extends DataMapView implements Map {
       if (value is List || value is Set || value is Map) {
         value = cleanify(value);
       }
-      var ref = new DataReference(value);
-      _addOnDataChangeListener(key, ref);
-      _fields[key] = ref;
+      if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
+      _fields[key] = value;
     });
   }
 
@@ -135,12 +131,17 @@ class DataMap extends DataMapView implements Map {
         value = cleanify(value);
       }
       if (_fields.containsKey(key)) {
-        _fields[key].changeValue(value, author: author);
+        if(_fields[key] is DataReference) _fields[key].value = value;
+        else {
+          _markChanged(key, new Change(_fields[key], value));
+          _removeOnDataChangeListener(key);
+          if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
+          _fields[key] = value;
+        }
       } else {
-        var ref = new DataReference(value);
-          _markAdded(key, ref.value);
-        _addOnDataChangeListener(key, ref);
-        _fields[key] = ref;
+        _markAdded(key, value);
+        if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
+        _fields[key] = value;
       }
     });
     _notify(author: author);
@@ -170,9 +171,11 @@ class DataMap extends DataMapView implements Map {
 
   void _removeAll(List<String> keys, {author: null}) {
     for (var key in keys) {
-      _markRemoved(key, _fields[key].value);
+      if(_fields.containsKey(key)){
+        _markRemoved(key, this[key]);
+        _fields.remove(key);
+      }
       _removeOnDataChangeListener(key);
-      _fields.remove(key);
     }
     _notify(author: author);
   }
@@ -182,10 +185,16 @@ class DataMap extends DataMapView implements Map {
   }
 
   void forEach(void f(key, value)) {
-    _fields.forEach((K, V) => f(K, V.value));
+    _fields.forEach((K, V) => f(K, V is DataReference ? V.value : V));
   }
 
   DataReference ref(String key) {
+    if(!_fields.containsKey(key)) return null;
+    if(_fields[key] is! DataReference) {
+      _removeOnDataChangeListener(key);
+      _fields[key] = new DataReference(_fields[key]);
+      _addOnDataChangeListener(key, _fields[key]);
+    }
     return _fields[key];
   }
 

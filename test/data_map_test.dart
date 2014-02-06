@@ -14,6 +14,8 @@ var equals = matchers.equals;
 
 void main() {
 
+  unittestConfiguration.timeout = new Duration(seconds: 5);
+
   group('(DataMap)', () {
 
     test('initialize. (T01)', () {
@@ -480,7 +482,7 @@ void main() {
       });
 
       // then
-      future.then((_) {
+      return future.then((_) {
         onChange.getLogs().verify(neverHappened);
       });
     });
@@ -577,9 +579,9 @@ void main() {
       });
 
       // then
-      future.then((_) {
+      future.then(expectAsync1((_) {
         onChange.getLogs().verify(happenedOnce);
-      });
+      }));
     });
 
     test('data can be replaced by another data.', () {
