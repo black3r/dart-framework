@@ -96,7 +96,7 @@ abstract class ChangeNotificationsMixin {
   }
 
   void _closeChangeStreams(){
-    _onChangeController.close();
+    if(_onChangeController != null) _onChangeController.close();
     _onChangeSyncController.close();
   }
 
@@ -190,9 +190,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 
   void _dispose() {
     _closeChangeStreams();
-    _onBeforeAddedController.close();
-    _onBeforeRemovedController.close();
-    _dataListeners.forEach((K, V) => V.cancel());
+    if(_onBeforeAddedController != null) _onBeforeAddedController.close();
+    if(_onBeforeRemovedController != null) _onBeforeRemovedController.close();
+    if(_dataListeners != null) _dataListeners.forEach((K, V) => V.cancel());
   }
 }
 

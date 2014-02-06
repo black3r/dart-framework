@@ -114,18 +114,6 @@ abstract class DataSetView extends Object
 
   // ============================ /index ======================
 
-  /**
-   * Stream populated with obj before any obj is added.
-   */
-  Stream get onBeforeAdd => _onBeforeAddedController.stream;
-
-  /**
-   * Stream populated with obj before any obj is removed.
-   */
-  Stream get onBeforeRemove => _onBeforeRemovedController.stream;
-
-
-
   final StreamController_onBeforeAddedController =
       new StreamController.broadcast(sync: true);
   final StreamController _onBeforeRemovedController =
