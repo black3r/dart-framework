@@ -93,7 +93,7 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
   }
 
   void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
     if (length == 0) return;
 
@@ -222,7 +222,7 @@ class DataList extends DataListView with ListMixin implements List {
 
   DataList sublist(int start, [int end]) {
     if (end == null) end = this.length;
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
     List result = new DataList()..length = length;
     for (int i = 0; i < length; i++) {
@@ -232,14 +232,14 @@ class DataList extends DataListView with ListMixin implements List {
   }
 
   void removeRange(int start, int end, {author: null}) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
     for(int i = end-1; i >= start; i--) _remove(i);
     _notify(author: author);
   }
 
   void fillRange(int start, int end, [fill, author]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     for (int i = start; i < end; i++) {
       _set(i, cleanify(fill));
     }
@@ -247,7 +247,7 @@ class DataList extends DataListView with ListMixin implements List {
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0, author]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     for(var elem in iterable) {
       if(start < end) this[start] = cleanify(elem);
       start++;
@@ -258,7 +258,7 @@ class DataList extends DataListView with ListMixin implements List {
 
 
   void replaceRange(int start, int end, Iterable newContents, {author: null}) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     newContents = newContents.toList().map((E) => cleanify(E));
     int removeLength = end - start;
     int insertLength = newContents.length;
