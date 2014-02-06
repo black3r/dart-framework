@@ -138,19 +138,19 @@ class DataMap extends DataMapView implements Map {
         value = cleanify(value);
       }
       if (_fields.containsKey(key)) {
-//        _markChanged(key, new Change(_fields[key], value));
+        _markChanged(key, new Change(_fields[key], value));
         _removeOnDataChangeListener(key);
         if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
         _fields[key] = value;
       } else if(_references.containsKey(key)) {
         _references[key].changeValue(value, author: author);
       } else {
-//        _markAdded(key, value);
+        _markAdded(key, value);
         if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
         _fields[key] = value;
       }
     });
-//    _notify(author: author);
+    _notify(author: author);
   }
 
   /**

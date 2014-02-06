@@ -579,9 +579,9 @@ void main() {
       });
 
       // then
-      future.then((_) {
+      future.then(expectAsync1((_) {
         onChange.getLogs().verify(happenedOnce);
-      });
+      }));
     });
 
     test('data can be replaced by another data.', () {

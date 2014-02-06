@@ -64,7 +64,7 @@ abstract class ChangeNotificationsMixin {
   Stream<ChangeSet> get onChange {
     if(_onChangeController == null) {
       _onChangeController =
-          new StreamController.broadcast(sync: true);
+          new StreamController.broadcast();
     }
     return _onChangeController.stream;
   }
@@ -89,7 +89,7 @@ abstract class ChangeNotificationsMixin {
     Timer.run(() {
       if (_change != null) {
         _onBeforeNotify();
-        _onChangeController.add(_change);
+        if(_onChangeController != null) _onChangeController.add(_change);
         _clearChanges();
       }
     });
@@ -141,14 +141,14 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 
   _markAdded(dynamic key, dynamic value) {
      ensureChangesExists();
-    _onBeforeAddedController.add(key);
+    if(_onBeforeAddedController != null) _onBeforeAddedController.add(key);
     _changeSync.markAdded(key, value);
     _change.markAdded(key, value);
   }
 
   _markRemoved(dynamic key, dynamic value) {
     ensureChangesExists();
-    _onBeforeRemovedController.add(key);
+    if(_onBeforeRemovedController != null) _onBeforeRemovedController.add(key);
     _change.markRemoved(key, value);
     _changeSync.markRemoved(key, value);
   }
@@ -156,10 +156,10 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   _markChanged(dynamic key, dynamic change) {
     ensureChangesExists();
     if(change is Change) {
-      if(change.oldValue == undefined)
+      if(change.oldValue == undefined && _onBeforeAddedController != null)
         _onBeforeAddedController.add(key);
-      if(change.newValue == undefined)
-        _onBeforeAddedController.add(key);
+      if(change.newValue == undefined && _onBeforeRemovedController != null)
+        _onBeforeRemovedController.add(key);
     }
     _change.markChanged(key, change);
     _changeSync.markChanged(key, change);
@@ -197,21 +197,23 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 }
 
 abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin {
-  Change _change = new Change();
-  Change _changeSync = new Change();
+  Change _change;
+  Change _changeSync;
 
   _clearChanges() {
-    _change = new Change();
+    _change = null;
   }
 
   _clearChangesSync() {
-    _changeSync = new Change();
+    _changeSync = null;
   }
 
   _markChanged(dynamic oldValue, dynamic newValue) {
     Change change = new Change(oldValue, newValue);
-    _changeSync.mergeIn(change);
-    _change.mergeIn(change);
+    if(_changeSync == null) _changeSync = change.clone();
+    else _changeSync.mergeIn(change);
+    if(_change == null) _change = change.clone();
+    else _change.mergeIn(change);
   }
 
   void _dispose(){
