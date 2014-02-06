@@ -6,15 +6,15 @@ import 'dart:collection';
 
 main(){
   group('(Cleanify)', () {
-    test('from Object creates DataReference. (T01)', () {
+    test('does nothing with objects. (T01)', () {
       var result = cleanify('String');
-      expect(result, new isInstanceOf<DataReference>());
-      expect(result.value, equals('String'));
+      expect(result, new isInstanceOf<String>());
+      expect(result, equals('String'));
     });
 
     test('from Object does not create DataReference when reference: false. ', () {
       var data = 'String';
-      var result = cleanify(data, reference: false);
+      var result = cleanify(data);
       expect(result, new isInstanceOf<String>());
       expect(result, equals('String'));
       expect(result == data, isTrue);

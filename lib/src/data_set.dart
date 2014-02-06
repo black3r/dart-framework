@@ -216,20 +216,28 @@ abstract class DataSetView extends Object
   String toString() => toList().toString();
 
   void _addAll(Iterable elements, {author: null}){
-    _silentAddAll(elements);
+    elements.forEach((data) {
+      var cdata = cleanify(data);
+      if(!_data.contains(cdata)){
+        _markAdded(cdata, cdata);
+        _data.add(cdata);
+        if(cdata is ChangeNotificationsMixin) {
+          _addOnDataChangeListener(cdata, cdata);
+        }
+      }
+    });
     _notify(author: author);
   }
 
   void _silentAddAll(Iterable elements, {author: null}){
     elements.forEach((data) {
-       var cdata = cleanify(data, reference: false);
-       if(!_data.contains(cdata)){
-         _markAdded(cdata, cdata);
-         _data.add(cdata);
-         if(cdata is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(cdata, cdata);
-         }
-       }
+      var cdata = cleanify(data);
+      if(!_data.contains(cdata)){
+        _data.add(cdata);
+        if(cdata is ChangeNotificationsMixin) {
+          _addOnDataChangeListener(cdata, cdata);
+        }
+      }
     });
   }
 
@@ -266,8 +274,6 @@ class DataSet extends DataSetView
   factory DataSet.from(Iterable data) {
     var set = new DataSet();
     set._silentAddAll(data);
-    set._clearChanges();
-    set._clearChangesSync();
     return set;
   }
 
