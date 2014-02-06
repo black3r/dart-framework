@@ -136,7 +136,7 @@ class DataList extends DataListView with ListMixin implements List {
 
   set _length(int newLen) {
     if(newLen < 0) throw new RangeError('Negative position');
-    while(newLen > _length) _add(new DataReference(null));
+    while(newLen > _length) _add(null);
     while(newLen < _length) _remove(_list.length - 1);
   }
 
