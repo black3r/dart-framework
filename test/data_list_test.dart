@@ -350,6 +350,15 @@ void main() {
       var data = new DataList.from([child]);
       expect(data[0] == child, isTrue);
     });
+
+    test('Removing from list has problems with the listeners ', (){
+      var child = new DataMap.from({});
+      var child2 = new DataMap.from({});
+      var data = new DataList.from([child, child, child2, child]);
+      data.remove(child2);
+      data.add(child);
+    });
+
   });
 
 }

@@ -170,7 +170,15 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    */
   void _addOnDataChangeListener(key, dataObj) {
     ensureDataListenersExists();
-    if (_dataListeners.containsKey(key)) return;
+//    if (_dataListeners.containsKey(key)) return;
+
+    if (_dataListeners.containsKey(key)){
+      print('repeating listener on key $key, $dataObj, $this');
+      print('listeners: $_dataListeners');
+      throw new Exception('');
+      return;
+    }
+
 
     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
       _markChanged(key, changeEvent['change']);
