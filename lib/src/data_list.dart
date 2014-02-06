@@ -145,13 +145,8 @@ class DataList extends DataListView with ListMixin implements List {
   DataList(){}
 
   factory DataList.from(Iterable elements) {
-
     DataList dataList =  new DataList();
-    for (var elem in elements) {
-      dataList._silentAdd(refcl(elem));
-    }
-    dataList._clearChanges();
-    dataList._clearChangesSync();
+    elements.forEach((elem) => dataList._silentAdd(refcl(elem)));
     return dataList;
   }
 

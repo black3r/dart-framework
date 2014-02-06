@@ -98,8 +98,6 @@ class DataMap extends DataMapView implements Map {
   factory DataMap.from(dynamic data) {
     var dataObj = new DataMap();
     dataObj._initAddAll(data);
-    dataObj._clearChanges();
-    dataObj._clearChangesSync();
     return dataObj;
   }
 
