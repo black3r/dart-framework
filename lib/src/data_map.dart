@@ -131,7 +131,8 @@ class DataMap extends DataMapView implements Map {
         value = cleanify(value);
       }
       if (_fields.containsKey(key)) {
-        if(_fields[key] is DataReference) _fields[key].value = value;
+        if(_fields[key] is DataReference)
+          _fields[key].changeValue(value, author: author);
         else {
           _markChanged(key, new Change(_fields[key], value));
           _removeOnDataChangeListener(key);

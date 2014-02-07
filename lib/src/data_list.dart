@@ -126,6 +126,12 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
 }
 
 class DataList extends DataListView with ListMixin implements List {
+
+  setLength(newLen, {author: null}) {
+    _length = newLen;
+    _notify(author: author);
+  }
+
   set length(newLen) {
     _length = newLen;
     _notify();

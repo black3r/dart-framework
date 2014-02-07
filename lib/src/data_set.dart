@@ -361,6 +361,8 @@ class DataSet extends DataSetView
 
   void dispose() {
     super.dispose();
-    _dataListeners.forEach((data, subscription) => subscription.cancel());
+    if (_dataListeners != null) {
+      _dataListeners.forEach((data, subscription) => subscription.cancel());
+    }
   }
 }
