@@ -143,7 +143,7 @@ class DataList extends DataListView with ListMixin implements List {
     while(newLen < _length) _remove(_list.length - 1);
   }
 
-  operator []=(key, dynamic value) => _set(key, cleanify(value));
+  operator []=(key, dynamic value) => set(key, cleanify(value));
 
   DataList(){}
 

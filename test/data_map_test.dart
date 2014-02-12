@@ -682,4 +682,17 @@ void main() {
     });
   });
 
+  test('listen on nested list change (this was failing)', (){
+    DataMap y = new DataMap.from({'credit': 10, 'lineup': {'1':[null]}});
+
+    y['credit'] = 5;
+    y['lineup']['1'][0] = 11;
+    y.onChange.listen(expectAsync1((change){
+      expect(change, equals(new ChangeSet({'credit': new Change(10, 5),
+        'lineup': new ChangeSet({'1': new ChangeSet({0: new Change(null, 11)})})})));
+    }));
+    return new Future.delayed(new Duration(milliseconds: 200));
+
+  });
+
 }

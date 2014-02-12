@@ -29,11 +29,34 @@ void main() {
         expect(event['change'], equals(new ChangeSet({3: new Change(undefined, 'four')})));
       }, count: 1));
 
+
+      list.onChange.listen(expectAsync1((change) {
+        expect(change, equals(new ChangeSet({3: new Change(undefined, 'four')})));
+      }));
+
       list.add('four');
 
       expect(list.length, equals(4));
       expect(list, orderedEquals(['one', 'two', 'three', 'four']));
     });
+
+    test('changing element fires change. (T02)', () {
+      DataList list = new DataList.from(['one', 'two', 'three']);
+
+      list.onChangeSync.listen(expectAsync1((Map event) {
+        expect(event['change'], equals(new ChangeSet({0: new Change('one', 'ONE')})));
+      }, count: 1));
+
+      list.onChange.listen(expectAsync1((change) {
+        expect(change, equals(new ChangeSet({0: new Change('one', 'ONE')})));
+      }));
+
+      list[0] = 'ONE';
+
+      expect(list.length, equals(3));
+      expect(list, orderedEquals(['ONE', 'two', 'three']));
+    });
+
 
     test('removing last element fires change. (T03)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
