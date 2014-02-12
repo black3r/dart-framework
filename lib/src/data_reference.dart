@@ -47,6 +47,8 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
         _onChangeSyncController.add(changeEvent);
       });
       _onDataChangeListener = newValue.onChange.listen((changeEvent) {
+        // due to its lazy initialization, _onChangeController does not need to
+        // exist; if not ignore the change, no one is listening!
         if (_onChangeController != null) {
           _onChangeController.add(changeEvent);
         }
