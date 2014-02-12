@@ -99,5 +99,17 @@ void main() {
       // then
       expect(change, equals(new ChangeSet({'key': new Change('oldValue', 'newValue')})));
     });
+
+    test('Listen synchronyosly on changes of value. (T08)', () {
+
+      DataReference a = new DataReference(null);
+      a.onChange.listen(expectAsync1((change){
+        expect(change is Change, isTrue);
+        expect(change.oldValue, isNull);
+        expect(change.newValue, equals({'daco': 1}));
+      }));
+      a.value = new DataMap.from({'daco':1});
+      return new Future.delayed(new Duration(milliseconds: 20));
+    });
   });
 }

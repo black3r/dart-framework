@@ -691,7 +691,7 @@ void main() {
       expect(change, equals(new ChangeSet({'credit': new Change(10, 5),
         'lineup': new ChangeSet({'1': new ChangeSet({0: new Change(null, 11)})})})));
     }));
-    return new Future.delayed(new Duration(milliseconds: 200));
+    return new Future.delayed(new Duration(milliseconds: 20));
 
   });
 
