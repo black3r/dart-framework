@@ -4,15 +4,15 @@
 
 part of clean_data;
 
-abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
+abstract class DataMapView<K, V> extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin {
 
-  final Map<String, dynamic> _fields = new Map();
+  final Map<K, dynamic> _fields = new Map();
   /**
    * Returns the value for the given key or null if key is not in the data object.
    * Because null values are supported, one should use containsKey to
    * distinguish between an absent key and a null value.
    */
-  dynamic operator[](key) => _fields[key] is DataReference ? _fields[key].value : _fields[key];
+  V operator[](key) => _fields[key] is DataReference ? _fields[key].value : _fields[key];
 
   /**
    * Returns true if there is no {key, value} pair in the data object.
@@ -31,13 +31,13 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
   /**
    * The keys of data object.
    */
-  Iterable get keys {
+  Iterable<K> get keys {
     return _fields.keys;
   }
   /**
    * The values of [DataMap].
    */
-  Iterable get values {
+  Iterable<V> get values {
     return _fields.values.map((elem) => elem is DataReference ? elem.value : elem);
   }
 
@@ -51,7 +51,7 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
   /**
    * Returns whether this data object contains the given [key].
    */
-  bool containsKey(String key) {
+  bool containsKey(K key) {
     return _fields.containsKey(key);
   }
 
@@ -84,7 +84,7 @@ abstract class DataMapView extends Object with ChangeNotificationsMixin, ChangeC
  * A representation for a single unit of structured data.
  */
 
-class DataMap extends DataMapView implements Map {
+class DataMap<K, V> extends DataMapView<K, V> implements Map<K, V> {
   //Track subscriptions and remove
 
   /**
@@ -95,8 +95,8 @@ class DataMap extends DataMapView implements Map {
   /**
    * Creates a new data object from key-value pairs [data].
    */
-  factory DataMap.from(dynamic data) {
-    var dataObj = new DataMap();
+  factory DataMap.from(Map<K, V> data) {
+    var dataObj = new DataMap<K, V>();
     dataObj._initAddAll(data);
     return dataObj;
   }
@@ -104,18 +104,18 @@ class DataMap extends DataMapView implements Map {
   /**
    * Assigns the [value] to the [key] field.
    */
-  void add(String key, value, {author: null}) {
+  void add(K key, V value, {author: null}) {
     _addAll({key: value}, author: author);
   }
 
   /**
    * Adds all key-value pairs of [other] to this data.
    */
-  void addAll(Map other, {author: null}) {
+  void addAll(Map<K, V> other, {author: null}) {
     _addAll(other, author:author);
   }
 
-  void _initAddAll(Map other){
+  void _initAddAll(Map<K, V> other){
     other.forEach((key, value) {
       if (value is List || value is Set || value is Map) {
         value = cleanify(value);
@@ -125,7 +125,7 @@ class DataMap extends DataMapView implements Map {
     });
   }
 
-  void _addAll(Map other, {author: null}) {
+  void _addAll(Map<K, V> other, {author: null}) {
     other.forEach((key, value) {
       if (value is List || value is Set || value is Map) {
         value = cleanify(value);
@@ -151,26 +151,26 @@ class DataMap extends DataMapView implements Map {
   /**
    * Assigns the [value] to the [key] field.
    */
-  void operator[]=(String key, value) {
+  void operator[]=(K key, V value) {
     _addAll({key: value});
   }
 
   /**
    * Removes [key] from the data object.
    */
-  void remove(String key, {author: null}) {
+  void remove(K key, {author: null}) {
     _removeAll([key], author: author);
   }
 
   /**
    * Remove all [keys] from the data object.
    */
-  void removeAll(List<String> keys, {author: null}) {
+  void removeAll(List<K> keys, {author: null}) {
     _removeAll(keys, author:author);
   }
 
 
-  void _removeAll(List<String> keys, {author: null}) {
+  void _removeAll(List<K> keys, {author: null}) {
     for (var key in keys) {
       if(_fields.containsKey(key)){
         _markRemoved(key, this[key]);
@@ -185,11 +185,11 @@ class DataMap extends DataMapView implements Map {
     _removeAll(keys.toList(), author: author);
   }
 
-  void forEach(void f(key, value)) {
+  void forEach(void f(K key, V value)) {
     _fields.forEach((K, V) => f(K, V is DataReference ? V.value : V));
   }
 
-  DataReference ref(String key) {
+  DataReference ref(K key) {
     if(!_fields.containsKey(key)) return null;
     if(_fields[key] is! DataReference) {
       _removeOnDataChangeListener(key);
@@ -199,7 +199,7 @@ class DataMap extends DataMapView implements Map {
     return _fields[key];
   }
 
-  putIfAbsent(key, ifAbsent()) {
+  putIfAbsent(K key, ifAbsent()) {
     if (!containsKey(key)) {
       _addAll({key: ifAbsent()});
     }
