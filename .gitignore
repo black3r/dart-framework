@@ -7,4 +7,5 @@ pubspec.lock
 *.deps
 *.map
 .idea
+.DS_Store
 
