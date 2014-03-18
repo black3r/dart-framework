@@ -237,7 +237,7 @@ void main() {
         'key2': new Change('va', 'vb')}
       )));
     });
-    
+
     test('export to JSON.', () {
       // given
       Map changes = {
@@ -251,12 +251,12 @@ void main() {
         }),
         'seventh' : new Change(undefined, '7')
       };
-      
+
       changeSet = new ChangeSet(changes);
-      
+
       // when
       Map changeSetInJson = changeSet.toJson();
-      
+
       // then
       expect(changeSetInJson, equals({
         'first' : [CLEAN_UNDEFINED, 1],
@@ -270,7 +270,7 @@ void main() {
         'seventh' : [CLEAN_UNDEFINED, '7']
       }));
     });
-    
+
     test('import from JSON', () {
       // given
       Map changeSetInJson = {
@@ -284,10 +284,10 @@ void main() {
         },
         'seventh' : [CLEAN_UNDEFINED, '7']
       };
-      
+
       // when
       changeSet = new ChangeSet.fromJson(changeSetInJson);
-      
+
       // then
       expect(changeSet.toString(), equals(
         new ChangeSet({
@@ -304,11 +304,11 @@ void main() {
       ));
     });
   });
-  
+
   group('(ChangeSet and DataMap)', () {
-    
-    test('apply ChangeSet on DataMap', () {
-      
+
+    test('apply ChangeSet on DataMap.', () {
+
       // given
       var changeSet = new ChangeSet({
         'key1' : new Change(undefined, 1),
@@ -320,7 +320,7 @@ void main() {
           'key6' : new Change(10, 20)
         })
       });
-      
+
       var data = {
         'key1' : 0,
         'key2' : new DataMap.from({
@@ -329,21 +329,61 @@ void main() {
         'key3' : null,
         'key5' : null
       };
-      
+
       var dataMap = new DataMap.from(data);
-      
+
       // when
       apply(changeSet, dataMap);
-      
+
       // then
       expect(dataMap, equals(
         new DataMap.from({
           'key1' : 1,
           'key2' : new DataMap.from({
-            'key4' : 5 
+            'key4' : 5
            }),
            'key3' : '3',
            'key5' : null
+        })
+      ));
+    });
+
+    test("apply ChangeSet on DataMap with removed and added keys.", () {
+      // given
+      var changeSet = new ChangeSet({
+        'key1' : new Change(undefined, 1),
+        'key2' : new ChangeSet({
+            'key4' : new Change(4, 5)
+        }),
+        'key3' : new Change(undefined, undefined),
+        'key5' : new ChangeSet({
+          'key6' : new Change(undefined, undefined)
+        })
+      });
+
+      var data = {
+        'key2' : new DataMap.from({
+            'key4' : 1
+        }),
+        'key3' : null,
+        'key5' : new DataMap.from({
+          'key6' : 6
+        })
+      };
+
+      var dataMap = new DataMap.from(data);
+
+      // when
+      apply(changeSet, dataMap);
+
+      // then
+      expect(dataMap, equals(
+        new DataMap.from({
+          'key1' : 1,
+          'key2' : new DataMap.from({
+              'key4' : 5
+          }),
+          'key5' : new DataMap.from({})
         })
       ));
     });
