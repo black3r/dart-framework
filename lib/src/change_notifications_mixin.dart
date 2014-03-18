@@ -6,10 +6,9 @@ abstract class ChangeNotificationsMixin {
   /**
    * Controlls notification streams. Used to propagate change events to the outside world.
    */
-  final StreamController<dynamic> _onChangeController =
-      new StreamController.broadcast();
+  StreamController<dynamic> _onChangeController;
 
-  final StreamController<Map> _onChangeSyncController =
+  StreamController<Map> _onChangeSyncController =
       new StreamController.broadcast(sync: true);
 
   /**
@@ -26,12 +25,49 @@ abstract class ChangeNotificationsMixin {
   void _clearChangesSync();
   void _onBeforeNotify() {}
 
+  /**
+   * Used to propagate change events to the outside world.
+   */
+   StreamController<dynamic> _onBeforeAddedController;
+  StreamController<dynamic> _onBeforeRemovedController;
+
+  /**
+   * Stream populated with [DataMapView] events before any
+   * data object is added.
+   */
+   Stream<dynamic> get onBeforeAdd {
+     if(_onBeforeAddedController == null) {
+       _onBeforeAddedController =
+           new StreamController.broadcast(sync: true);
+     }
+     return _onBeforeAddedController.stream;
+   }
+
+  /**
+   * Stream populated with [DataMapView] events before any
+   * data object is removed.
+   */
+   Stream<dynamic> get onBeforeRemove {
+     if(_onBeforeRemovedController == null) {
+       _onBeforeRemovedController =
+           new StreamController.broadcast(sync: true);
+     }
+     return _onBeforeRemovedController.stream;
+   }
+
+
 
   /**
    * Stream populated with [ChangeSet] events whenever the collection or any
    * of data object contained gets changed.
    */
-  Stream<ChangeSet> get onChange => _onChangeController.stream;
+  Stream<ChangeSet> get onChange {
+    if(_onChangeController == null) {
+      _onChangeController =
+          new StreamController.broadcast();
+    }
+    return _onChangeController.stream;
+  }
 
   /**
    * Stream populated with {'change': [ChangeSet], 'author': [dynamic]} events
@@ -40,46 +76,27 @@ abstract class ChangeNotificationsMixin {
    */
   Stream<Map> get onChangeSync => _onChangeSyncController.stream;
 
-  /**
-   * Used to propagate change events to the outside world.
-   */
-  final StreamController<dynamic> _onBeforeAddedController =
-      new StreamController.broadcast(sync: true);
-  final StreamController<dynamic> _onBeforeRemovedController =
-      new StreamController.broadcast(sync: true);
-
-  /**
-   * Stream populated with [DataMapView] events before any
-   * data object is added.
-   */
-   Stream<dynamic> get onBeforeAdd => _onBeforeAddedController.stream;
-
-  /**
-   * Stream populated with [DataMapView] events before any
-   * data object is removed.
-   */
-   Stream<dynamic> get onBeforeRemove => _onBeforeRemovedController.stream;
 
   /**
    * Streams all new changes marked in [_change].
    */
   void _notify({author: null}) {
-    if (!_changeSync.isEmpty) {
+    if (_changeSync != null) {
       _onChangeSyncController.add({'author': author, 'change': _changeSync});
       _clearChangesSync();
     }
 
     Timer.run(() {
-      if (!_change.isEmpty) {
+      if (_change != null) {
         _onBeforeNotify();
-        _onChangeController.add(_change);
+        if(_onChangeController != null) _onChangeController.add(_change);
         _clearChanges();
       }
     });
   }
 
   void _closeChangeStreams(){
-    _onChangeController.close();
+    if(_onChangeController != null) _onChangeController.close();
     _onChangeSyncController.close();
   }
 
@@ -89,41 +106,60 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   /**
    * Holds pending changes.
    */
-  ChangeSet _change = new ChangeSet();
-  ChangeSet _changeSync = new ChangeSet();
+
+  ChangeSet _change;
+  ChangeSet _changeSync;
 
   /**
    * Internal set of listeners for change events on individual data objects.
    */
-  final Map<dynamic, StreamSubscription> _dataListeners =
-      new Map<dynamic, StreamSubscription>();
+  Map<dynamic, StreamSubscription> _dataListeners;
 
   _clearChanges() {
-    _change = new ChangeSet();
+    _change = null;
+    _changeSync = null;
   }
 
   _clearChangesSync() {
-    _changeSync = new ChangeSet();
+    _changeSync = null;
   }
 
   _markAdded(dynamic key, dynamic value) {
-    _onBeforeAddedController.add(key);
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
+    if(_onBeforeAddedController != null) _onBeforeAddedController.add(key);
     _changeSync.markAdded(key, value);
     _change.markAdded(key, value);
   }
 
   _markRemoved(dynamic key, dynamic value) {
-    _onBeforeRemovedController.add(key);
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
+    if(_onBeforeRemovedController != null) _onBeforeRemovedController.add(key);
     _change.markRemoved(key, value);
     _changeSync.markRemoved(key, value);
   }
 
   _markChanged(dynamic key, dynamic change) {
+    if (_change == null) {
+      _change = new ChangeSet();
+    }
+    if (_changeSync == null) {
+      _changeSync = new ChangeSet();
+    }
     if(change is Change) {
-      if(change.oldValue == undefined)
+      if(change.oldValue == undefined && _onBeforeAddedController != null)
         _onBeforeAddedController.add(key);
-      if(change.newValue == undefined)
-        _onBeforeAddedController.add(key);
+      if(change.newValue == undefined && _onBeforeRemovedController != null)
+        _onBeforeRemovedController.add(key);
     }
     _change.markChanged(key, change);
     _changeSync.markChanged(key, change);
@@ -133,7 +169,12 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
    * Starts listening to changes on [dataObj].
    */
   void _addOnDataChangeListener(key, dataObj) {
-    if (_dataListeners.containsKey(dataObj)) return;
+    if (_dataListeners == null){
+      _dataListeners = {};
+    }
+    if (_dataListeners.containsKey(key)) {
+      throw new Exception('Re-adding listener on key: $key, with dataObj: $dataObj in: $this.');
+    }
 
     _dataListeners[key] = dataObj.onChangeSync.listen((changeEvent) {
       _markChanged(key, changeEvent['change']);
@@ -142,6 +183,9 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
   }
 
   void _removeOnDataChangeListener(key) {
+    if (_dataListeners == null){
+      return;
+    }
     if (_dataListeners.containsKey(key)) {
       _dataListeners[key].cancel();
       _dataListeners.remove(key);
@@ -150,28 +194,30 @@ abstract class ChangeChildNotificationsMixin implements ChangeNotificationsMixin
 
   void _dispose() {
     _closeChangeStreams();
-    _dataListeners.forEach((K, V) => V.cancel());
-    _onBeforeAddedController.close();
-    _onBeforeRemovedController.close();
+    if(_onBeforeAddedController != null) _onBeforeAddedController.close();
+    if(_onBeforeRemovedController != null) _onBeforeRemovedController.close();
+    if(_dataListeners != null) _dataListeners.forEach((K, V) => V.cancel());
   }
 }
 
 abstract class ChangeValueNotificationsMixin implements ChangeNotificationsMixin {
-  Change _change = new Change();
-  Change _changeSync = new Change();
+  Change _change;
+  Change _changeSync;
 
   _clearChanges() {
-    _change = new Change();
+    _change = null;
   }
 
   _clearChangesSync() {
-    _changeSync = new Change();
+    _changeSync = null;
   }
 
   _markChanged(dynamic oldValue, dynamic newValue) {
     Change change = new Change(oldValue, newValue);
-    _changeSync.mergeIn(change);
-    _change.mergeIn(change);
+    if(_changeSync == null) _changeSync = change.clone();
+    else _changeSync.mergeIn(change);
+    if(_change == null) _change = change.clone();
+    else _change.mergeIn(change);
   }
 
   void _dispose(){

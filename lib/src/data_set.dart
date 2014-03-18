@@ -114,18 +114,6 @@ abstract class DataSetView extends Object
 
   // ============================ /index ======================
 
-  /**
-   * Stream populated with obj before any obj is added.
-   */
-  Stream get onBeforeAdd => _onBeforeAddedController.stream;
-
-  /**
-   * Stream populated with obj before any obj is removed.
-   */
-  Stream get onBeforeRemove => _onBeforeRemovedController.stream;
-
-
-
   final StreamController_onBeforeAddedController =
       new StreamController.broadcast(sync: true);
   final StreamController _onBeforeRemovedController =
@@ -217,16 +205,30 @@ abstract class DataSetView extends Object
 
   void _addAll(Iterable elements, {author: null}){
     elements.forEach((data) {
-       if(!_data.contains(data)){
-         _markAdded(data, data);
-         if(data is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(data, data);
-         }
-       }
+      var cdata = cleanify(data);
+      if(!_data.contains(cdata)){
+        _markAdded(cdata, cdata);
+        _data.add(cdata);
+        if(cdata is ChangeNotificationsMixin) {
+          _addOnDataChangeListener(cdata, cdata);
+        }
+      }
     });
-    _data.addAll(elements);
     _notify(author: author);
   }
+
+  void _silentAddAll(Iterable elements, {author: null}){
+    elements.forEach((data) {
+      var cdata = cleanify(data);
+      if(!_data.contains(cdata)){
+        _data.add(cdata);
+        if(cdata is ChangeNotificationsMixin) {
+          _addOnDataChangeListener(cdata, cdata);
+        }
+      }
+    });
+  }
+
 
   void _removeAll(Iterable toBeRemoved, {author: null}) {
     toBeRemoved.forEach((data) {
@@ -259,25 +261,8 @@ class DataSet extends DataSetView
    */
   factory DataSet.from(Iterable data) {
     var set = new DataSet();
-    set._addAll(data);
-    set._clearChanges();
-    set._clearChangesSync();
+    set._silentAddAll(data);
     return set;
-  }
-
-
-  void _addAll(Iterable elements, {author: null}){
-    elements.forEach((data) {
-       if(!_data.contains(data)){
-         var cdata = cleanify(data, reference: false);
-         _markAdded(cdata, cdata);
-         if(cdata is ChangeNotificationsMixin) {
-           _addOnDataChangeListener(data, data);
-         }
-         _data.add(cdata);
-       }
-    });
-    _notify(author: author);
   }
 
 
@@ -376,6 +361,8 @@ class DataSet extends DataSetView
 
   void dispose() {
     super.dispose();
-    _dataListeners.forEach((data, subscription) => subscription.cancel());
+    if (_dataListeners != null) {
+      _dataListeners.forEach((data, subscription) => subscription.cancel());
+    }
   }
 }

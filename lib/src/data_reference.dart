@@ -29,9 +29,8 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
     changeValue(newValue);
   }
 
-  changeValue(newValue, {author: null}) {
+  _silentChangeValue(newValue){
     assert(newValue is! DataReference);
-    _markChanged(this._value, newValue);
     _value = newValue;
 
     if(_onDataChangeListener != null) {
@@ -48,11 +47,19 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
         _onChangeSyncController.add(changeEvent);
       });
       _onDataChangeListener = newValue.onChange.listen((changeEvent) {
-        _onChangeController.add(changeEvent);
+        // due to its lazy initialization, _onChangeController does not need to
+        // exist; if not ignore the change, no one is listening!
+        if (_onChangeController != null) {
+          _onChangeController.add(changeEvent);
+        }
       });
-
     }
 
+  }
+
+  changeValue(newValue, {author: null}) {
+    _markChanged(this._value, newValue);
+    _silentChangeValue(newValue);
     _notify(author: author);
   }
 
@@ -60,15 +67,20 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
    * Creates new DataReference with [value]
    */
   DataReference(value) {
-    changeValue(value);
+    _silentChangeValue(value);
     _clearChanges();
     _clearChangesSync();
   }
 
   void dispose() {
     _dispose();
-    _onDataChangeListener.cancel();
-    _onDataChangeSyncListener.cancel();
+    if (_onDataChangeListener != null) {
+      _onDataChangeListener.cancel();
+    }
+    if (_onDataChangeSyncListener != null) {
+      _onDataChangeSyncListener.cancel();
+    }
+
   }
 
   String toString() => 'Ref(${_value.toString()})';

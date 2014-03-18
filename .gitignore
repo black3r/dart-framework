@@ -5,3 +5,6 @@ pubspec.lock
 *.swp
 .project
 .idea
+*.js
+*.deps
+*.map

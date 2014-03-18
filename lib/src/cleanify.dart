@@ -4,34 +4,19 @@
 
 part of clean_data;
 
-cleanify(data, {bool reference: true}) {
-  var ret;
+cleanify(data) {
   if (data is ChangeNotificationsMixin) {
     return data;
   }
-  if(data is List || data is Map || data is Set || data is Iterable) {
-    return _cleanify(data, reference: reference);
-  }
-  else {
-    if (reference)
-      return new DataReference(data);
-    else return data;
-  }
-}
-
-_cleanify(data, {bool reference: true}) {
-  var ret;
   if(data is List) {
-    return new DataList.from(data.map((elem) => _cleanify(elem, reference: reference)));
+    return new DataList.from(data);
   }
   else if(data is Map) {
-    Map map = new Map();
-    data.forEach((K, V) => map[K] = _cleanify(V, reference: reference));
-    return new DataMap.from(map);
+    return new DataMap.from(data);
   }
   else if(data is Set || data is Iterable || data is Iterator) {
     if(data is Iterator) data = new List(data);
-    return new DataSet.from(data.map((elem) => _cleanify(elem, reference: reference)));
+    return new DataSet.from(data);
   }
   else {
     return data;
@@ -57,20 +42,7 @@ dynamic decleanify(data) {
 }
 
 _clone(data) {
-  if(data is DataList) {
-    return new DataList.from(data.map((elem) => _clone(elem)));
-  }
-  else if(data is DataMap) {
-    DataMap map = new DataMap();
-    data.forEach((K, V) => map[K] = _clone(V));
-    return new DataMap.from(map);
-  }
-  else if(data is DataSet) {
-    return new DataSet.from(data.map((elem) => _clone(elem)));
-  }
-  else {
-    return data;
-  }
+  return cleanify(decleanify(data));
 }
 
 ChangeNotificationsMixin clone(data) {

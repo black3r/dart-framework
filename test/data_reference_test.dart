@@ -21,6 +21,11 @@ void main() {
       expect(ref.value, 'value');
     });
 
+    test('Dispose', (){
+      DataReference ref = new DataReference('value');
+      ref.dispose();
+    });
+
     test('Setter (T02)', () {
       DataReference ref = new DataReference('value');
       ref.value = 'newValue';
@@ -44,10 +49,10 @@ void main() {
       d.remove('name');
       d['name'] = 'Guybrush Threepwood';
 
-      d.onChange.listen((change){
+      d.onChange.listen(expectAsync1((change){
         expect(change, equals(new ChangeSet({
           'name': new Change('Bond. James Bond.', 'Guybrush Threepwood')})));
-      });
+      }));
     });
 
     test('Listen on changeSync (T05)', () {
@@ -93,6 +98,18 @@ void main() {
 
       // then
       expect(change, equals(new ChangeSet({'key': new Change('oldValue', 'newValue')})));
+    });
+
+    test('Listen synchronyosly on changes of value. (T08)', () {
+
+      DataReference a = new DataReference(null);
+      a.onChange.listen(expectAsync1((change){
+        expect(change is Change, isTrue);
+        expect(change.oldValue, isNull);
+        expect(change.newValue, equals({'daco': 1}));
+      }));
+      a.value = new DataMap.from({'daco':1});
+      return new Future.delayed(new Duration(milliseconds: 20));
     });
   });
 }

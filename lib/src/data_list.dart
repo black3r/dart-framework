@@ -4,52 +4,54 @@
 
 part of clean_data;
 
-refcl(data){
-  var res = cleanify(data);
-  if (res is DataReference) {
-    return res;
-  } else {
-    return new DataReference(res);
-  }
-}
 
 abstract class DataListView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin implements Iterable {
   List _list = new List();
   get length => _length;
   get _length => _list.length;
-  dynamic operator [](key) => _list[key].value;
-  DataReference ref(int pos) => _list[pos];
-
-  _add(DataReference value) {
-    _list.add(value);
-    _addOnDataChangeListener(_list.length-1, value);
-    _markAdded(_list.length -1, value.value);
+  dynamic operator [](key) => _list[key] is DataReference ? _list[key].value : _list[key];
+  DataReference ref(int pos) {
+    if(_list[pos] is! DataReference) {
+      _removeOnDataChangeListener(pos);
+      _list[pos] = new DataReference(_list[pos]);
+      _addOnDataChangeListener(pos, _list[pos]);
+    }
+    return _list[pos];
   }
 
-  _set(key, DataReference value) {
-    _markChanged(key, new Change(_list[key].value, value.value));
+  _silentAdd(dynamic value){
+    _list.add(value);
+    if(value is ChangeNotificationsMixin) _addOnDataChangeListener(_list.length-1, value);
+  }
+
+  _add(dynamic value) {
+    _list.add(value);
+    if(value is ChangeNotificationsMixin) _addOnDataChangeListener(_list.length-1, value);
+    _markAdded(_list.length - 1, this[_list.length - 1]);
+  }
+
+  _set(key, dynamic value) {
+    Change change = new Change();
+    if(value is DataReference) _markChanged(key, new Change(this[key], value.value));
+    else _markChanged(key, new Change(this[key], value));
     _removeOnDataChangeListener(key);
     _list[key] = value;
-    _addOnDataChangeListener(key, value);
+    if(value is ChangeNotificationsMixin) _addOnDataChangeListener(key, value);
   }
 
-  bool _remove(DataReference element) {
-    for (int i = 0; i < this.length; i++) {
-      if (ref(i) == element) {
-        _removeOnDataChangeListener(i);
-        this._setRange(i, this.length - 1, _list, i + 1);
-        _markRemoved(length-1, ref(length-1).value);
-        _list.length -= 1;
-        return true;
-      }
-    }
-    return false;
+  bool _remove(int index) {
+    if(index < 0 || index >= _list.length) return false;
+    _removeOnDataChangeListener(_list.length - 1);
+    this._setRange(index, this.length - 1, _list, index + 1);
+    _markRemoved(length-1, this[length - 1]);
+    _list.length -= 1;
+    return true;
   }
 
   DataListView(){}
 
   // Iterable interface.
-  Iterator get iterator => _list.map((DataReference ref) => ref.value).iterator;
+  Iterator get iterator => _list.map((elem) => elem is DataReference ? elem.value : elem).iterator;
 
   void _rangeCheck(int start, int end) {
     if (start < 0 || start > this.length) {
@@ -60,15 +62,18 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
     }
   }
 
-  void _markAllRemoved(){
+  void _beforeChangingAll(){
     for(int i=0; i < _list.length; i++) {
-      _markChanged(i, new Change(_list[i].value, undefined));
+      _markChanged(i, new Change(this[i], undefined));
+      _removeOnDataChangeListener(i);
     }
   }
 
-  void _markAllAdded(){
+  void _afterChangingAll(){
     for(int i=0; i < _list.length; i++) {
-      _markChanged(i, new Change(undefined, _list[i].value));
+      _markChanged(i, new Change(undefined, this[i]));
+      if(_list[i] is ChangeNotificationsMixin)
+        _addOnDataChangeListener(i, _list[i]);
     }
   }
 
@@ -80,16 +85,15 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
 
   void _sort([int compare(a, b)]) {
     if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
+      compare = Comparable.compare;
     }
-    _markAllRemoved();
-    _list.sort((a,b) => compare(a.value, b.value));
-    _markAllAdded();
+    _beforeChangingAll();
+    _list.sort((a,b) => compare(a is DataReference ? a.value : a, b is DataReference ? b.value : b));
+    _afterChangingAll();
   }
 
   void _setRange(int start, int end, Iterable<DataReference> iterable, [int skipCount = 0]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
     if (length == 0) return;
 
@@ -122,6 +126,12 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
 }
 
 class DataList extends DataListView with ListMixin implements List {
+
+  setLength(newLen, {author: null}) {
+    _length = newLen;
+    _notify(author: author);
+  }
+
   set length(newLen) {
     _length = newLen;
     _notify();
@@ -129,34 +139,33 @@ class DataList extends DataListView with ListMixin implements List {
 
   set _length(int newLen) {
     if(newLen < 0) throw new RangeError('Negative position');
-    while(newLen > _length) _add(new DataReference(null));
-    while(newLen < _length) _remove(_list.last);
+    while(newLen > _length) _add(null);
+    while(newLen < _length) _remove(_list.length - 1);
   }
 
-  operator []=(key, dynamic value) { _list[key].value = value; }
+  operator []=(key, dynamic value) => set(key, cleanify(value));
 
   DataList(){}
 
   factory DataList.from(Iterable elements) {
-    DataList dataList =  new DataList()..addAll(elements);
-    dataList._clearChanges();
-    dataList._clearChangesSync();
+    DataList dataList =  new DataList();
+    elements.forEach((elem) => dataList._silentAdd(cleanify(elem)));
     return dataList;
   }
 
   void add(element, {author: null}) {
-    _add(refcl(element));
+    _add(cleanify(element));
     _notify(author: author);
   }
 
   set(int key, dynamic value, {author: null}) {
-    _set(key, refcl(value));
+    _set(key, cleanify(value));
     _notify(author: author);
   }
 
   void addAll(Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
-      _add(refcl(element));
+      _add(cleanify(element));
     }
     _notify(author: author);
   }
@@ -164,7 +173,7 @@ class DataList extends DataListView with ListMixin implements List {
   bool remove(Object element, {author: null}) {
     int index = indexOf(element);
     if(index == -1) return false;
-    var ret = _remove(ref(index));
+    var ret = _remove(index);
     _notify(author: author);
     return ret;
   }
@@ -185,9 +194,8 @@ class DataList extends DataListView with ListMixin implements List {
                       bool retainMatching) {
     int length = source.length;
     for (int i = length - 1; i >= 0; i--) {
-      var element = source.ref(i);
-      if (test(element.value) != retainMatching) {
-         source._remove(element);
+      if (test(source[i]) != retainMatching) {
+         source._remove(i);
       }
     }
   }
@@ -212,15 +220,15 @@ class DataList extends DataListView with ListMixin implements List {
   }
 
   void shuffle([Random random]) {
-    _markAllRemoved();
+    _beforeChangingAll();
     _list.shuffle(random);
-    _markAllAdded();
+    _afterChangingAll();
     _notify();
   }
 
   DataList sublist(int start, [int end]) {
     if (end == null) end = this.length;
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
     List result = new DataList()..length = length;
     for (int i = 0; i < length; i++) {
@@ -230,24 +238,24 @@ class DataList extends DataListView with ListMixin implements List {
   }
 
   void removeRange(int start, int end, {author: null}) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     int length = end - start;
-    for(int i = end-1; i >= start; i--) _remove(ref(i));
+    for(int i = end-1; i >= start; i--) _remove(i);
     _notify(author: author);
   }
 
   void fillRange(int start, int end, [fill, author]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     for (int i = start; i < end; i++) {
-      _set(i, refcl(fill));
+      _set(i, cleanify(fill));
     }
     _notify(author: author);
   }
 
   void setRange(int start, int end, Iterable iterable, [int skipCount = 0, author]) {
-    _rangeCheck(start, end);
+    this._rangeCheck(start, end);
     for(var elem in iterable) {
-      if(start < end) _list[start].value = elem;
+      if(start < end) this[start] = cleanify(elem);
       start++;
     }
     _notify(author: author);
@@ -256,8 +264,8 @@ class DataList extends DataListView with ListMixin implements List {
 
 
   void replaceRange(int start, int end, Iterable newContents, {author: null}) {
-    _rangeCheck(start, end);
-    newContents = newContents.toList().map((E) => refcl(E));
+    this._rangeCheck(start, end);
+    newContents = newContents.toList().map((E) => cleanify(E));
     int removeLength = end - start;
     int insertLength = newContents.length;
     if (removeLength >= insertLength) {
@@ -286,7 +294,7 @@ class DataList extends DataListView with ListMixin implements List {
       throw new RangeError.range(index, 0, length);
     }
     if (index == this.length) {
-      _add(refcl(element));
+      _add(cleanify(element));
       return;
     }
     // We are modifying the length just below the is-check. Without the check
@@ -295,13 +303,13 @@ class DataList extends DataListView with ListMixin implements List {
     if (index is! int) throw new ArgumentError(index);
     this._length++;
     _setRange(index + 1, this.length, _list, index);
-    _set(index, refcl(element));
+    _set(index, cleanify(element));
     _notify(author: author);
   }
 
   removeAt(int index, {author: null}) {
     var result = this[index];
-    _remove(ref(index));
+    _remove(index);
     _notify(author: author);
     return result;
   }
@@ -318,14 +326,14 @@ class DataList extends DataListView with ListMixin implements List {
     this._length += insertionLength;
     _setRange(index + insertionLength, this.length, _list, index);
     for (dynamic element in iterable) {
-      _set(index++, refcl(element));
+      _set(index++, cleanify(element));
     }
     _notify(author: author);
   }
 
   void setAll(int index, Iterable iterable, {author: null}) {
     for (dynamic element in iterable) {
-      _list[index++].value = element;
+      this[index++]= cleanify(element);
     }
     _notify(author: author);
   }

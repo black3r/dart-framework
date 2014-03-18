@@ -29,11 +29,34 @@ void main() {
         expect(event['change'], equals(new ChangeSet({3: new Change(undefined, 'four')})));
       }, count: 1));
 
+
+      list.onChange.listen(expectAsync1((change) {
+        expect(change, equals(new ChangeSet({3: new Change(undefined, 'four')})));
+      }));
+
       list.add('four');
 
       expect(list.length, equals(4));
       expect(list, orderedEquals(['one', 'two', 'three', 'four']));
     });
+
+    test('changing element fires change. (T02)', () {
+      DataList list = new DataList.from(['one', 'two', 'three']);
+
+      list.onChangeSync.listen(expectAsync1((Map event) {
+        expect(event['change'], equals(new ChangeSet({0: new Change('one', 'ONE')})));
+      }, count: 1));
+
+      list.onChange.listen(expectAsync1((change) {
+        expect(change, equals(new ChangeSet({0: new Change('one', 'ONE')})));
+      }));
+
+      list[0] = 'ONE';
+
+      expect(list.length, equals(3));
+      expect(list, orderedEquals(['ONE', 'two', 'three']));
+    });
+
 
     test('removing last element fires change. (T03)', () {
       DataList list = new DataList.from(['one', 'two', 'three']);
@@ -315,24 +338,22 @@ void main() {
         // when
         dataList.removeRange(1,3);
 
-        // then
-        var future = new Future.delayed(new Duration(milliseconds: 20), () {
-          dataList.onChangeSync.listen((e) => onChange(e));
-          child1['name'] = 'John Doe';
-          child2['name'] = 'Mills';
-        });
-
-        future.then((_) {
-          onChange.getLogs().verify(neverHappened);
-        });
-
-        // but async onChange drops information about changes in removed items.
+        //then
         dataList.onChange.listen(expectAsync1((changeSet) {
           expect(changeSet, equals(new ChangeSet({
             1: new Change(child1, undefined),
             2: new Change(child2, undefined)
           })));
         }));
+        var future = new Future.delayed(new Duration(milliseconds: 20), () {
+          dataList.onChangeSync.listen((e) => onChange(e));
+          child1['name'] = 'John Doe';
+          child2['name'] = 'Mills';
+        });
+
+        return future.then((_) {
+          onChange.getLogs().verify(neverHappened);
+        });
       });
     });
 
@@ -350,6 +371,42 @@ void main() {
       var data = new DataList.from([child]);
       expect(data[0] == child, isTrue);
     });
-  });
 
+    test('Removing from list has problems with the listeners ', (){
+      var child = new DataMap.from({});
+      var child2 = new DataMap.from({});
+      var data = new DataList.from([child, child, child2, child]);
+      data.remove(child2);
+      data.add(child);
+    });
+
+    group('DataList with DataReference', () {
+      test('removing element shifts references.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        data.remove(data[0]);
+        expect(ref, equals(data.ref(0)));
+      });
+
+      test('changing reference changes list.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        ref.value['id'] = 4;
+        expect(data[1]['id'], equals(4));
+        data.onChange.listen((expectAsync1((change) =>
+            expect(change, equals(new ChangeSet({
+              1: new ChangeSet({'id': new Change(2,4)})
+            }))))));
+      });
+
+      test('after removing element, do not listen on reference.', () {
+        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var ref = data.ref(1);
+        data.remove(data[1]);
+        data.onChangeSync.listen(protectAsync1((_) => expect(true, isFalse)));
+        ref.value = 'Change';
+
+      });
+    });
+  });
 }
