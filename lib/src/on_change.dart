@@ -5,11 +5,12 @@
 part of clean_data;
 
 /**
- * Listen simply to [onChange] events from multiple [sources]. Returned stream
- * propagates single [null] value as notification that some [onChange] occured.
- * Propagation happens asynchronously in the new event loop.
+ * Listen simply to [onChange] events from multiple [sources].
+ *
+ * Returned stream propagates single [null] value as notification that some
+ * [onChange] occured. Propagation happens asynchronously in the new event loop.
  */
-onChange(Iterable sources) {
+Stream onChange(Iterable sources) {
   var start, stop, notify;
 
   var controller = new StreamController(onListen: () => start(), onCancel: () => stop());
@@ -20,7 +21,7 @@ onChange(Iterable sources) {
   start = () {
     listening = true;
     for (var o in sources) {
-      subscriptions = o.onChange.listen((_) => notify());
+      subscriptions.add(o.onChange.listen((_) => notify()));
     }
   };
 
@@ -41,4 +42,18 @@ onChange(Iterable sources) {
   };
 
   return controller.stream;
+}
+
+/**
+ * Reactively compute value of reference.
+ * Value is computed using [mapFunction] whenever happens [onChange] on any item
+ * in [sources].
+ */
+DataReference reactiveRef(Iterable sources, mapFunction) {
+  var ref;
+  var listener = onChange(sources).listen((_) {
+    ref.value = mapFunction();
+  });
+  ref = new DataReference(mapFunction(), listener.cancel);
+  return ref;
 }
