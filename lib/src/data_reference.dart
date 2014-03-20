@@ -8,28 +8,28 @@ part of clean_data;
  * Observable object, which represents single primitive in Data.
  *
  */
-class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNotificationsMixin{
+class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValueNotificationsMixin{
 
   /**
    * Encapsulated value
    */
-  dynamic _value;
+  V _value;
 
   StreamSubscription _onDataChangeListener, _onDataChangeSyncListener;
 
   /**
    * Return value of a primitive type.
    */
-  get value => _value;
+  V get value => _value;
 
   /**
    * Change value of primitive type and notify listeners.
    */
-  set value(newValue) {
+  set value(V newValue) {
     changeValue(newValue);
   }
 
-  _silentChangeValue(newValue){
+  _silentChangeValue(V newValue){
     assert(newValue is! DataReference);
     _value = newValue;
 
@@ -57,7 +57,7 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
 
   }
 
-  changeValue(newValue, {author: null}) {
+  changeValue(V newValue, {author: null}) {
     _markChanged(this._value, newValue);
     _silentChangeValue(newValue);
     _notify(author: author);
@@ -66,7 +66,7 @@ class DataReference extends Object with ChangeNotificationsMixin, ChangeValueNot
   /**
    * Creates new DataReference with [value]
    */
-  DataReference(value) {
+  DataReference(V value) {
     _silentChangeValue(value);
     _clearChanges();
     _clearChangesSync();
