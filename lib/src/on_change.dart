@@ -52,7 +52,8 @@ Stream onChange(Iterable sources) {
 DataReference reactiveRef(Iterable sources, mapFunction) {
   var ref;
   var listener = onChange(sources).listen((_) {
-    ref.value = mapFunction();
+    var newValue = mapFunction();
+    if (ref.value != newValue) ref.value = newValue;
   });
   ref = new DataReference(mapFunction(), listener.cancel);
   return ref;

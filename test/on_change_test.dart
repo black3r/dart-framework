@@ -69,15 +69,20 @@ void main() {
   });
 
   group("React to changes by updating DataReference", () {
-    test("reactively.", () {
+    var ref1, ref2, handler, value, oldValue, newValue, reactive;
+
+    setUp(() {
       // given
-      var ref1 = new OnChangeMock();
-      var ref2 = new OnChangeMock();
-      var oldValue = 0, newValue = 10;
-      var value = oldValue;
+      ref1 = new OnChangeMock();
+      ref2 = new OnChangeMock();
+      oldValue = 0;
+      newValue = 10;
+      value = oldValue;
+      handler = new Mock();
+      reactive = reactiveRef([ref1, ref2], () => value);
+    });
 
-      var reactive = reactiveRef([ref1, ref2], () => value);
-
+    test("reactively.", () {
       // then
       reactive.onChange.listen(expectAsync1((_) {
         expect(reactive.value, equals(newValue));
@@ -87,6 +92,20 @@ void main() {
       value = 10;
       ref1.change("sth");
       ref2.change('another');
+    });
+
+    test("update ref only if new value is different from old one", () {
+      // given
+      reactive.onChange.listen((_) => handler());
+
+      // when
+      ref1.change('sth');
+      ref2.change('another');
+
+      // then
+      return new Future.delayed(new Duration(milliseconds: 10), () {
+        handler.getLogs(callsTo('call')).verify(neverHappened);
+      });
     });
   });
 }
