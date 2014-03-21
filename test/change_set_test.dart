@@ -237,5 +237,20 @@ void main() {
         'key2': new Change('va', 'vb')}
       )));
     });
+
+    test('changeSet correctly splits to added, removed and modified items', (){
+      Map data = {'a': 1};
+      var change = new ChangeSet({
+                         'a': new Change(1,2),
+                         'b': new ChangeSet({'a': new Change(1,2)}),
+                         'c': new Change(undefined, 1),
+                         'd': new Change(1, undefined),
+                         'e': new Change(data, data)
+                    });
+      expect(change.addedItems.length +
+             change.removedItems.length +
+             change.strictlyChanged.length,
+             equals(change.changedItems.length));
+    });
   });
 }

@@ -163,6 +163,8 @@ class ChangeSet {
     changedItems.forEach((key, dynamic change) {
       if(change is ChangeSet)
         res[key] = change;
+      if(change is Change && (change.oldValue != undefined && change.newValue != undefined))
+        res[key] = change;
     });
     return res;
   }
