@@ -19,6 +19,8 @@ class _Undefined {
 const undefined = const _Undefined('undefined');
 const unset = const _Undefined('unset');
 
+final String CLEAN_UNDEFINED = '__clean_undefined';
+
 /**
  * A representation of a single change in a scalar value.
  */
@@ -91,6 +93,27 @@ class ChangeSet {
 
   ChangeSet([Map changedItems = const {}]) {
     this.changedItems = new Map.from(changedItems);
+  }
+
+  ChangeSet.fromJson(Map json) {
+    for (var key in json.keys) {
+
+      // Change
+      if (json[key] is List) {
+        List changeList = json[key];
+
+        var oldValue = changeList[0] == CLEAN_UNDEFINED ? undefined :
+          changeList[0];
+        var newValue = changeList[1] == CLEAN_UNDEFINED ? undefined :
+          changeList[1];
+
+        changedItems[key] = new Change(oldValue, newValue);
+
+      } // ChangeSet
+      else {
+        changedItems[key] = new ChangeSet.fromJson(json[key]);
+      }
+    }
   }
 
   /**
@@ -214,5 +237,51 @@ class ChangeSet {
 
   String toString() {
     return 'ChangeSet(${changedItems.toString()})';
+  }
+
+  Map toJson() {
+    Map jsonMap = {};
+
+    for (var key in changedItems.keys) {
+      if (changedItems[key] is ChangeSet) {
+        jsonMap[key] = changedItems[key].toJson();
+        continue;
+      }
+
+      List changeValues = [changedItems[key].oldValue,
+          changedItems[key].newValue];
+
+      jsonMap[key] = [];
+
+      for (var changeValue in changeValues) {
+        if (changeValue != undefined) {
+          jsonMap[key].add(changeValue);
+        } else {
+          jsonMap[key].add(CLEAN_UNDEFINED);
+        }
+      }
+    }
+
+    return jsonMap;
+  }
+}
+
+void apply(ChangeSet changeSet, DataMap dataMap) {
+  var changedItems = changeSet.changedItems;
+
+  for (var key in changedItems.keys) {
+    if (changedItems[key] is Change) {
+      var newValue = changedItems[key].newValue;
+
+      if (newValue != undefined) {
+        dataMap[key] = newValue;
+      } else {
+        dataMap.remove(key);
+      }
+    } else {
+      if (dataMap[key] is DataMap) {
+        apply(changedItems[key], dataMap[key]);
+      }
+    }
   }
 }

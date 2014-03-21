@@ -11,6 +11,7 @@ import 'hash_index_test.dart' as hash_index_test;
 import 'change_set_test.dart' as change_set_test;
 import 'set_streams_test.dart' as set_streams_test;
 import 'cleanify_test.dart' as cleanify_test;
+import 'on_change_test.dart' as on_change_test;
 
 import 'data_sets/transformed_set_view_test.dart' as transformed_test;
 import 'data_sets/filtered_set_view_test.dart' as filtered_test;
@@ -36,6 +37,7 @@ run(configuration) {
   data_reference_test.main();
   set_streams_test.main();
   change_set_test.main();
+  on_change_test.main();
 
   // set views test
   transformed_test.main();
