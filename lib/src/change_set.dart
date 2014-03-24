@@ -239,26 +239,34 @@ class ChangeSet {
     return 'ChangeSet(${changedItems.toString()})';
   }
 
-  Map toJson() {
+  /**
+   * Exports ChangeSet to JsonMap with some restriction of having map as key
+   * only on top-level, in this case _id must be present.
+   * This restriction does not allow to export nested [DataSet]
+   */
+  Map toJson({topLevel: true}) {
     Map jsonMap = {};
 
     for (var key in changedItems.keys) {
+      var newKey;
+
+      if(topLevel && key is Map) {
+        if(!key.containsKey('_id')) throw new Exception('Key does not contain _id');
+        newKey = key['_id'];
+      }
+      else newKey = key;
+
+      if(!(newKey is String || newKey is num))
+        throw new Exception('Key or key[\'id\'] must be primitive type');
+
+
       if (changedItems[key] is ChangeSet) {
-        jsonMap[key] = changedItems[key].toJson();
+        jsonMap[newKey] = changedItems[key].toJson(topLevel: false);
         continue;
       }
-
-      List changeValues = [changedItems[key].oldValue,
-          changedItems[key].newValue];
-
-      jsonMap[key] = [];
-
-      for (var changeValue in changeValues) {
-        if (changeValue != undefined) {
-          jsonMap[key].add(changeValue);
-        } else {
-          jsonMap[key].add(CLEAN_UNDEFINED);
-        }
+      else {
+        jsonMap[newKey] = [changedItems[key].oldValue, changedItems[key].newValue]
+          .map((E) => E == undefined ? CLEAN_UNDEFINED : E).toList();
       }
     }
 
@@ -266,22 +274,49 @@ class ChangeSet {
   }
 }
 
-void apply(ChangeSet changeSet, DataMap dataMap) {
-  var changedItems = changeSet.changedItems;
+/**
+ * Applies json ChangeSet to [CleanSet], [CleanData], [CleanList].
+ * If cleanData is DataSet, index on '_id' must be set.
+ */
 
-  for (var key in changedItems.keys) {
-    if (changedItems[key] is Change) {
-      var newValue = changedItems[key].newValue;
-
-      if (newValue != undefined) {
-        dataMap[key] = newValue;
-      } else {
-        dataMap.remove(key);
+void applyJSON(Map jsonChangeSet, cleanData) {
+  if(cleanData is DataSet) {
+    jsonChangeSet.forEach((key, change) {
+      if(change is List) {
+        if(change[0] != CLEAN_UNDEFINED)
+          cleanData.remove(cleanData.findBy('_id', key).single);
+        if(change[1] != CLEAN_UNDEFINED)
+         cleanData.add(change[1]);
       }
-    } else {
-      if (dataMap[key] is DataMap) {
-        apply(changedItems[key], dataMap[key]);
+      else
+        applyJSON(change, cleanData.findBy('_id', key).single);
+    });
+  }
+  else if(cleanData is DataMap) {
+    jsonChangeSet.forEach((key, change) {
+      if(change is List) {
+        if (change[1] != CLEAN_UNDEFINED) {
+          cleanData[key] = change[1];
+        } else {
+            cleanData.remove(key);
+        }
       }
-    }
+      else applyJSON(change, cleanData[key]);
+    });
+  }
+  else if(cleanData is DataList) {
+    jsonChangeSet.forEach((key, change) {
+      if(change is List) {
+        if (change[1] == CLEAN_UNDEFINED) {
+          cleanData.removeAt(key);
+        } else if(change[0] == CLEAN_UNDEFINED) {
+          cleanData.add(change[1]);
+        }
+        else {
+          cleanData[key] = change[1];
+        }
+      }
+      else applyJSON(change, cleanData[key]);
+    });
   }
 }
