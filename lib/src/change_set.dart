@@ -280,19 +280,25 @@ class ChangeSet {
  */
 
 void applyJSON(Map jsonChangeSet, cleanData) {
-  if(cleanData is DataSet) {
+  if(cleanData is Set) {
     jsonChangeSet.forEach((key, change) {
+      findById(key) {
+        if(cleanData is DataSet)
+          return cleanData.findBy('_id', key).single;
+        else
+          return cleanData.singleWhere((E) => E['_id'] == key);
+      };
       if(change is List) {
         if(change[0] != CLEAN_UNDEFINED)
-          cleanData.remove(cleanData.findBy('_id', key).single);
+          cleanData.remove(findById(key));
         if(change[1] != CLEAN_UNDEFINED)
          cleanData.add(change[1]);
       }
       else
-        applyJSON(change, cleanData.findBy('_id', key).single);
+        applyJSON(change, findById(key));
     });
   }
-  else if(cleanData is DataMap) {
+  else if(cleanData is Map) {
     jsonChangeSet.forEach((key, change) {
       if(change is List) {
         if (change[1] != CLEAN_UNDEFINED) {
@@ -304,7 +310,7 @@ void applyJSON(Map jsonChangeSet, cleanData) {
       else applyJSON(change, cleanData[key]);
     });
   }
-  else if(cleanData is DataList) {
+  else if(cleanData is List) {
     jsonChangeSet.forEach((key, change) {
       if(change is List) {
         if (change[1] == CLEAN_UNDEFINED) {
