@@ -274,14 +274,14 @@ void main() {
         test('key may be number', () {
           changeSet = new ChangeSet({
             'string': new Change(undefined, 'string'),
-            47 : new Change(47, 'forty seven'),
+            '47' : new Change(47, 'forty seven'),
           });
 
           Map exportedJson = changeSet.toJson();
 
           expect(exportedJson, equals({
             'string': [CLEAN_UNDEFINED, 'string'],
-            47 : [47, 'forty seven'],
+            '47' : [47, 'forty seven'],
           }));
         });
 
@@ -375,8 +375,8 @@ void main() {
         });
 
         test('change and add in datalist', () {
-          Map json = { 1: [CLEAN_UNDEFINED, 'add'],
-            0 : ['oldValue', 'newValue'],
+          Map json = { '1': [CLEAN_UNDEFINED, 'add'],
+            '0' : ['oldValue', 'newValue'],
           };
           DataList list = new DataList.from(['oldValue']);
 
@@ -386,14 +386,25 @@ void main() {
         });
 
         test('change and remove in datalist', () {
-          Map json = { 1: ['remove', CLEAN_UNDEFINED],
-            0 : ['oldValue', 'newValue'],
+          Map json = { '1': ['remove', CLEAN_UNDEFINED],
+            '0' : ['oldValue', 'newValue'],
           };
           DataList list = new DataList.from(['oldValue', 'remove']);
 
           applyJSON(json, list);
 
           expect(list, equals(['newValue']));
+        });
+
+        test('remove to elements at once in list', () {
+          Map json = { '1': ['remove', CLEAN_UNDEFINED],
+            '0' : ['oldValue', CLEAN_UNDEFINED],
+            '2' : ['oldValue', CLEAN_UNDEFINED],
+          };
+          DataList list = new DataList.from(['value', 'oldValue', 'remove', 'toRemove']);
+
+          applyJSON(json, list);
+          expect(list, equals(['value']));
         });
 
         test('changes, adds, remove in dataset', () {
@@ -423,7 +434,7 @@ void main() {
         });
 
         test('nested data on list', () {
-          Map json = { 0: {'b': ['old', 'new']}};
+          Map json = { '0': {'b': ['old', 'new']}};
 
           DataList list = new DataList.from([{'b': 'old', 'c': 'c'}, 'second']);
 
@@ -433,16 +444,16 @@ void main() {
         });
 
         test('nested data on set', () {
-          Map json = { 1: {'b': ['old', 'new']}};
+          Map json = { '1': {'b': ['old', 'new']}};
 
-          DataSet set = new DataSet.from([{'_id': 1, 'b': 'old', 'c': 'c'},
-            {'_id': 2, 'b': 'other'}]);
+          DataSet set = new DataSet.from([{'_id': '1', 'b': 'old', 'c': 'c'},
+            {'_id': '2', 'b': 'other'}]);
           set.addIndex(['_id']);
 
           applyJSON(json, set);
 
-          expect(set.toList(), equals([{'_id': 1, 'b': 'new', 'c': 'c'},
-                                       {'_id': 2, 'b': 'other'}]));
+          expect(set.toList(), equals([{'_id': '1', 'b': 'new', 'c': 'c'},
+                                       {'_id': '2', 'b': 'other'}]));
         });
 
 
@@ -459,7 +470,7 @@ void main() {
         });
 
         test('propagates only changes that have truly happened. (list)', () {
-          Map json = { 0: {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
+          Map json = { '0': {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
 
           DataList list = new DataList.from([{'b': 'old', 'c': 'c'}, 'second']);
 
@@ -471,10 +482,10 @@ void main() {
         });
 
         test('propagates only changes that have truly happened. (set)', () {
-          Map json = { 1: {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
+          Map json = { '1': {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
 
-          DataSet set = new DataSet.from([{'_id': 1, 'b': 'old', 'c': 'c'},
-            {'_id': 2, 'b': 'other'}]);
+          DataSet set = new DataSet.from([{'_id': '1', 'b': 'old', 'c': 'c'},
+            {'_id': '2', 'b': 'other'}]);
           set.addIndex(['_id']);
 
           applyJSON(json, set);

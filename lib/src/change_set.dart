@@ -73,6 +73,8 @@ class Change {
 
   String toString() => "Change($oldValue->$newValue)";
 
+  List toJson() => [oldValue, newValue].map((E) => E == undefined ? CLEAN_UNDEFINED : E).toList();
+
 }
 
 /**
@@ -259,14 +261,16 @@ class ChangeSet {
       if(!(newKey is String || newKey is num))
         throw new Exception('Key or key[\'id\'] must be primitive type');
 
+      if(newKey is num) {
+        newKey = '$newKey';
+      }
 
       if (changedItems[key] is ChangeSet) {
         jsonMap[newKey] = changedItems[key].toJson(topLevel: false);
         continue;
       }
       else {
-        jsonMap[newKey] = [changedItems[key].oldValue, changedItems[key].newValue]
-          .map((E) => E == undefined ? CLEAN_UNDEFINED : E).toList();
+        jsonMap[newKey] = changedItems[key].toJson();
       }
     }
 
@@ -312,9 +316,10 @@ void applyJSON(Map jsonChangeSet, cleanData) {
   }
   else if(cleanData is List) {
     jsonChangeSet.forEach((key, change) {
+      key = int.parse(key);
       if(change is List) {
         if (change[1] == CLEAN_UNDEFINED) {
-          cleanData.removeAt(key);
+          if(change[0] != CLEAN_UNDEFINED) cleanData.removeLast();
         } else if(change[0] == CLEAN_UNDEFINED) {
           cleanData.add(change[1]);
         }
