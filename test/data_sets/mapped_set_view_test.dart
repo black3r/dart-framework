@@ -12,7 +12,7 @@ void main() {
     DataMap data1, data2;
     DataSet set;
     var mapper = (dataObj) {
-      var result = clone(dataObj);
+      var result = cleanClone(dataObj);
       result['c'] = 'd';
       return result;
     };

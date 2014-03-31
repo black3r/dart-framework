@@ -14,7 +14,7 @@ void main() {
     var key = (item) => item['a'];
     var comparer = (item1, item2) => item1['a'].compareTo(item2['a']);
     var mapper = (dataObj) {
-      var result = clone(dataObj);
+      var result = cleanClone(dataObj);
       result['c'] = 'd';
       return result;
     };
