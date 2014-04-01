@@ -295,6 +295,7 @@ class DataList<V> extends DataListView<V> with ListMixin implements List<V> {
     }
     if (index == this.length) {
       _add(cleanify(element));
+      _notify(author: author);
       return;
     }
     // We are modifying the length just below the is-check. Without the check

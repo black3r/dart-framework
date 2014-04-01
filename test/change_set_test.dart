@@ -237,5 +237,266 @@ void main() {
         'key2': new Change('va', 'vb')}
       )));
     });
+
+    test('changeSet correctly splits to added, removed and modified items', (){
+      Map data = {'a': 1};
+      var change = new ChangeSet({
+                         'a': new Change(1,2),
+                         'b': new ChangeSet({'a': new Change(1,2)}),
+                         'c': new Change(undefined, 1),
+                         'd': new Change(1, undefined),
+                         'e': new Change(data, data)
+                    });
+      expect(change.addedItems.length +
+             change.removedItems.length +
+             change.strictlyChanged.length,
+             equals(change.changedItems.length));
+    });
+
+    group('(json', () {
+      group('export)', () {
+        test('changes', () {
+          changeSet = new ChangeSet({
+            'add': new Change(undefined, 'value'),
+            'change' : new Change('oldValue', 'newValue'),
+            'remove' : new Change('value', undefined),
+          });
+
+          Map exportedJson = changeSet.toJson();
+
+          expect(exportedJson, equals({
+            'add': [CLEAN_UNDEFINED, 'value'],
+            'change' : ['oldValue', 'newValue'],
+            'remove' : ['value', CLEAN_UNDEFINED]
+          }));
+        });
+
+        test('key may be number', () {
+          changeSet = new ChangeSet({
+            'string': new Change(undefined, 'string'),
+            '47' : new Change(47, 'forty seven'),
+          });
+
+          Map exportedJson = changeSet.toJson();
+
+          expect(exportedJson, equals({
+            'string': [CLEAN_UNDEFINED, 'string'],
+            '47' : [47, 'forty seven'],
+          }));
+        });
+
+        test('nested changeset', () {
+          changeSet = new ChangeSet({
+            'set': new ChangeSet({
+              'change' : new Change('oldValue', 'newValue'),
+            }),
+            'remove' : new Change('value', undefined),
+          });
+
+          Map exportedJson = changeSet.toJson();
+
+          expect(exportedJson, equals({
+            'set': {
+              'change': ['oldValue', 'newValue']
+              },
+            'remove' : ['value', CLEAN_UNDEFINED]
+          }));
+        });
+
+        test('_id is extracted from key if possible on top-level', () {
+          changeSet = new ChangeSet({
+            {'change': 'newValue', '_id': 'id'}:
+              new ChangeSet({'change': new Change('oldValue', 'newValue')}),
+          });
+
+          Map exportedJson = changeSet.toJson();
+
+          expect(exportedJson, equals({
+            'id': { 'change': ['oldValue', 'newValue'] }
+          }));
+        });
+
+        test('key if map must contain _id', () {
+          changeSet = new ChangeSet({
+            {'change': 'newValue'}: new Change('oldValue', 'newValue'),
+          });
+
+          expect(changeSet.toJson, throwsException);
+        });
+
+        test('_id if present must be primitive', () {
+          changeSet = new ChangeSet({
+            {'_id': {}}: new Change('oldValue', 'newValue'),
+          });
+
+          expect(changeSet.toJson, throwsException);
+        });
+
+        test('only primitive types can be on not top-level changeset', () {
+          changeSet = new ChangeSet({
+            'key':  new ChangeSet({{'key': 'value'}: new Change('oldValue', 'newValue')}),
+          });
+          expect(changeSet.toJson, throwsException);
+
+          changeSet = new ChangeSet({
+            'key':  new ChangeSet({{'_id': 'value'}: new Change('oldValue', 'newValue')}),
+          });
+          expect(changeSet.toJson, throwsException);
+
+          changeSet = new ChangeSet({
+            'key':  new ChangeSet({47: new Change('oldValue', 'newValue')}),
+          });
+          expect(changeSet.toJson, isNot(throwsException));
+
+          changeSet = new ChangeSet({
+            'key':  new ChangeSet({'string': new Change('oldValue', 'newValue')}),
+          });
+          expect(changeSet.toJson, isNot(throwsException));
+        });
+      });
+
+      group('apply)', () {
+        test('change, add, remove in datamap', () {
+          Map json = { 'add': [CLEAN_UNDEFINED, 'value'],
+            'change' : ['oldValue', 'newValue'],
+            'remove' : ['value', CLEAN_UNDEFINED]
+          };
+
+          DataMap map = new DataMap.from({
+            'change': 'oldValue',
+            'remove': 'value'
+          });
+          applyJSON(json, map);
+
+          expect(map, equals({
+            'add': 'value',
+            'change': 'newValue'
+          }));
+        });
+
+        test('change and add in datalist', () {
+          Map json = { '1': [CLEAN_UNDEFINED, 'add'],
+            '0' : ['oldValue', 'newValue'],
+          };
+          DataList list = new DataList.from(['oldValue']);
+
+          applyJSON(json, list);
+
+          expect(list, equals(['newValue', 'add']));
+        });
+
+        test('change and remove in datalist', () {
+          Map json = { '1': ['remove', CLEAN_UNDEFINED],
+            '0' : ['oldValue', 'newValue'],
+          };
+          DataList list = new DataList.from(['oldValue', 'remove']);
+
+          applyJSON(json, list);
+
+          expect(list, equals(['newValue']));
+        });
+
+        test('remove to elements at once in list', () {
+          Map json = { '1': ['remove', CLEAN_UNDEFINED],
+            '0' : ['oldValue', CLEAN_UNDEFINED],
+            '2' : ['oldValue', CLEAN_UNDEFINED],
+          };
+          DataList list = new DataList.from(['value', 'oldValue', 'remove', 'toRemove']);
+
+          applyJSON(json, list);
+          expect(list, equals(['value']));
+        });
+
+        test('changes, adds, remove in dataset', () {
+          Map json = { 1: ['remove', CLEAN_UNDEFINED],
+            2 : [{'_id': 2, 'change': 'oldValue'}, {'_id': 2, 'changeNew': 'newValue'}],
+            3 : [CLEAN_UNDEFINED, {'_id': 3, 'new': null}]
+          };
+
+          DataSet set = new DataSet.from([{'_id': 1, 'remove': null},
+             {'_id': 2, 'change': 'oldValue'}]);
+          set.addIndex(['_id']);
+
+          applyJSON(json, set);
+
+          expect(set.toList(), unorderedEquals([{'_id': 3, 'new': null},
+               {'_id': 2, 'changeNew': 'newValue'}]));
+        });
+
+        test('nested data on map', () {
+          Map json = { 'a': {'b': ['old', 'new']}};
+
+          DataMap map = new DataMap.from({'a': {'b': 'old', 'c': 'c'}});
+
+          applyJSON(json, map);
+
+          expect(map, equals({'a': {'b': 'new', 'c': 'c'}}));
+        });
+
+        test('nested data on list', () {
+          Map json = { '0': {'b': ['old', 'new']}};
+
+          DataList list = new DataList.from([{'b': 'old', 'c': 'c'}, 'second']);
+
+          applyJSON(json, list);
+
+          expect(list, equals([{'b': 'new', 'c': 'c'}, 'second']));
+        });
+
+        test('nested data on set', () {
+          Map json = { '1': {'b': ['old', 'new']}};
+
+          DataSet set = new DataSet.from([{'_id': '1', 'b': 'old', 'c': 'c'},
+            {'_id': '2', 'b': 'other'}]);
+          set.addIndex(['_id']);
+
+          applyJSON(json, set);
+
+          expect(set.toList(), equals([{'_id': '1', 'b': 'new', 'c': 'c'},
+                                       {'_id': '2', 'b': 'other'}]));
+        });
+
+
+        test('propagates only changes that have truly happened. (map)', () {
+          Map json = { 'a': {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
+
+          DataMap map = new DataMap.from({'a': {'b': 'old', 'c': 'c'}});
+
+          applyJSON(json, map);
+
+          map.onChange.listen(expectAsync((ChangeSet changeSet) {
+            expect(changeSet.toJson(), equals(json));
+          }));
+        });
+
+        test('propagates only changes that have truly happened. (list)', () {
+          Map json = { '0': {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
+
+          DataList list = new DataList.from([{'b': 'old', 'c': 'c'}, 'second']);
+
+          applyJSON(json, list);
+
+          list.onChange.listen(expectAsync((ChangeSet changeSet) {
+            expect(changeSet.toJson(), equals(json));
+          }));
+        });
+
+        test('propagates only changes that have truly happened. (set)', () {
+          Map json = { '1': {'b': ['old', 'new'], 'd': [CLEAN_UNDEFINED, 'd']}};
+
+          DataSet set = new DataSet.from([{'_id': '1', 'b': 'old', 'c': 'c'},
+            {'_id': '2', 'b': 'other'}]);
+          set.addIndex(['_id']);
+
+          applyJSON(json, set);
+
+          set.onChange.listen(expectAsync((ChangeSet changeSet) {
+            expect(changeSet.toJson(), equals(json));
+          }));
+        });
+
+
+      });
+    });
   });
 }

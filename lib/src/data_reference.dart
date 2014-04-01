@@ -66,11 +66,13 @@ class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValue
   /**
    * Creates new DataReference with [value]
    */
-  DataReference(V value) {
+  DataReference(V value, [this._onDispose = null]) {
     _silentChangeValue(value);
     _clearChanges();
     _clearChangesSync();
   }
+
+  final _onDispose;
 
   void dispose() {
     _dispose();
@@ -80,6 +82,8 @@ class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValue
     if (_onDataChangeSyncListener != null) {
       _onDataChangeSyncListener.cancel();
     }
+
+    if (_onDispose != null) _onDispose();
 
   }
 

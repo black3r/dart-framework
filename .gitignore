@@ -1,11 +1,12 @@
+.DS_Store
 packages
 .buildlog
 lib/docs/
 pubspec.lock
 *.swp
+.project
 *.js
 *.deps
 *.map
 .idea
 .DS_Store
-

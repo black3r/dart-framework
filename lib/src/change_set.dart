@@ -19,6 +19,8 @@ class _Undefined {
 const undefined = const _Undefined('undefined');
 const unset = const _Undefined('unset');
 
+final String CLEAN_UNDEFINED = '__clean_undefined';
+
 /**
  * A representation of a single change in a scalar value.
  */
@@ -71,6 +73,8 @@ class Change {
 
   String toString() => "Change($oldValue->$newValue)";
 
+  List toJson() => [oldValue, newValue].map((E) => E == undefined ? CLEAN_UNDEFINED : E).toList();
+
 }
 
 /**
@@ -91,6 +95,27 @@ class ChangeSet {
 
   ChangeSet([Map changedItems = const {}]) {
     this.changedItems = new Map.from(changedItems);
+  }
+
+  ChangeSet.fromJson(Map json) {
+    for (var key in json.keys) {
+
+      // Change
+      if (json[key] is List) {
+        List changeList = json[key];
+
+        var oldValue = changeList[0] == CLEAN_UNDEFINED ? undefined :
+          changeList[0];
+        var newValue = changeList[1] == CLEAN_UNDEFINED ? undefined :
+          changeList[1];
+
+        changedItems[key] = new Change(oldValue, newValue);
+
+      } // ChangeSet
+      else {
+        changedItems[key] = new ChangeSet.fromJson(json[key]);
+      }
+    }
   }
 
   /**
@@ -163,6 +188,8 @@ class ChangeSet {
     changedItems.forEach((key, dynamic change) {
       if(change is ChangeSet)
         res[key] = change;
+      if(change is Change && (change.oldValue != undefined && change.newValue != undefined))
+        res[key] = change;
     });
     return res;
   }
@@ -212,5 +239,95 @@ class ChangeSet {
 
   String toString() {
     return 'ChangeSet(${changedItems.toString()})';
+  }
+
+  /**
+   * Exports ChangeSet to JsonMap with some restriction of having map as key
+   * only on top-level, in this case _id must be present.
+   * This restriction does not allow to export nested [DataSet]
+   */
+  Map toJson({topLevel: true}) {
+    Map jsonMap = {};
+
+    for (var key in changedItems.keys) {
+      var newKey;
+
+      if(topLevel && key is Map) {
+        if(!key.containsKey('_id')) throw new Exception('Key does not contain _id');
+        newKey = key['_id'];
+      }
+      else newKey = key;
+
+      if(!(newKey is String || newKey is num))
+        throw new Exception('Key or key[\'id\'] must be primitive type');
+
+      if(newKey is num) {
+        newKey = '$newKey';
+      }
+
+      if (changedItems[key] is ChangeSet) {
+        jsonMap[newKey] = changedItems[key].toJson(topLevel: false);
+        continue;
+      }
+      else {
+        jsonMap[newKey] = changedItems[key].toJson();
+      }
+    }
+
+    return jsonMap;
+  }
+}
+
+/**
+ * Applies json ChangeSet to [CleanSet], [CleanData], [CleanList].
+ * If cleanData is DataSet, index on '_id' must be set.
+ */
+
+void applyJSON(Map jsonChangeSet, cleanData) {
+  if(cleanData is Set) {
+    jsonChangeSet.forEach((key, change) {
+      findById(key) {
+        if(cleanData is DataSet)
+          return cleanData.findBy('_id', key).single;
+        else
+          return cleanData.singleWhere((E) => E['_id'] == key);
+      };
+      if(change is List) {
+        if(change[0] != CLEAN_UNDEFINED)
+          cleanData.remove(findById(key));
+        if(change[1] != CLEAN_UNDEFINED)
+         cleanData.add(change[1]);
+      }
+      else
+        applyJSON(change, findById(key));
+    });
+  }
+  else if(cleanData is Map) {
+    jsonChangeSet.forEach((key, change) {
+      if(change is List) {
+        if (change[1] != CLEAN_UNDEFINED) {
+          cleanData[key] = change[1];
+        } else {
+            cleanData.remove(key);
+        }
+      }
+      else applyJSON(change, cleanData[key]);
+    });
+  }
+  else if(cleanData is List) {
+    jsonChangeSet.forEach((key, change) {
+      key = int.parse(key);
+      if(change is List) {
+        if (change[1] == CLEAN_UNDEFINED) {
+          if(change[0] != CLEAN_UNDEFINED) cleanData.removeLast();
+        } else if(change[0] == CLEAN_UNDEFINED) {
+          cleanData.add(change[1]);
+        }
+        else {
+          cleanData[key] = change[1];
+        }
+      }
+      else applyJSON(change, cleanData[key]);
+    });
   }
 }
