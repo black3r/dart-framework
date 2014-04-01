@@ -33,7 +33,7 @@ void main() {
       var winter = [december, january, february];
 
       // when
-      var winterSet = new DataSet.from(winter);
+      var winterSet = new DataSet<DataMap>.from(winter);
 
       // then
       expect(winterSet.length, equals(3));
@@ -43,7 +43,7 @@ void main() {
     //TODO: delete
     test('add data object. (T04)', () {
       // given
-      var winterSet = new DataSet();
+      DataSet<DataMap> winterSet = new DataSet<DataMap>();
       var winter = [december, january, february];
 
       // when
@@ -60,7 +60,7 @@ void main() {
     //TODO: delete
     test('remove dataObject. (T05)', () {
       // given
-      var year = new DataSet.from([december, january, february]);
+      DataSet<DataMap> year = new DataSet.from([december, january, february]);
 
       // when
       year.remove(january);
@@ -153,7 +153,7 @@ void main() {
     test('Index updated synchronously after change. (T22)', () {
 
       // given
-      var winterSet = new DataSet.from([december, january,
+      var winterSet = new DataSet<DataMap>.from([december, january,
                                                       february]);
       winterSet.addIndex(['number']);
 
@@ -234,7 +234,7 @@ void main() {
 
    test('is ignoring non DataView elements, when finding by index.', () {
      // given
-     var springSet = new DataSet.from([march, april, may]),
+     DataSet<DataMap> springSet = new DataSet.from([march, april, may]),
          summerSet = new DataSet.from([june, july, august]),
          autumnSet = new DataSet.from([september, october, november]),
          winterSet = new DataSet.from([december, january, february]),
@@ -256,7 +256,7 @@ void main() {
     test('removeWhere spec. (T29)', () {
 
       // given & when
-      DataSet longMonths = new DataSet.from(months)
+      DataSet<DataMap> longMonths = new DataSet<DataMap>.from(months)
       ..removeWhere((month) => month['days'] <= 30);
 
       // then
@@ -376,7 +376,7 @@ void main() {
 
     test('addAll method (T36)', () {
       // given
-      var winterSet = new DataSet();
+      DataSet<DataMap> winterSet = new DataSet<DataMap>();
       var winter = [december, january, february];
 
       // when
@@ -388,7 +388,7 @@ void main() {
 
     test('retainWhere method (T37)', () {
       // given
-      var set = new DataSet.from(months);
+      var set = new DataSet<DataMap>.from(months);
 
       // when
       set.retainWhere((month) => month['number'] % 2 == 1);
@@ -399,7 +399,7 @@ void main() {
 
     test('retainAll method (T38)', () {
       // given
-      var set = new DataSet.from(evenMonths);
+      var set = new DataSet<DataMap>.from(evenMonths);
       var winter = [december, january, february];
       // when
       set.retainAll(winter);
@@ -410,7 +410,7 @@ void main() {
 
     test('add data object return value. (T39)', () {
       // given
-      var winterSet = new DataSet.from([december, january, february]);
+      var winterSet = new DataSet<DataMap>.from([december, january, february]);
 
       // then
       expect(winterSet.add(january), isFalse);
@@ -453,10 +453,12 @@ void main() {
 
     test('Map is listening properly for Set.', () {
       //given
-      DataMap seasons = new DataMap.from({'spring': new DataSet.from([march, april, may]),
-                      'summer': new DataSet.from([june, july, august]),
-                      'autumn': new DataSet.from([september, october, november]),
-                      'winter': new DataSet.from([december, january, february])});
+      DataMap<String, DataSet> seasons = new DataMap<String, DataSet>.from({
+        'spring': new DataSet.from([march, april, may]),
+        'summer': new DataSet.from([june, july, august]),
+        'autumn': new DataSet.from([september, october, november]),
+        'winter': new DataSet.from([december, january, february])
+      });
 
       //when
       february['days'] = 29;
@@ -473,7 +475,7 @@ void main() {
 
     test('Set is listening properly for Set.', () {
       //given
-      var springSet = new DataSet.from([march, april, may]),
+      DataSet<DataMap> springSet = new DataSet.from([march, april, may]),
           summerSet = new DataSet.from([june, july, august]),
           autumnSet = new DataSet.from([september, october, november]),
           winterSet = new DataSet.from([december, january, february]),

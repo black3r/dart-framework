@@ -13,11 +13,11 @@ typedef dynamic DataTransformFunction(d);
  * By observable we mean that changes to the contents of the set (data addition / change / removal)
  * are propagated to registered listeners.
  */
-abstract class DataSetView extends Object
+abstract class DataSetView<V> extends Object
                with IterableMixin, ChangeNotificationsMixin, ChangeChildNotificationsMixin
-               implements Iterable {
+               implements Iterable<V> {
 
-  Iterator get iterator => _data.iterator;
+  Iterator<V> get iterator => _data.iterator;
 
   /**
    * Holds data view objects for the set.
@@ -120,11 +120,11 @@ abstract class DataSetView extends Object
       new StreamController.broadcast(sync: true);
 
   /**
-   * Returns true iff this set contains the given [dataObj].
+   * Returns true if this set contains the given [dataObj].
    *
    * @param dataObj Data object to be searched for.
    */
-  bool contains(dataObj) => _data.contains(dataObj);
+  bool contains(V dataObj) => _data.contains(dataObj);
 
   /**
    * Filters the data set w.r.t. the given filter function [test].
@@ -247,8 +247,8 @@ abstract class DataSetView extends Object
 /**
  * Set
  */
-class DataSet extends DataSetView
-                      implements Set {
+class DataSet<V> extends DataSetView<V>
+                      implements Set<V> {
 
   /**
    * Creates an empty set.
@@ -259,8 +259,8 @@ class DataSet extends DataSetView
   /**
    * Generates Set from [Iterable] of [data].
    */
-  factory DataSet.from(Iterable data) {
-    var set = new DataSet();
+  factory DataSet.from(Iterable<V> data) {
+    var set = new DataSet<V>();
     set._silentAddAll(data);
     return set;
   }
@@ -272,7 +272,7 @@ class DataSet extends DataSetView
    * nothing happens.
    */
 
-  bool add(dataObj, {author: null}) {
+  bool add(V dataObj, {author: null}) {
     var res = !_data.contains(dataObj);
     this._addAll([dataObj], author: author);
     return res;
@@ -282,14 +282,14 @@ class DataSet extends DataSetView
   /**
    * Appends all [elements] to the set.
    */
-  void addAll(Iterable elements, {author: null}) {
+  void addAll(Iterable<V> elements, {author: null}) {
     this._addAll(elements, author: author);
   }
 
   /**
    * Removes multiple data objects from the set.
    */
-  void removeAll(Iterable toBeRemoved, {author: null}) {
+  void removeAll(Iterable<V> toBeRemoved, {author: null}) {
     this._removeAll(toBeRemoved, author: author);
   }
 
@@ -298,7 +298,7 @@ class DataSet extends DataSetView
    * Removes a data object from the set.  If the object was not in
    * the set, returns [false] and nothing happens.
    */
-  bool remove(dataObj, {author: null}) {
+  bool remove(V dataObj, {author: null}) {
     var res = _data.contains(dataObj);
     this._removeAll([dataObj], author: author);
     return res;
@@ -307,7 +307,7 @@ class DataSet extends DataSetView
   /**
    * Removes all objects that have [property] equal to [value] from this set.
    */
-  Iterable removeBy(String property, dynamic value, {author: null}) {
+  Iterable removeBy(String property, V value, {author: null}) {
     if (!_index.containsKey(property)) {
       throw new NoIndexException('Property $property is not indexed.');
     }
@@ -335,20 +335,20 @@ class DataSet extends DataSetView
 
   lookup(Object object) => _data.lookup(object);
 
-  bool containsAll(Iterable other) => _data.containsAll(other);
+  bool containsAll(Iterable<V> other) => _data.containsAll(other);
 
-  void retainWhere(bool test(element), {author: null}) {
+  void retainWhere(bool test(V element), {author: null}) {
     this._removeWhere((data) => !test(data), author: author);
   }
 
-  void retainAll(Iterable<Object> elements, {author: null}) {
+  void retainAll(Iterable<V> elements, {author: null}) {
     var toKeep = new Set.from(elements);
     this._removeWhere((data) => !toKeep.contains(data), author:author);
   }
 
-  Set difference(Set other) => _data.difference(other);
-  Set intersection(Set other) => _data.intersection(other);
-  Set union(Set other) => _data.union(other);
+  Set difference(Set<V> other) => _data.difference(other);
+  Set intersection(Set<V> other) => _data.intersection(other);
+  Set union(Set<V> other) => _data.union(other);
 
   /**
    * Removes all data objects from the set.
