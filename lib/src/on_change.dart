@@ -13,7 +13,9 @@ part of clean_data;
 Stream onChange(Iterable sources) {
   var start, stop, notify;
 
-  var controller = new StreamController(onListen: () => start(), onCancel: () => stop());
+  var controller = new StreamController.broadcast(
+      onListen: () => start(),
+      onCancel: () => stop());
 
   var subscriptions = [];
   var willNotify = false;

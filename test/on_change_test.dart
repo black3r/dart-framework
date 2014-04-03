@@ -10,14 +10,15 @@ import 'package:clean_data/clean_data.dart';
 import 'dart:async';
 
 class OnChangeMock {
-  bool canceled = false;
+  bool canceled = true;
   change(value) => _onChangeController.add(value);
 
   StreamController _onChangeController;
   Stream get onChange => _onChangeController.stream;
 
   OnChangeMock() {
-    _onChangeController = new StreamController(
+    _onChangeController = new StreamController.broadcast(
+        onListen: () => canceled = false,
         onCancel: () => canceled = true);
   }
 
@@ -66,6 +67,17 @@ void main() {
       expect(ref1.canceled, isTrue);
       expect(ref2.canceled, isTrue);
     });
+
+    test("restart listening", () {
+      // when
+      subscription.cancel();
+      var subscription2 = onChange([ref1, ref2]).listen((_) => handler());
+
+      // then
+      expect(ref1.canceled, isFalse);
+      expect(ref2.canceled, isFalse);
+    });
+
   });
 
   group("React to changes by updating DataReference", () {
