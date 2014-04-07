@@ -5,7 +5,7 @@
 part of clean_data;
 
 
-abstract class DataListView<V> extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin implements Iterable<V> {
+abstract class DataListView<V> extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin<V> implements Iterable<V> {
   List _list = new List();
   get length => _length;
   get _length => _list.length;
@@ -125,7 +125,7 @@ abstract class DataListView<V> extends Object with ChangeNotificationsMixin, Cha
   }
 }
 
-class DataList<V> extends DataListView<V> with ListMixin implements List<V> {
+class DataList<V> extends DataListView<V> with ListMixin<V> implements List<V> {
 
   setLength(newLen, {author: null}) {
     _length = newLen;

@@ -43,10 +43,10 @@ class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValue
     }
 
     if(newValue is ChangeNotificationsMixin) {
-      _onDataChangeSyncListener = newValue.onChangeSync.listen((changeEvent) {
+      _onDataChangeSyncListener = (newValue as ChangeNotificationsMixin).onChangeSync.listen((changeEvent) {
         _onChangeSyncController.add(changeEvent);
       });
-      _onDataChangeListener = newValue.onChange.listen((changeEvent) {
+      _onDataChangeListener = (newValue as ChangeNotificationsMixin).onChange.listen((changeEvent) {
         // due to its lazy initialization, _onChangeController does not need to
         // exist; if not ignore the change, no one is listening!
         if (_onChangeController != null) {

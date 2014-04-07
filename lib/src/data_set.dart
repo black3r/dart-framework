@@ -14,7 +14,7 @@ typedef dynamic DataTransformFunction(d);
  * are propagated to registered listeners.
  */
 abstract class DataSetView<V> extends Object
-               with IterableMixin, ChangeNotificationsMixin, ChangeChildNotificationsMixin
+               with IterableMixin<V>, ChangeNotificationsMixin, ChangeChildNotificationsMixin
                implements Iterable<V> {
 
   Iterator<V> get iterator => _data.iterator;

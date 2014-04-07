@@ -158,27 +158,29 @@ class DataMap<K, V> extends DataMapView<K, V> implements Map<K, V> {
   /**
    * Removes [key] from the data object.
    */
-  void remove(K key, {author: null}) {
-    _removeAll([key], author: author);
+  V remove(K key, {author: null}) {
+    return _removeAll([key], author: author).first;
   }
 
   /**
    * Remove all [keys] from the data object.
    */
-  void removeAll(List<K> keys, {author: null}) {
-    _removeAll(keys, author:author);
+  Iterable<V> removeAll(List<K> keys, {author: null}) {
+    return _removeAll(keys, author:author);
   }
 
 
-  void _removeAll(List<K> keys, {author: null}) {
+  Iterable<V> _removeAll(List<K> keys, {author: null}) {
+    var removed = [];
     for (var key in keys) {
       if(_fields.containsKey(key)){
         _markRemoved(key, this[key]);
-        _fields.remove(key);
+        removed.add(_fields.remove(key));
       }
       _removeOnDataChangeListener(key);
     }
     _notify(author: author);
+    return removed;
   }
 
   void clear({author: null}) {

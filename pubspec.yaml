@@ -1,5 +1,5 @@
 name: clean_data
-version: 0.4.10
+version: 0.4.11
 author: Clean Team <clean@vacuumlabs.com>
 description: Support for automatical data synchronization among collections.
 homepage: http://cleandart.github.io/clean_data/
@@ -8,4 +8,4 @@ environment:
 documentation: http://cleandart.github.io/clean_data/
 dev_dependencies:
   hop: any
-  unittest: any
+  unittest: '>=0.10.0'
