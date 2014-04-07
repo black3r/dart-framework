@@ -5,11 +5,11 @@
 part of clean_data;
 
 
-abstract class DataListView extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin implements Iterable {
+abstract class DataListView<V> extends Object with ChangeNotificationsMixin, ChangeChildNotificationsMixin, IterableMixin implements Iterable<V> {
   List _list = new List();
   get length => _length;
   get _length => _list.length;
-  dynamic operator [](key) => _list[key] is DataReference ? _list[key].value : _list[key];
+  V operator [](key) => _list[key] is DataReference ? _list[key].value : _list[key];
   DataReference ref(int pos) {
     if(_list[pos] is! DataReference) {
       _removeOnDataChangeListener(pos);
@@ -51,7 +51,7 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
   DataListView(){}
 
   // Iterable interface.
-  Iterator get iterator => _list.map((elem) => elem is DataReference ? elem.value : elem).iterator;
+  Iterator<V> get iterator => _list.map((elem) => elem is DataReference ? elem.value : elem).iterator;
 
   void _rangeCheck(int start, int end) {
     if (start < 0 || start > this.length) {
@@ -125,7 +125,7 @@ abstract class DataListView extends Object with ChangeNotificationsMixin, Change
   }
 }
 
-class DataList extends DataListView with ListMixin implements List {
+class DataList<V> extends DataListView<V> with ListMixin implements List<V> {
 
   setLength(newLen, {author: null}) {
     _length = newLen;
@@ -143,34 +143,34 @@ class DataList extends DataListView with ListMixin implements List {
     while(newLen < _length) _remove(_list.length - 1);
   }
 
-  operator []=(key, dynamic value) => set(key, cleanify(value));
+  operator []=(key, V value) => set(key, cleanify(value));
 
   DataList(){}
 
-  factory DataList.from(Iterable elements) {
-    DataList dataList =  new DataList();
+  factory DataList.from(Iterable<V> elements) {
+    DataList<V> dataList =  new DataList<V>();
     elements.forEach((elem) => dataList._silentAdd(cleanify(elem)));
     return dataList;
   }
 
-  void add(element, {author: null}) {
+  void add(V element, {author: null}) {
     _add(cleanify(element));
     _notify(author: author);
   }
 
-  set(int key, dynamic value, {author: null}) {
+  set(int key, V value, {author: null}) {
     _set(key, cleanify(value));
     _notify(author: author);
   }
 
-  void addAll(Iterable iterable, {author: null}) {
-    for (dynamic element in iterable) {
+  void addAll(Iterable<V> iterable, {author: null}) {
+    for (V element in iterable) {
       _add(cleanify(element));
     }
     _notify(author: author);
   }
 
-  bool remove(Object element, {author: null}) {
+  bool remove(V element, {author: null}) {
     int index = indexOf(element);
     if(index == -1) return false;
     var ret = _remove(index);
@@ -178,12 +178,12 @@ class DataList extends DataListView with ListMixin implements List {
     return ret;
   }
 
-  void removeWhere(bool test(element), {author: null}) {
+  void removeWhere(bool test(V element), {author: null}) {
     _filter(this, test, false);
     _notify(author: author);
   }
 
-  void retainWhere(bool test(element), {author: null}) {
+  void retainWhere(bool test(V element), {author: null}) {
     _filter(this, test, true);
     _notify(author: author);
   }
@@ -252,7 +252,7 @@ class DataList extends DataListView with ListMixin implements List {
     _notify(author: author);
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0, author]) {
+  void setRange(int start, int end, Iterable<V> iterable, [int skipCount = 0, author]) {
     this._rangeCheck(start, end);
     for(var elem in iterable) {
       if(start < end) this[start] = cleanify(elem);
@@ -263,7 +263,7 @@ class DataList extends DataListView with ListMixin implements List {
 
 
 
-  void replaceRange(int start, int end, Iterable newContents, {author: null}) {
+  void replaceRange(int start, int end, Iterable<V> newContents, {author: null}) {
     this._rangeCheck(start, end);
     newContents = newContents.toList().map((E) => cleanify(E));
     int removeLength = end - start;
@@ -289,12 +289,13 @@ class DataList extends DataListView with ListMixin implements List {
   }
 
 
-  void insert(int index, element, {author: null}) {
+  void insert(int index, V element, {author: null}) {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
     }
     if (index == this.length) {
       _add(cleanify(element));
+      _notify(author: author);
       return;
     }
     // We are modifying the length just below the is-check. Without the check
@@ -314,7 +315,7 @@ class DataList extends DataListView with ListMixin implements List {
     return result;
   }
 
-  void insertAll(int index, Iterable iterable, {author: null}) {
+  void insertAll(int index, Iterable<V> iterable, {author: null}) {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
     }
@@ -331,7 +332,7 @@ class DataList extends DataListView with ListMixin implements List {
     _notify(author: author);
   }
 
-  void setAll(int index, Iterable iterable, {author: null}) {
+  void setAll(int index, Iterable<V> iterable, {author: null}) {
     for (dynamic element in iterable) {
       this[index++]= cleanify(element);
     }

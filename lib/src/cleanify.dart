@@ -45,7 +45,7 @@ _clone(data) {
   return cleanify(decleanify(data));
 }
 
-ChangeNotificationsMixin clone(data) {
+ChangeNotificationsMixin cleanClone(data) {
   if (data is DataList || data is DataMap || data is DataSet) {
     return _clone(data);
   }

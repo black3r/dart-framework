@@ -16,14 +16,14 @@ void main() {
 
   group('(DataList)', () {
     test('initiliaze. (T01)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three']);
       list.add('four');
       expect(list.length, equals(4));
       expect(list, orderedEquals(['one', 'two', 'three', 'four']));
     });
 
     test('adding element fires change. (T02)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
         expect(event['change'], equals(new ChangeSet({3: new Change(undefined, 'four')})));
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('changing element fires change. (T02)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
         expect(event['change'], equals(new ChangeSet({0: new Change('one', 'ONE')})));
@@ -59,7 +59,7 @@ void main() {
 
 
     test('removing last element fires change. (T03)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
         expect(event['change'], equals(new ChangeSet({2: new Change('three', undefined)})));
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('removing element fires change. (T04)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList<String> list = new DataList.from(['one', 'two', 'three']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
         expect(event['change'], equals(new ChangeSet({
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('add more items at once. (T05)', () {
-      DataList list = new DataList.from(['one', 'two', 'three']);
+      DataList list = new DataList<String>.from(['one', 'two', 'three']);
 
       list.onChangeSync.listen(expectAsync1((Map event) {
         expect(event['change'], equals(new ChangeSet({
@@ -144,7 +144,7 @@ void main() {
 
     test('retainWhere (T07)', () {
       // given
-      DataList dataList = new DataList.from(['element1','doge', 'doge', 'element4']);
+      DataList<String> dataList = new DataList.from(['element1','doge', 'doge', 'element4']);
       var changeSet;
       dataList.onChangeSync.listen((Map event) {
         changeSet = event['change'];
@@ -195,7 +195,7 @@ void main() {
 
     test('removeRange (T09)', () {
       // given
-      DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
+      DataList<String> list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
       var changeSet;
       list.onChangeSync.listen((Map event) {
         expect(changeSet, equals(null));
@@ -219,7 +219,7 @@ void main() {
 
     test('setRange (T10)', () {
       // given
-      DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three', 'four', 'five']);
       var ref2 = list.ref(1);
       var ref3 = list.ref(2);
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
@@ -237,7 +237,7 @@ void main() {
 
     test('replaceRange (T11)', () {
       // given
-      DataList list = new DataList.from(['one', 'two', 'three', 'four', 'five']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'three', 'four', 'five']);
 
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
@@ -256,7 +256,7 @@ void main() {
 
     test('insert (T12)', () {
       // given
-      DataList list = new DataList.from(['one', 'two', 'three', 'five']);
+      DataList<String> list = new DataList.from(['one', 'two', 'three', 'five']);
 
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
@@ -273,7 +273,7 @@ void main() {
 
     test('insertAll (T13)', () {
       // given
-      DataList list = new DataList.from(['one', 'two', 'five']);
+      DataList<String> list = new DataList<String>.from(['one', 'two', 'five']);
 
       list.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
@@ -292,7 +292,7 @@ void main() {
     group('nested', () {
       test('listens to changes of its children. (T14)', () {
         // given
-        DataList dataList = new DataList.from([new DataMap(), new DataMap()]);
+        DataList<DataMap> dataList = new DataList<DataMap>.from([new DataMap(), new DataMap()]);
 
         // when
         dataList[0]['name'] = 'John Doe';
@@ -310,7 +310,7 @@ void main() {
       test('do not listen to removed children changes. (T15)', () {
         // given
         var child = new DataMap();
-        DataList dataList = new DataList.from([child]);
+        DataList<DataMap> dataList = new DataList.from([child]);
         var onChange = new Mock();
 
         // when
@@ -330,7 +330,7 @@ void main() {
         // given
         var child1 = new DataMap();
         var child2 = new DataMap();
-        DataList dataList = new DataList.from([new DataMap(), child1, child2]);
+        DataList<DataMap> dataList = new DataList.from([new DataMap(), child1, child2]);
         var onRemove = new Mock();
         var onChange = new Mock();
         dataList.onChangeSync.listen((event) => onRemove.handler(event));
@@ -368,7 +368,7 @@ void main() {
 
     test('Do not change values that are already cleanified ', (){
       var child = new DataMap.from({'aa': 1});
-      var data = new DataList.from([child]);
+      var data = new DataList<DataMap>.from([child]);
       expect(data[0] == child, isTrue);
     });
 
@@ -389,7 +389,7 @@ void main() {
       });
 
       test('changing reference changes list.', () {
-        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var data = new DataList<Map>.from([{'id': 1}, {'id': 2}, {'id': 3}]);
         var ref = data.ref(1);
         ref.value['id'] = 4;
         expect(data[1]['id'], equals(4));
@@ -400,7 +400,7 @@ void main() {
       });
 
       test('after removing element, do not listen on reference.', () {
-        var data = new DataList.from([{'id': 1}, {'id': 2}, {'id': 3}]);
+        var data = new DataList<Map>.from([{'id': 1}, {'id': 2}, {'id': 3}]);
         var ref = data.ref(1);
         data.remove(data[1]);
         data.onChangeSync.listen(protectAsync1((_) => expect(true, isFalse)));

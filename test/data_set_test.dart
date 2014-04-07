@@ -33,7 +33,7 @@ void main() {
       var winter = [december, january, february];
 
       // when
-      var winterSet = new DataSet.from(winter);
+      var winterSet = new DataSet<DataMap>.from(winter);
 
       // then
       expect(winterSet.length, equals(3));
@@ -43,7 +43,7 @@ void main() {
     //TODO: delete
     test('add data object. (T04)', () {
       // given
-      var winterSet = new DataSet();
+      DataSet<DataMap> winterSet = new DataSet<DataMap>();
       var winter = [december, january, february];
 
       // when
@@ -60,7 +60,7 @@ void main() {
     //TODO: delete
     test('remove dataObject. (T05)', () {
       // given
-      var year = new DataSet.from([december, january, february]);
+      DataSet<DataMap> year = new DataSet.from([december, january, february]);
 
       // when
       year.remove(january);
@@ -153,7 +153,7 @@ void main() {
     test('Index updated synchronously after change. (T22)', () {
 
       // given
-      var winterSet = new DataSet.from([december, january,
+      var winterSet = new DataSet<DataMap>.from([december, january,
                                                       february]);
       winterSet.addIndex(['number']);
 
@@ -234,17 +234,17 @@ void main() {
 
    test('is ignoring non DataView elements, when finding by index.', () {
      // given
-     var springSet = new DataSet.from([march, april, may]),
+     DataSet<DataMap> springSet = new DataSet.from([march, april, may]),
          summerSet = new DataSet.from([june, july, august]),
          autumnSet = new DataSet.from([september, october, november]),
          winterSet = new DataSet.from([december, january, february]),
-         seasons = new DataSet.from([springSet, summerSet, 
+         seasons = new DataSet.from([springSet, summerSet,
                                      autumnSet, winterSet]);
-     
+
      var year = new DataSet.from(
          months..add(seasons)
            ..addAll(['spring', 'summer', 'autumn', 'winter']));
-     
+
      // when
      year.addIndex(['number']);
 
@@ -252,11 +252,11 @@ void main() {
      expect(year.findBy('number', 7), equals([july]));
      expect(year.findBy('number', 13).isEmpty, isTrue);
    });
-   
+
     test('removeWhere spec. (T29)', () {
 
       // given & when
-      DataSet longMonths = new DataSet.from(months)
+      DataSet<DataMap> longMonths = new DataSet<DataMap>.from(months)
       ..removeWhere((month) => month['days'] <= 30);
 
       // then
@@ -376,7 +376,7 @@ void main() {
 
     test('addAll method (T36)', () {
       // given
-      var winterSet = new DataSet();
+      DataSet<DataMap> winterSet = new DataSet<DataMap>();
       var winter = [december, january, february];
 
       // when
@@ -388,7 +388,7 @@ void main() {
 
     test('retainWhere method (T37)', () {
       // given
-      var set = new DataSet.from(months);
+      var set = new DataSet<DataMap>.from(months);
 
       // when
       set.retainWhere((month) => month['number'] % 2 == 1);
@@ -399,7 +399,7 @@ void main() {
 
     test('retainAll method (T38)', () {
       // given
-      var set = new DataSet.from(evenMonths);
+      var set = new DataSet<DataMap>.from(evenMonths);
       var winter = [december, january, february];
       // when
       set.retainAll(winter);
@@ -410,7 +410,7 @@ void main() {
 
     test('add data object return value. (T39)', () {
       // given
-      var winterSet = new DataSet.from([december, january, february]);
+      var winterSet = new DataSet<DataMap>.from([december, january, february]);
 
       // then
       expect(winterSet.add(january), isFalse);
@@ -449,40 +449,42 @@ void main() {
       // then
       expect(count, 1);
     });
-    
-    
-    test('Map is listening properly for Set.', () { 
-      //given 
-      DataMap seasons = new DataMap.from({'spring': new DataSet.from([march, april, may]),
-                      'summer': new DataSet.from([june, july, august]),
-                      'autumn': new DataSet.from([september, october, november]),
-                      'winter': new DataSet.from([december, january, february])});
-      
+
+
+    test('Map is listening properly for Set.', () {
+      //given
+      DataMap<String, DataSet> seasons = new DataMap<String, DataSet>.from({
+        'spring': new DataSet.from([march, april, may]),
+        'summer': new DataSet.from([june, july, august]),
+        'autumn': new DataSet.from([september, october, november]),
+        'winter': new DataSet.from([december, january, february])
+      });
+
       //when
       february['days'] = 29;
-      
+
       //then
       seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
           'winter': new ChangeSet({
             february: new ChangeSet({'days': new Change(28, 29)})
           })
-        })));   
+        })));
       }));
     });
-    
-    test('Set is listening properly for Set.', () { 
-      //given 
-      var springSet = new DataSet.from([march, april, may]),
+
+    test('Set is listening properly for Set.', () {
+      //given
+      DataSet<DataMap> springSet = new DataSet.from([march, april, may]),
           summerSet = new DataSet.from([june, july, august]),
           autumnSet = new DataSet.from([september, october, november]),
           winterSet = new DataSet.from([december, january, february]),
-          seasons = new DataSet.from([springSet, summerSet, 
+          seasons = new DataSet.from([springSet, summerSet,
                                              autumnSet, winterSet]);
-      
+
       //when
       february['days'] = 29;
-      
+
       //then
       seasons.onChange.listen(expectAsync1((ChangeSet changeSet) {
         expect(changeSet, equals(new ChangeSet({
@@ -492,23 +494,23 @@ void main() {
         })));
       }));
     });
-    
+
     test('is accepting also non clean_data elements.', () {
       var springSet = new DataSet.from([march, april, may]),
           summerSet = new DataSet.from([june, july, august]),
           autumnSet = new DataSet.from([september, october, november]),
           winterSet = new DataSet.from([december, january, february]);
       var seasonsData = new DataSet.from(['spring', 'summer', 'autumn', 'winter',
-                                                 springSet, summerSet, 
+                                                 springSet, summerSet,
                                                  autumnSet, winterSet]);
       seasonsData.remove('summer');
-      
+
       expect(seasonsData.length, equals(7));
       expect(seasonsData.contains('spring'), isTrue);
       expect(seasonsData.contains('summer'), isFalse);
       expect(seasonsData.contains(springSet), isTrue);
     });
-    
+
   });
 
 }

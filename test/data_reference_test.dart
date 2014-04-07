@@ -17,24 +17,24 @@ void main() {
   group('(DataReference)', () {
 
     test('Getter (T01)', () {
-      DataReference ref = new DataReference('value');
+      DataReference<String> ref = new DataReference<String>('value');
       expect(ref.value, 'value');
     });
 
     test('Dispose', (){
-      DataReference ref = new DataReference('value');
+      DataReference<String> ref = new DataReference<String>('value');
       ref.dispose();
     });
 
     test('Setter (T02)', () {
-      DataReference ref = new DataReference('value');
+      DataReference ref = new DataReference<String>('value');
       ref.value = 'newValue';
       expect(ref.value, 'newValue');
     });
 
 
     test('Listen on change (T03)', () {
-      DataReference ref = new DataReference('oldValue');
+      DataReference<String> ref = new DataReference('oldValue');
 
       ref.value = 'newValue';
       ref.onChange.listen(expectAsync1((Change change) {
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('Correctly merge changes. (T04)', () {
-      DataMap d = new DataMap.from({'name': 'Bond. James Bond.'});
+      DataMap<String, String> d = new DataMap.from({'name': 'Bond. James Bond.'});
       var oldRef = d.ref('name');
       d['name'] = 'Guybrush';
       d.remove('name');
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('Listen on changeSync (T05)', () {
-      DataReference ref = new DataReference('oldValue');
+      DataReference<String> ref = new DataReference<String>('oldValue');
 
       var check = expectAsync1((event) {
         expect(event['change'], equals(new Change('oldValue', 'newValue')));
@@ -68,7 +68,7 @@ void main() {
 
     test('Listen on changes of value. (T06)', () {
       var data = new DataMap.from({'key': 'oldValue'});
-      var dataRef = new DataReference(data);
+      var dataRef = new DataReference<DataMap>(data);
 
       // when
       dataRef.value['key'] = 'semiNewValue';
@@ -87,7 +87,7 @@ void main() {
     test('Listen synchronyosly on changes of value. (T07)', () {
       //given
       var data = new DataMap.from({'key': 'oldValue'});
-      var dataRef = new DataReference(data);
+      var dataRef = new DataReference<DataMap>(data);
       var change;
       dataRef.onChangeSync.listen((event){
         change = event['change'];

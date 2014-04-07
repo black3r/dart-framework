@@ -21,7 +21,7 @@ void main() {
     test('initialize. (T01)', () {
 
       // when
-      var data = new DataMap();
+      var data = new DataMap<String, String>();
 
       // then
       expect(data.isEmpty, isTrue);
@@ -31,7 +31,7 @@ void main() {
 
     test('initialize with data. (T02)', () {
       // given
-      var data = {
+      Map<String, String> data = {
         'key1': 'value1',
         'key2': 'value2',
         'key3': 'value3',
@@ -53,7 +53,7 @@ void main() {
 
     test('is accessed like a map. (T03)', () {
       // given
-      var dataObj =  new DataMap();
+      DataMap<String, String> dataObj =  new DataMap();
 
       // when
       dataObj['key'] = 'value';
@@ -78,7 +78,7 @@ void main() {
     test('add multiple items. (T05)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'};
-      var dataObj = new DataMap();
+      DataMap<String, String> dataObj = new DataMap();
 
       // when
       dataObj.addAll(data);
@@ -150,7 +150,7 @@ void main() {
 
     test('listen on {key, value} added. (T08)', () {
       // given
-      var dataObj = new DataMap();
+      DataMap<String, String> dataObj = new DataMap();
 
       // when
       dataObj['key'] = 'value';
@@ -274,7 +274,7 @@ void main() {
     test('when property is added then changed, only addition is in the [ChangeSet]. (T15)', () {
       // given
       var data = {'key1': 'value1', 'key2': 'value2'};
-      var dataObj = new DataMap.from(data);
+      DataMap<String, String> dataObj = new DataMap.from(data);
 
       // when
       dataObj['key3'] = 'John Doe';
@@ -398,8 +398,8 @@ void main() {
 
     test('Data implements map.putIfAbsent(). (T23)', () {
       // given
-      Map<String, int> data = {'key1': "value1"};
-      var dataObj = new DataMap.from(data);
+      Map<String, String> data = {'key1': "value1"};
+      DataMap<String, String> dataObj = new DataMap.from(data);
 
       // when
         dataObj.putIfAbsent('key1', () => '');
@@ -436,7 +436,7 @@ void main() {
 
     test('listens to changes of its children.', () {
       // given
-      var dataObj = new DataMap.from({'child': new DataMap()});
+      DataMap<String, DataMap> dataObj = new DataMap.from({'child': new DataMap()});
 
       // when
       dataObj['child']['name'] = 'John Doe';
@@ -585,7 +585,7 @@ void main() {
     });
 
     test('data can be replaced by another data.', () {
-      DataMap data = new DataMap();
+      DataMap<String, DataMap> data = new DataMap();
       data['name'] = new DataMap();
       data['name'] = new DataMap();
       data['name']['first'] = 'Guybrush';
@@ -599,7 +599,7 @@ void main() {
   group('(DataReference)', () {
     test('is assigned to elements key. (T1)', () {
       //given
-      var data1 = new DataMap();
+      DataMap<String, dynamic> data1 = new DataMap();
       var data2 = new DataMap();
 
       //when
@@ -683,7 +683,7 @@ void main() {
   });
 
   test('listen on nested list change (this was failing)', (){
-    DataMap y = new DataMap.from({'credit': 10, 'lineup': {'1':[null]}});
+    DataMap<String, dynamic> y = new DataMap.from({'credit': 10, 'lineup': {'1':[null]}});
 
     y['credit'] = 5;
     y['lineup']['1'][0] = 11;
