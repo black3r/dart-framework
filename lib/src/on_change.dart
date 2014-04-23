@@ -46,17 +46,6 @@ Stream onChange(Iterable sources) {
   return controller.stream;
 }
 
-/**
- * Listens to onChange on every element in [listenTo] and updates [ref] with
- * value returned by [computeValue].
- *
- * Optionaly [computeValue] can return [ReactiveValue] instance which can
- * specify expiration time after which the value must be recalculated.
- *
- * By default update to [ref] is only made if the newly computed value differs
- * from the value stored in [ref]. You can override this behavior by setting
- * [forceOverride] to true.
- */
 class Reactor {
   final DataReference ref;
   final Function computeValue;
@@ -64,6 +53,17 @@ class Reactor {
 
   final _scheduleExpiration;
 
+  /**
+   * Listens to onChange on every element in [listenTo] and updates [ref] with
+   * value returned by [computeValue].
+   *
+   * Optionaly [computeValue] can return [ReactiveValue] instance which can
+   * specify expiration time after which the value must be recalculated.
+   *
+   * By default update to [ref] is only made if the newly computed value differs
+   * from the value stored in [ref]. You can override this behavior by setting
+   * [forceOverride] to true.
+   */
   Reactor(DataReference ref, List listenTo, Function computeValue,
       {bool forceOverride: false})
       : this.config(ref, listenTo, computeValue, scheduleExpiration,
