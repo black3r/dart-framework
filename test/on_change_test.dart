@@ -9,6 +9,9 @@ import 'package:unittest/mock.dart';
 import 'package:clean_data/clean_data.dart';
 import 'dart:async';
 
+class MockFunction extends Mock implements Function {}
+class MockTimer extends Mock implements Timer {}
+
 class OnChangeMock {
   bool canceled = true;
   change(value) => _onChangeController.add(value);
@@ -21,7 +24,15 @@ class OnChangeMock {
         onListen: () => canceled = false,
         onCancel: () => canceled = true);
   }
+}
 
+class ReactorMock extends Reactor {
+  ReactorMock(DataReference ref, List listenTo, Function computeValue, {bool forceOverride: false, this.customSchedule})
+      : super(ref, listenTo, computeValue, forceOverride: forceOverride){
+
+  }
+  var customSchedule = (duration, callback) => new Timer(duration, callback);
+  schedule(duration, callback) => customSchedule(duration, callback);
 }
 
 void main() {
@@ -80,6 +91,130 @@ void main() {
 
   });
 
+  group("Reactor test", () {
+    var handler, oldValue, newValue, reactive;
+    DataReference ref, ref1, ref2;
+    var recalculatedValue;
+    var calculation;
+
+    setUp(() {
+      // given
+      ref1 = new DataReference(null);
+      ref2 = new DataReference(null);
+      ref = new DataReference(null);
+      var customHandler = new Mock();
+      handler = customHandler;
+      ref.onChangeSync.listen((_) => customHandler(ref.value));
+      recalculatedValue = 1;
+      calculation = new MockFunction()
+         ..when(callsTo('call')).alwaysCall(()=> recalculatedValue);
+    });
+
+    test(" set initial value to calculation", () {
+      //given
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation);
+      //then
+      expect(ref.value, equals(recalculatedValue));
+    });
+
+    test(" react to changes of listen to", () {
+      //given
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation);
+
+      //when
+      recalculatedValue = 2;
+      ref1.value = 2;
+
+      //then
+      return new Future.delayed(new Duration(milliseconds: 10), () {
+        handler.getLogs(callsTo('call', recalculatedValue)).verify(happenedOnce);
+      });
+    });
+
+    test(" handles expiration value", (){
+      //given
+      var runScheduledCallback;
+      var customSchedule = new MockTimer();
+      customSchedule..when(callsTo('call')).alwaysCall((duration,callback) {
+        runScheduledCallback = callback;
+        return customSchedule;
+       });
+      var expirationTime = new DateTime(2014, 1, 1, 13);
+      recalculatedValue = new ReactiveValue(2, expirationTime);
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation,
+          customSchedule: customSchedule);
+
+      //then
+      customSchedule.getLogs(callsTo('call', expirationTime, anything)).verify(happenedOnce);
+
+      //when
+      recalculatedValue = "afterExpiration";
+      runScheduledCallback();
+
+      //then
+      return new Future.delayed(new Duration(milliseconds: 10), () {
+        handler.getLogs(callsTo('call', recalculatedValue)).verify(happenedOnce);
+      });
+    });
+
+    test(" cancel previous timer if recalculate happens", (){
+      //given
+      var runScheduledCallback;
+      var customSchedule = new MockTimer();
+      customSchedule..when(callsTo('call')).alwaysCall((duration,callback) {
+        runScheduledCallback = callback;
+        return customSchedule;
+       });
+      var expirationTime = new DateTime(2014, 1, 1, 13);
+      recalculatedValue = new ReactiveValue(2, expirationTime);
+
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation,
+          customSchedule: customSchedule);
+
+      //then
+      customSchedule.getLogs(callsTo('call', expirationTime, anything)).verify(happenedOnce);
+
+      //when
+      recalculatedValue = 5;
+      reactor.recalculate();
+      //then
+      customSchedule.getLogs(callsTo('cancel')).verify(happenedOnce);
+
+    });
+
+
+    test(" if value is not changed do nothing", (){
+      // given
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation);
+
+      // when
+      reactor.recalculate();
+      reactor.recalculate();
+      reactor.recalculate();
+
+      // then
+      return new Future.delayed(new Duration(milliseconds: 100), () {
+        handler.getLogs(callsTo('call')).verify(happenedOnce);
+      });
+    });
+
+    test(" if value is not changed and forceUpdate fire events", (){
+      // given
+      var reactor = new ReactorMock(ref, [ref1, ref2], calculation, forceOverride: true);
+
+      // when
+      reactor.recalculate();
+      reactor.recalculate();
+      reactor.recalculate();
+      // then
+      return new Future.delayed(new Duration(milliseconds: 100), () {
+        handler.getLogs(callsTo('call')).verify(happenedExactly(4));
+      });
+    });
+  });
+
+
+
   group("React to changes by updating DataReference", () {
     var ref1, ref2, handler, value, oldValue, newValue, reactive;
 
@@ -96,12 +231,12 @@ void main() {
 
     test("reactively.", () {
       // then
-      reactive.onChange.listen(expectAsync1((_) {
-        expect(reactive.value, equals(newValue));
-      }));
+      reactive.onChange.listen(expectAsync((_) {
+        expect(reactive.value, equals(value));
+        // when
+        value = 10;
+      }, count: 2));
 
-      // when
-      value = 10;
       ref1.change("sth");
       ref2.change('another');
     });
@@ -116,7 +251,7 @@ void main() {
 
       // then
       return new Future.delayed(new Duration(milliseconds: 10), () {
-        handler.getLogs(callsTo('call')).verify(neverHappened);
+        handler.getLogs(callsTo('call')).verify(happenedOnce);
       });
     });
   });
