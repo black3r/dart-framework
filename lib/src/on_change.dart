@@ -65,7 +65,7 @@ class Reactor {
    * [forceOverride] to true.
    */
   Reactor(DataReference ref, List listenTo, Function computeValue,
-      {bool forceOverride: false})
+          {bool forceOverride: false})
       : this.config(ref, listenTo, computeValue, scheduleExpiration,
                     forceOverride: forceOverride);
 
@@ -82,10 +82,8 @@ class Reactor {
 
   /**
    * Force recalculation of the [ref].
-   *
-   * If [forceOverride] is not set, use the value specified in constructor.
    */
-  recalculate(){
+  recalculate() {
     var newValue = computeValue();
 
     if (newValue is! ReactiveValue) {
