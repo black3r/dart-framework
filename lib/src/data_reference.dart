@@ -72,7 +72,7 @@ class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValue
     _clearChangesSync();
   }
 
-  final _onDispose;
+  Function _onDispose;
 
   void dispose() {
     _dispose();

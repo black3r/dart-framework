@@ -47,16 +47,128 @@ Stream onChange(Iterable sources) {
 }
 
 /**
- * Reactively compute value of reference.
- * Value is computed using [mapFunction] whenever happens [onChange] on any item
- * in [sources].
+ * Listens to onChange on every element in [listenTo] and updates [ref] with
+ * value returned by [computeValue].
+ *
+ * Optionaly [computeValue] can return [ReactiveValue] instance which can
+ * specify expiration time after which the value must be recalculated.
+ *
+ * By default update to [ref] is only made if the newly computed value differs
+ * from the value stored in [ref]. You can override this behavior by setting
+ * [forceOverride] to true.
  */
-DataReference reactiveRef(Iterable sources, mapFunction) {
-  var ref;
-  var listener = onChange(sources).listen((_) {
-    var newValue = mapFunction();
-    if (ref.value != newValue) ref.value = newValue;
-  });
-  ref = new DataReference(mapFunction(), listener.cancel);
+class Reactor {
+  final DataReference ref;
+  final Function computeValue;
+  final bool forceOverride;
+
+  final _scheduleExpiration;
+
+  Reactor(DataReference ref, List listenTo, Function computeValue,
+      {bool forceOverride: false})
+      : this.config(ref, listenTo, computeValue, scheduleExpiration,
+                    forceOverride: forceOverride);
+
+  Reactor.config(DataReference this.ref, List listenTo,
+      Function this.computeValue, this._scheduleExpiration,
+      {bool this.forceOverride: false}) {
+
+    recalculate();
+    listener = onChange(listenTo).listen((_) => recalculate());
+  }
+
+  StreamSubscription listener;
+  Timer expirationTimer;
+
+  /**
+   * Force recalculation of the [ref].
+   *
+   * If [forceOverride] is not set, use the value specified in constructor.
+   */
+  recalculate(){
+    var newValue = computeValue();
+
+    if (newValue is! ReactiveValue) {
+      newValue = new ReactiveValue(newValue);
+    }
+
+    // set new value to ref if new is different or forceOverride is setted
+    if (ref.value != newValue.value || forceOverride == true) {
+      ref.value = newValue.value;
+    }
+
+    //cancel previous scheduled expiration
+    if (expirationTimer != null) {
+      expirationTimer.cancel();
+      expirationTimer = null;
+    }
+
+    // schedule recalculation if needed
+    if (newValue.expiration != null) {
+      expirationTimer = _scheduleExpiration(newValue.expiration, recalculate);
+    }
+  }
+
+
+  /**
+   * Dispose all listeners and timers.
+   */
+  dispose() {
+    if (expirationTimer != null) expirationTimer.cancel();
+    listener.cancel();
+  }
+}
+
+/**
+ * Describes reactively computed value with expiration time.
+ */
+class ReactiveValue {
+  final DateTime expiration;
+  final dynamic value;
+  ReactiveValue(this.value, {DateTime this.expiration});
+}
+
+
+// When compiled to javascript timer can not be set to period longer than
+// 23 days. For this reason [scheduleExpiration] do not schedule [Duration]s
+// longer than MAX_SAFE_DURATION.
+const MAX_SAFE_DURATION = const Duration(days: 10);
+
+/**
+ * Schedule [callback] invocation for some particular [DateTime] in future.
+ *
+ * Returns [Timer] instance responsible for calling the [callback].
+ */
+Timer scheduleExpiration(DateTime expirationTime, callback) {
+  var duration = expirationTime.difference(new DateTime.now());
+
+  // When compiled to javascript timer can not be set to period longer than
+  // 23 days. For this reason [scheduleExpiration] do not schedule [Duration]s
+  // longer than MAX_SAFE_DURATION.
+  if (duration > MAX_SAFE_DURATION) duration = MAX_SAFE_DURATION;
+
+  if (duration < new Duration(microseconds: 0)) {
+    throw new ArgumentError("Expiration time from past: $expirationTime");
+  }
+  return new Timer(duration, callback);
+}
+
+
+
+
+/**
+ * Reactively compute value of reference.
+ *
+ * Value is computed using [computeValue] whenever happens [onChange] on any
+ * item in [listenTo]. If [computeValue] returns [ReactiveValue] then
+ * recalculation of value will also hapen at expiration time.
+ */
+DataReference reactiveRef(Iterable listenTo, computeValue,
+                          {bool forceOverride: false}) {
+  var reactor;
+  DataReference ref = new DataReference(null, () => reactor.dispose());
+  reactor = new Reactor(ref, listenTo, computeValue,
+                        forceOverride: forceOverride);
+
   return ref;
 }
