@@ -73,10 +73,6 @@ class DataReference<V> extends Object with ChangeNotificationsMixin, ChangeValue
   }
 
   Function _onDispose;
-  setOnDispose(onDispose) {
-    if (_onDispose != null) throw new Exception("onDispose already setted");
-    _onDispose = onDispose;
-  }
 
   void dispose() {
     _dispose();
