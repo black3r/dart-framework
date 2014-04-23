@@ -110,6 +110,8 @@ class Reactor {
   }
 }
 
+// when compiled to javascript timer cant be set to period longer than 23.something
+// so createTimer will shedule changes only to MAX_SAFE_DURATION in future
 final MAX_SAFE_DURATION = new Duration(days: 10);
 Timer createTimer(expirationTime, callback) {
   var duration = expirationTime.difference(new DateTime.now());
