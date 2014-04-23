@@ -1,6 +1,11 @@
 name: clean_data
-description: A sample web application
-dependencies:
-  browser: any
+version: 0.4.12
+author: Clean Team <clean@vacuumlabs.com>
+description: Support for automatical data synchronization among collections.
+homepage: http://cleandart.github.io/clean_data/
+environment:
+  sdk: '>=0.8.10+6 <2.0.0'
+documentation: http://cleandart.github.io/clean_data/
 dev_dependencies:
-  unittest: any
+  hop: any
+  unittest: '>=0.10.0'
