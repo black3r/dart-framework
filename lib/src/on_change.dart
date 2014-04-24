@@ -124,6 +124,8 @@ class ReactiveValue {
   final DateTime expiration;
   final dynamic value;
   ReactiveValue(this.value, {DateTime this.expiration});
+  ReactiveValue.withDuration(value, Duration duration)
+      : this(value, expiration: new DateTime.now().add(duration));
 }
 
 
@@ -150,8 +152,6 @@ Timer scheduleExpiration(DateTime expirationTime, callback) {
   }
   return new Timer(duration, callback);
 }
-
-
 
 
 /**
