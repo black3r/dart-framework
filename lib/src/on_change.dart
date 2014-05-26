@@ -10,7 +10,7 @@ part of clean_data;
  * Returned stream propagates single [null] value as notification that some
  * [onChange] occured. Propagation happens asynchronously in the new event loop.
  */
-Stream onChange(Iterable sources) {
+Stream onChange(Iterable sources,{Duration every: Duration.ZERO}) {
   var start, stop, notify;
 
   var controller = new StreamController.broadcast(
@@ -37,9 +37,11 @@ Stream onChange(Iterable sources) {
     if (!listening) return;
     willNotify = true;
 
-    Timer.run(() {
-      willNotify = false;
-      controller.add(null);
+    new Timer(every , () {
+      if (listening != false) {
+        willNotify = false;
+        controller.add(null);
+      }
     });
   };
 
